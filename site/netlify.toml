@@ -440,3 +440,11 @@
   to     = "/"
   status = 404
   force  = true
+
+# v12.43 · instruções de publicação que vão dentro do zip: ordem das
+# migrations e nomes de funções. Não é para o público.
+[[redirects]]
+  from   = "/LEIA-ME-DEPLOY.txt"
+  to     = "/"
+  status = 404
+  force  = true

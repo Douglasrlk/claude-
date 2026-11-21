@@ -1,0 +1,54 @@
+FIELDO v12.43 — COMO PUBLICAR
+=============================
+
+Este zip é o site inteiro, no mesmo formato do v12.41 (arquivos na raiz).
+Este arquivo NÃO fica público: o netlify.toml devolve 404 para ele.
+
+ORDEM — siga à risca. Publicar o site antes do banco QUEBRA a criação de
+relatório (o site novo grava a coluna reports.videos, que só existe depois
+da migration).
+
+1) Supabase — Edge Functions (pasta supabase/functions deste zip)
+   Republicar:
+     · admin-migracoes   (a lista fechada ganhou 2 migrations novas)
+     · assistant         (preço por período na Locação)
+   Pela CLI:  supabase functions deploy admin-migracoes
+              supabase functions deploy assistant
+
+2) Supabase — banco, pelo painel do dono:
+   Abra https://SEU-DOMINIO/admin-migracoes.html com a chave de admin e
+   aplique, NESTA ordem:
+     a) 2026-11-21_locacao_precos_periodo.sql
+     b) 2026-11-21_studio_v2_videos.sql
+   O painel mostra "já aplicada" quando a sondagem confere coluna, função
+   e bucket. As duas são idempotentes: rodar de novo não estraga nada.
+   (Alternativa: colar os dois arquivos de supabase/migrations no SQL
+   Editor, na mesma ordem.)
+
+   Conferir depois, no SQL Editor:
+     select id from storage.buckets where id = 'videos';      -- 1 linha
+     select to_regprocedure('private.studio_roteiro_valido(jsonb,jsonb,jsonb)');  -- não nulo
+
+3) Netlify — publicar o site
+   Arraste este zip (ou a pasta extraída) no deploy do site, como no v12.41.
+   As Netlify Edge Functions (netlify/edge-functions) vão junto.
+
+4) Teste rápido em produção (5 minutos)
+   · Registrar um serviço com 1 vídeo curto → abrir o link do cliente →
+     o vídeo toca.
+   · Studio → abrir esse serviço → aba Música → tocar uma trilha nova →
+     Gerar vídeo.
+   · Locação → editar um equipamento → preencher só "Mês" → salvar.
+   · Vitrine /l/sua-locadora → preços por período aparecem.
+
+O QUE MUDOU (detalhes no repositório, docs/STUDIO_V2.md)
+   · Vídeo no relatório (até 3, até 30 s) e no Studio.
+   · Studio v2: 31 trilhas novas, música do celular, linha do tempo,
+     texto por cena, filtros, transições, 5 encerramentos, link e QR
+     opcionais, desfazer/refazer.
+   · Locação: preço por diária, semana, quinzena e mês; fotos sem corte.
+
+VOLTAR ATRÁS
+   · Site: na Netlify, "Publish deploy" no deploy anterior (v12.41).
+   · Banco: as migrations só ACRESCENTAM (coluna, bucket, funções). O site
+     v12.41 continua funcionando com o banco já migrado.
