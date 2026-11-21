@@ -30,7 +30,7 @@
     trilha_invalida:           'Trilha inválida.',
     roteiro_invalido:          'Não foi possível salvar o roteiro. Recarregue a página.',
     roteiro_grande:            'Roteiro grande demais.',
-    fotos_invalidas:           'Escolha de 1 a 8 fotos.',
+    fotos_invalidas:           'Escolha pelo menos uma foto ou um vídeo (até 8 fotos e 3 vídeos).',
     foto_fora_do_servico:      'Uma das fotos não pertence mais a este serviço. Revise as fotos.',
     texto_invalido:            'Os textos aceitam até 60 caracteres, sem < ou >.',
     limite_de_videos:          'Você chegou ao limite de vídeos guardados. Exclua alguns antigos.',

@@ -19,6 +19,15 @@
    na base e ~140 px à direita com botões. Todo texto importante fica
    entre y=240 e y=1560 e longe da borda direita.
 
+   v12.43 · Studio v2:
+     · cena de VÍDEO (clipe do relatório, até 30 s): corte, velocidade;
+       na prévia o <video> toca sincronizado; na exportação cada quadro
+       espera o vídeo chegar no instante exato (quadroExato);
+     · linha do tempo editável: ordem, duração, texto e transição por cena;
+     · filtros de cor e 8 transições;
+     · encerramentos: cartão, WhatsApp, contato, logo ou nenhum — com o
+       link e o QR do perfil opcionais.
+
    Depende de qrcode_min.js (já existe no projeto). Não toca em db.js.
    ════════════════════════════════════════════════════════════════ */
 (function (global) {
@@ -242,12 +251,76 @@
     return Promise.all([proxima(), proxima(), proxima()]).then(function () { return { fotos: res, falhas: falhas }; });
   }
 
+  /* filtro de cor ativo (Studio v2): vale para foto e vídeo, nunca para texto */
+  var FILTROS = {
+    nenhum: '', vivo: 'saturate(1.35) contrast(1.08)', quente: 'sepia(0.22) saturate(1.25) hue-rotate(-6deg)',
+    frio: 'saturate(1.05) hue-rotate(10deg) brightness(1.03)', pb: 'grayscale(1) contrast(1.12)',
+    cinema: 'contrast(1.16) saturate(0.82) brightness(0.95)', suave: 'brightness(1.06) contrast(0.92) saturate(0.9)'
+  };
+  var FILTRO_ATIVO = '';
+
+  function dimensoes(img) {
+    return { w: img.videoWidth || img.width, h: img.videoHeight || img.height };
+  }
+
+  /* ── vídeos (clipes do relatório, Studio v2) ─────────────────────
+     Um <video> por clipe, mudo (o som do clipe entra na mixagem de
+     studio-audio.js), com crossOrigin: sem isso o canvas fica
+     "contaminado" e a exportação não consegue ler os quadros. */
+  function esperarEvento(el, ev, ms) {
+    return new Promise(function (ok, falha) {
+      var t = setTimeout(function () { el.removeEventListener(ev, h); falha(new Error('tempo_' + ev)); }, ms || 10000);
+      function h() { clearTimeout(t); el.removeEventListener(ev, h); ok(); }
+      el.addEventListener(ev, h);
+    });
+  }
+
+  function prepararVideo(item) {
+    var el = document.createElement('video');
+    el.crossOrigin = 'anonymous'; el.muted = true; el.defaultMuted = true; el.playsInline = true; el.preload = 'auto';
+    el.setAttribute('playsinline', ''); el.setAttribute('muted', '');
+    var p = esperarEvento(el, 'loadeddata', 25000);
+    el.src = item.url;
+    return p.then(function () {
+      el.currentTime = Math.min(0.4, (el.duration || 1) / 2);
+      return esperarEvento(el, 'seeked', 8000).catch(function () {});
+    }).then(function () {
+      var w = el.videoWidth, h = el.videoHeight;
+      if (!w || !h) throw new Error('video_sem_imagem');
+      var sc = Math.min(1, 720 / Math.max(w, h)), snap = canvas(w * sc, h * sc);
+      snap.getContext('2d').drawImage(el, 0, 0, snap.width, snap.height);
+      var m1 = canvas(108, 192), g1 = m1.getContext('2d');
+      capaEm(g1, snap, 0, 0, 108, 192, 1, 0, 0);
+      var m2 = canvas(27, 48), g2 = m2.getContext('2d'); g2.drawImage(m1, 0, 0, 27, 48);
+      var fundo = canvas(270, 480), gf = fundo.getContext('2d'); gf.imageSmoothingQuality = 'high'; gf.drawImage(m2, 0, 0, 270, 480);
+      el.currentTime = 0;
+      return { url: item.url, el: el, img: snap, w: w, h: h, retrato: ehRetrato(w, h), fundo: fundo,
+               duracao: isFinite(el.duration) ? el.duration : Number(item.duracao) || 0, video: true, nota: 0 };
+    });
+  }
+
+  function prepararVideos(itens, onProgresso) {
+    var res = {}, falhas = [], feitos = 0;
+    return (itens || []).reduce(function (p, it) {
+      return p.then(function () {
+        return prepararVideo(it).then(function (v) { res[it.url] = v; }, function () { falhas.push(it.url); })
+          .then(function () { feitos++; if (onProgresso) onProgresso(feitos, itens.length); });
+      });
+    }, Promise.resolve()).then(function () { return { videos: res, falhas: falhas }; });
+  }
+
   /* desenha a imagem cobrindo o retângulo, com zoom e deslocamento (-1..1) */
   function capaEm(ctx, img, x, y, w, h, zoom, px, py) {
-    var iw = img.width, ih = img.height, s = Math.max(w / iw, h / ih) * (zoom || 1);
+    var dm = dimensoes(img), iw = dm.w, ih = dm.h;
+    if (!iw || !ih) return;
+    var s = Math.max(w / iw, h / ih) * (zoom || 1);
     var dw = iw * s, dh = ih * s, folgaX = (dw - w) / 2, folgaY = (dh - h) / 2;
     var dx = x - folgaX + folgaX * (px || 0), dy = y - folgaY + folgaY * (py || 0);
-    ctx.drawImage(img, dx, dy, dw, dh);
+    if (FILTRO_ATIVO) {
+      ctx.save(); var atual = ctx.filter && ctx.filter !== 'none' ? ctx.filter + ' ' : '';
+      ctx.filter = atual + FILTRO_ATIVO; ctx.drawImage(img, dx, dy, dw, dh); ctx.restore();
+    }
+    else ctx.drawImage(img, dx, dy, dw, dh);
   }
 
   /* movimento de câmera (Ken Burns) determinístico por índice */
@@ -265,7 +338,7 @@
   /* Foto em tela cheia (retrato) ou em moldura sobre o fundo desfocado. */
   function fotoTela(ctx, F, lt, dur, i, M, opts) {
     opts = opts || {};
-    var cam = camera(i, lt, dur, M.forte);
+    var cam = opts.semCamera ? { zoom: 1, px: 0, py: 0 } : camera(i, lt, dur, M.forte);
     if (!F) { ctx.fillStyle = M.claro ? COR.papel2 : COR.tinta2; ctx.fillRect(0, 0, W, H); return; }
     if (F.retrato && !M.claro && !opts.moldura) {
       capaEm(ctx, F.img, 0, 0, W, H, cam.zoom, cam.px, cam.py);
@@ -323,7 +396,7 @@
   var CENAS = {};
 
   CENAS.abertura = function (ctx, lt, c, S) {
-    var M = S.M, F = S.fotos[S.r.capa];
+    var M = S.M, F = S.capaF;
     if (M.claro) {
       ctx.fillStyle = COR.papel; ctx.fillRect(0, 0, W, H);
       var a = entra(lt, 0, 0.9);
@@ -471,8 +544,51 @@
     texto(ctx, c.legenda, PAD, 1532, 'italic 500 56px Fraunces, Georgia, serif', COR.papel, e2, (1 - e2) * 20);
   };
 
+  /* clipe de vídeo: o quadro do <video> sincronizado pela linha do tempo.
+     Sem movimento de câmera (o vídeo já se mexe); em pé ocupa a tela,
+     deitado entra em moldura sobre o próprio quadro desfocado. */
+  CENAS.video = function (ctx, lt, c, S) {
+    var M = S.M, V = c.V;
+    if (!V) { ctx.fillStyle = M.claro ? COR.papel2 : COR.tinta2; ctx.fillRect(0, 0, W, H); return; }
+    var F = { img: V.el.readyState >= 2 ? V.el : V.img, fundo: V.fundo, retrato: V.retrato, w: V.w, h: V.h };
+    var box = fotoTela(ctx, F, lt, c.dur, 0, M, { semCamera: true });
+    if (!M.claro && (c.texto || c.legenda)) gradienteBase(ctx, box ? 0.72 : 0.66, 0.7);
+  };
+
+  /* texto livre por cena (Studio v2), em três estilos */
+  function legendaLivre(ctx, txt, estilo, alpha, S) {
+    if (!txt || alpha <= 0.001) return;
+    var acento = S.M.forte ? S.acento : COR.ouro, y = 1430;
+    ctx.save(); ctx.globalAlpha *= alpha;
+    if (estilo === 'destaque') {
+      var A = ajustar('800 {t}px "DM Sans"', txt.toUpperCase(), W - PAD * 2 - 60, 2, [74, 64, 56]);
+      var lh = A.tam * 1.08, topo = y - lh * A.linhas.length;
+      A.linhas.forEach(function (l, i) {
+        ctx.font = A.font + ', sans-serif';
+        var w = ctx.measureText(l).width, yy = topo + i * lh;
+        ctx.fillStyle = acento; ctx.fillRect(PAD - 14, yy + lh * 0.12, w + 28, lh * 0.92);
+        texto(ctx, l, PAD, yy + lh * 0.86, A.font + ', sans-serif', S.M.claro ? '#fff' : COR.tinta, 1, 0);
+      });
+    } else if (estilo === 'caixa') {
+      var B = ajustar('600 {t}px "DM Sans"', txt, W - PAD * 2 - 80, 3, [54, 48, 42]);
+      var lb = B.tam * 1.22, hb = lb * B.linhas.length + 52, yb = y - hb + 20;
+      ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 8;
+      retArred(ctx, PAD - 10, yb, W - PAD * 2 - 130, hb, 26); ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.fill(); ctx.restore();
+      B.linhas.forEach(function (l, i) { texto(ctx, l, PAD + 26, yb + 26 + B.tam + i * lb, B.font + ', sans-serif', COR.tinta, 1, 0); });
+    } else {
+      var L = ajustar('600 {t}px "DM Sans"', txt, W - PAD * 2 - 60, 3, [58, 52, 46]);
+      var ll = L.tam * 1.2, y0 = y - ll * (L.linhas.length - 1);
+      L.linhas.forEach(function (l, i) {
+        ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.75)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 3;
+        texto(ctx, l, W / 2 - 40, y0 + i * ll, L.font + ', sans-serif', S.M.claro ? COR.tinta : '#fff', 1, 0, 'center');
+        ctx.restore();
+      });
+    }
+    ctx.restore();
+  }
+
   CENAS.avaliacao = function (ctx, lt, c, S) {
-    var M = S.M, F = S.fotos[S.r.depois] || S.fotos[S.r.capa];
+    var M = S.M, F = S.fotos[S.r.depois] || S.capaF;
     var corTexto = M.claro ? COR.tinta : COR.papel, corSub = M.claro ? 'rgba(26,26,36,.6)' : 'rgba(255,255,255,.6)';
     if (M.claro) { ctx.fillStyle = COR.papel; ctx.fillRect(0, 0, W, H); }
     else {
@@ -503,51 +619,128 @@
     texto(ctx, '— ' + c.autor, W / 2, 1000 + c.linhas.length * 84 + (M.claro ? 60 : 0), '500 34px "DM Sans", sans-serif', corSub, ea, (1 - ea) * 16, 'center');
   };
 
-  CENAS.fechamento = function (ctx, lt, c, S) {
+  /* ── encerramentos (Studio v2) ───────────────────────────────────
+     c.estilo: 'cartao' (o original) | 'whatsapp' | 'contato' | 'logo'
+     c.qr / c.link: mostrar ou não o QR e o endereço do perfil.
+     Sem QR e sem link o vídeo não leva o cliente ao perfil — a escolha é
+     do profissional; a tela avisa que as visitas deixam de ser contadas. */
+  function fundoFechamento(ctx, S) {
     var M = S.M, claro = M.claro;
-    var fundo = claro ? COR.papel : COR.tinta, tinta = claro ? COR.tinta : COR.papel, sub = claro ? 'rgba(26,26,36,.62)' : 'rgba(255,255,255,.6)';
-    ctx.fillStyle = fundo; ctx.fillRect(0, 0, W, H);
-    /* brilho discreto atrás do nome */
+    ctx.fillStyle = claro ? COR.papel : COR.tinta; ctx.fillRect(0, 0, W, H);
     var gl = ctx.createRadialGradient(W / 2, 640, 40, W / 2, 640, 760);
     gl.addColorStop(0, M.forte ? hexRgba(S.acento, 0.32) : 'rgba(212,171,64,' + (claro ? 0.16 : 0.2) + ')');
     gl.addColorStop(1, 'rgba(212,171,64,0)');
     ctx.fillStyle = gl; ctx.fillRect(0, 0, W, H);
+  }
 
-    var ea = eback((lt - 0.1) / 0.6);
-    if (lt > 0.1) {
-      ctx.save(); ctx.translate(W / 2, 560); var s = 0.6 + 0.4 * ea; ctx.scale(s, s); ctx.globalAlpha = clamp01(ea);
-      ctx.beginPath(); ctx.arc(0, 0, 118, 0, Math.PI * 2); ctx.fillStyle = M.forte ? S.acento : COR.ouro; ctx.fill();
-      if (S.avatar) {
-        ctx.save(); ctx.beginPath(); ctx.arc(0, 0, 110, 0, Math.PI * 2); ctx.clip();
-        capaEm(ctx, S.avatar.img, -110, -110, 220, 220, 1, 0, -0.2); ctx.restore();
-      } else {
-        ctx.beginPath(); ctx.arc(0, 0, 110, 0, Math.PI * 2); ctx.fillStyle = claro ? COR.papel2 : COR.tinta2; ctx.fill();
-        texto(ctx, (S.nome || 'F').charAt(0).toUpperCase(), 0, 42, 'italic 500 120px Fraunces, Georgia, serif', M.forte ? S.acento : COR.ouro, 1, 0, 'center');
+  function avatarCirculo(ctx, S, cx, cy, raio, lt, t0) {
+    var M = S.M, claro = M.claro, ea = eback((lt - t0) / 0.6);
+    if (lt <= t0) return;
+    ctx.save(); ctx.translate(cx, cy); var s = 0.6 + 0.4 * ea; ctx.scale(s, s); ctx.globalAlpha = clamp01(ea);
+    ctx.beginPath(); ctx.arc(0, 0, raio + 8, 0, Math.PI * 2); ctx.fillStyle = M.forte ? S.acento : COR.ouro; ctx.fill();
+    if (S.avatar) {
+      ctx.save(); ctx.beginPath(); ctx.arc(0, 0, raio, 0, Math.PI * 2); ctx.clip();
+      capaEm(ctx, S.avatar.img, -raio, -raio, raio * 2, raio * 2, 1, 0, -0.2); ctx.restore();
+    } else {
+      ctx.beginPath(); ctx.arc(0, 0, raio, 0, Math.PI * 2); ctx.fillStyle = claro ? COR.papel2 : COR.tinta2; ctx.fill();
+      texto(ctx, (S.nome || 'F').charAt(0).toUpperCase(), 0, raio * 0.38, 'italic 500 ' + Math.round(raio * 1.1) + 'px Fraunces, Georgia, serif', M.forte ? S.acento : COR.ouro, 1, 0, 'center');
+    }
+    ctx.restore();
+  }
+
+  function blocoQr(ctx, S, lt, y, t0) {
+    var eq = eback((lt - t0) / 0.6), lado = 300, qx = W / 2 - lado / 2;
+    if (!S.qr || lt <= t0) return;
+    ctx.save(); ctx.globalAlpha = clamp01(eq);
+    ctx.translate(W / 2, y + lado / 2); ctx.scale(0.8 + 0.2 * eq, 0.8 + 0.2 * eq); ctx.translate(-W / 2, -(y + lado / 2));
+    retArred(ctx, qx - 26, y - 26, lado + 52, lado + 52, 30); ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.imageSmoothingEnabled = false; ctx.drawImage(S.qr, qx, y, lado, lado); ctx.imageSmoothingEnabled = true;
+    ctx.restore();
+  }
+
+  /* ícone do WhatsApp desenhado (balão + telefone), sem imagem externa */
+  function iconeWhats(ctx, cx, cy, r) {
+    ctx.save();
+    ctx.fillStyle = '#25d366'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = r * 0.1; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.56, Math.PI * 0.72, Math.PI * 2.55);
+    ctx.lineTo(cx - r * 0.5, cy + r * 0.56); ctx.closePath(); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.beginPath();
+    ctx.ellipse(cx - r * 0.13, cy - r * 0.14, r * 0.1, r * 0.17, -0.6, 0, Math.PI * 2);
+    ctx.ellipse(cx + r * 0.16, cy + r * 0.15, r * 0.17, r * 0.1, -0.6, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function telefoneBR(n) {
+    var d = String(n || '').replace(/\D/g, '');
+    if (d.length > 11 && d.indexOf('55') === 0) d = d.slice(2);
+    if (d.length === 11) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+    if (d.length === 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+    return d;
+  }
+
+  CENAS.fechamento = function (ctx, lt, c, S) {
+    var M = S.M, claro = M.claro;
+    var tinta = claro ? COR.tinta : COR.papel, sub = claro ? 'rgba(26,26,36,.62)' : 'rgba(255,255,255,.6)';
+    var acento = M.forte ? S.acento : (claro ? COR.ouroD : COR.ouro);
+    var fonteNome = M.forte ? '800 84px "DM Sans", sans-serif' : 'italic 500 88px Fraunces, Georgia, serif';
+    fundoFechamento(ctx, S);
+    var en = entra(lt, 0.3, 0.7), ec = entra(lt, 0.6, 0.7), el = entra(lt, 1.15, 0.6);
+    var y;
+
+    if (c.estilo === 'whatsapp') {
+      var ew = eback((lt - 0.1) / 0.6);
+      if (lt > 0.1) { ctx.save(); ctx.globalAlpha = clamp01(ew); ctx.translate(W / 2, 470); ctx.scale(0.6 + 0.4 * ew, 0.6 + 0.4 * ew); iconeWhats(ctx, 0, 0, 120); ctx.restore(); }
+      texto(ctx, c.chamada, W / 2, 720, '700 64px "DM Sans", sans-serif', tinta, ec, (1 - ec) * 22, 'center');
+      texto(ctx, c.whats || 'Chame no WhatsApp', W / 2, 830, '600 76px "DM Mono", monospace', acento, en, (1 - en) * 20, 'center');
+      c.nomeL.forEach(function (l, k) { texto(ctx, l, W / 2, 960 + k * 92, fonteNome, tinta, en, (1 - en) * 26, 'center'); });
+      y = 960 + (c.nomeL.length - 1) * 92;
+      texto(ctx, S.sub, W / 2, y + 64, '400 34px "DM Sans", sans-serif', sub, en, (1 - en) * 20, 'center');
+      y += 130;
+    } else if (c.estilo === 'contato') {
+      avatarCirculo(ctx, S, W / 2, 440, 96, lt, 0.1);
+      c.nomeL.forEach(function (l, k) { texto(ctx, l, W / 2, 660 + k * 92, fonteNome, tinta, en, (1 - en) * 26, 'center'); });
+      y = 660 + (c.nomeL.length - 1) * 92;
+      texto(ctx, S.sub, W / 2, y + 64, '400 34px "DM Sans", sans-serif', sub, en, (1 - en) * 20, 'center');
+      var linhas = [];
+      if (c.whats) linhas.push(['WhatsApp', c.whats]);
+      if (c.insta) linhas.push(['Instagram', '@' + c.insta]);
+      if (c.link && c.linkTexto) linhas.push(['Perfil', c.linkTexto]);
+      linhas.forEach(function (ln, k) {
+        var e = entra(lt, 0.7 + k * 0.15, 0.6), yy = y + 190 + k * 120;
+        ctx.save(); ctx.globalAlpha *= e;
+        retArred(ctx, PAD, yy - 70, W - PAD * 2 - 60, 100, 22); ctx.fillStyle = claro ? 'rgba(14,14,20,.05)' : 'rgba(255,255,255,.07)'; ctx.fill();
+        ctx.restore();
+        texto(ctx, ln[0].toUpperCase(), PAD + 30, yy - 22, '500 24px "DM Mono", monospace', acento, e, 0);
+        texto(ctx, ln[1], PAD + 30, yy + 16, (ln[0] === 'Perfil' ? '500 30px "DM Mono", monospace' : '600 40px "DM Sans", sans-serif'), tinta, e, 0);
+      });
+      y += 190 + linhas.length * 120;
+      texto(ctx, c.chamada, W / 2, y + 30, '600 50px "DM Sans", sans-serif', tinta, ec, (1 - ec) * 22, 'center');
+      y += 60;
+    } else if (c.estilo === 'logo') {
+      avatarCirculo(ctx, S, W / 2, 700, 170, lt, 0.1);
+      c.nomeL.forEach(function (l, k) { texto(ctx, l, W / 2, 1010 + k * 92, fonteNome, tinta, en, (1 - en) * 26, 'center'); });
+      y = 1010 + (c.nomeL.length - 1) * 92;
+      texto(ctx, S.sub, W / 2, y + 64, '400 34px "DM Sans", sans-serif', sub, en, (1 - en) * 20, 'center');
+      if (c.link && c.linkTexto) texto(ctx, c.linkTexto, W / 2, y + 150, '500 30px "DM Mono", monospace', acento, el, (1 - el) * 14, 'center');
+      y = null;
+    } else {
+      /* cartão: o encerramento original */
+      avatarCirculo(ctx, S, W / 2, 560, 110, lt, 0.1);
+      c.nomeL.forEach(function (l, k) { texto(ctx, l, W / 2, 800 + k * 92, fonteNome, tinta, en, (1 - en) * 26, 'center'); });
+      y = 800 + (c.nomeL.length - 1) * 92;
+      texto(ctx, S.sub, W / 2, y + 64, '400 34px "DM Sans", sans-serif', sub, en, (1 - en) * 20, 'center');
+      texto(ctx, c.chamada, W / 2, y + 190, '600 52px "DM Sans", sans-serif', tinta, ec, (1 - ec) * 22, 'center');
+      y += 250;
+    }
+
+    if (y != null) {
+      if (c.qr && S.qr) { blocoQr(ctx, S, lt, y, 0.85); y += 400; }
+      if (c.link && c.linkTexto && c.estilo !== 'contato') {
+        texto(ctx, c.linkTexto, W / 2, y + (c.qr && S.qr ? 0 : 40), '500 30px "DM Mono", monospace', acento, el, (1 - el) * 14, 'center');
+        if (c.qr && S.qr) texto(ctx, 'Aponte a câmera do celular para o código', W / 2, y + 50, '400 28px "DM Sans", sans-serif', sub, el, (1 - el) * 14, 'center');
       }
-      ctx.restore();
     }
-    var en = entra(lt, 0.3, 0.7);
-    c.nomeL.forEach(function (l, k) {
-      texto(ctx, l, W / 2, 800 + k * 92, M.forte ? '800 84px "DM Sans", sans-serif' : 'italic 500 88px Fraunces, Georgia, serif', tinta, en, (1 - en) * 26, 'center');
-    });
-    var yb = 800 + (c.nomeL.length - 1) * 92;
-    texto(ctx, S.sub, W / 2, yb + 64, '400 34px "DM Sans", sans-serif', sub, en, (1 - en) * 20, 'center');
-
-    var ec = entra(lt, 0.6, 0.7);
-    texto(ctx, c.chamada, W / 2, yb + 190, '600 52px "DM Sans", sans-serif', tinta, ec, (1 - ec) * 22, 'center');
-
-    var eq = eback((lt - 0.85) / 0.6);
-    if (S.qr && lt > 0.85) {
-      var lado = 300, qx = W / 2 - lado / 2, qy = yb + 250;
-      ctx.save(); ctx.globalAlpha = clamp01(eq);
-      ctx.translate(W / 2, qy + lado / 2); ctx.scale(0.8 + 0.2 * eq, 0.8 + 0.2 * eq); ctx.translate(-W / 2, -(qy + lado / 2));
-      retArred(ctx, qx - 26, qy - 26, lado + 52, lado + 52, 30); ctx.fillStyle = '#fff'; ctx.fill();
-      ctx.imageSmoothingEnabled = false; ctx.drawImage(S.qr, qx, qy, lado, lado); ctx.imageSmoothingEnabled = true;
-      ctx.restore();
-    }
-    var el = entra(lt, 1.15, 0.6);
-    texto(ctx, c.linkTexto, W / 2, yb + 250 + 300 + 100, '500 30px "DM Mono", monospace', claro ? COR.ouroD : COR.ouro, el, (1 - el) * 14, 'center');
-    if (S.qr) texto(ctx, 'Aponte a câmera do celular para o código', W / 2, yb + 250 + 300 + 150, '400 28px "DM Sans", sans-serif', sub, el, (1 - el) * 14, 'center');
 
     if (S.marca) {
       var em = entra(lt, 1.4, 0.6);
@@ -580,8 +773,13 @@
    * preferência em pé), antes = 1ª foto, depois = última, e as demais
    * como detalhes pela ordem de qualidade. O profissional ajusta tudo.
    */
-  function sugerirRoteiro(servico, fotos) {
+  function sugerirRoteiro(servico, fotos, videos) {
     var urls = (servico.fotos || []).filter(function (u) { return typeof u === 'string' && fotos[u]; });
+    /* v12.43 · clipes: até 2, os primeiros 8 s de cada (o profissional ajusta) */
+    var clipes = (servico.videos || []).filter(function (v) { return v && videos && videos[v.url]; }).slice(0, 2).map(function (v) {
+      var tot = videos[v.url].duracao || Number(v.duracao) || 8;
+      return { url: v.url, de: 0, ate: Math.round(Math.min(tot, 8) * 10) / 10, vel: 1, vol: 1 };
+    });
     var porNota = urls.slice().sort(function (a, b) {
       return (fotos[b].nota + (fotos[b].retrato ? 1.2 : 0)) - (fotos[a].nota + (fotos[a].retrato ? 1.2 : 0));
     });
@@ -590,7 +788,8 @@
     var escolhidas = porNota.slice(0, 8);
     if (antes && escolhidas.indexOf(antes) < 0) escolhidas[escolhidas.length - 1] = antes;
     return {
-      v: 1,
+      v: 2,
+      videos: clipes,
       titulo: limpa(servico.titulo || servico.categoria || 'Serviço concluído', 60),
       chamada: 'Peça seu orçamento',
       fotos: urls.filter(function (u) { return escolhidas.indexOf(u) >= 0; }),
@@ -610,39 +809,59 @@
     return m ? MESES[Number(m[2]) - 1] + ' ' + m[1] : '';
   }
 
+  var VELOCIDADES = [0.5, 0.75, 1, 1.25, 1.5, 2];
+  var TRANSICOES = ['modelo', 'fade', 'deslizar', 'zoom', 'cortina', 'flash', 'corte', 'desfoque'];
+
   /**
    * Monta a linha do tempo. d = {
-   *   perfil {nome, profissao, cidade, uf}, servico {titulo, categoria, data, avaliacao},
-   *   roteiro, modelo, marca, link (com ?src=), fotos (de prepararFotos), avatar (foto preparada ou null)
+   *   perfil {nome, profissao, cidade, uf, whatsapp, instagram}, servico {titulo, categoria, data, avaliacao},
+   *   roteiro, modelo, marca, link (com ?src=), fotos (de prepararFotos), videos (de prepararVideos),
+   *   avatar (foto preparada ou null)
    * }
-   * Devolve { duracao, cenas, desenhar(ctx, t), quadrosChave() }.
+   * Devolve { duracao, cenas, desenhar(ctx, t), quadrosChave(), sincronizar(t, tocando),
+   *           quadroExato(t) → Promise, pararVideos(), clipes }.
    */
   function montar(d) {
     var M = MODELOS[d.modelo] || MODELOS.classico;
-    var r = d.roteiro || {}, fotos = d.fotos || {}, perfil = d.perfil || {}, sv = d.servico || {};
+    var r = d.roteiro || {}, fotos = d.fotos || {}, vids = d.videos || {}, perfil = d.perfil || {}, sv = d.servico || {};
     var acento = (M.forte && /^#[0-9a-f]{6}$/i.test(r.acento || '')) ? r.acento : COR.ouro;
     var nome = limpa(perfil.nome || 'Profissional', 40);
     var sub = [limpa(perfil.profissao, 28), limpa([perfil.cidade, perfil.uf].filter(Boolean).join('/'), 30)].filter(Boolean).join('  ·  ');
 
     var usaveis = (r.fotos || []).filter(function (u) { return fotos[u]; });
+    var clipes = (r.videos || []).filter(function (v) { return v && vids[v.url]; }).slice(0, 3).map(function (v) {
+      var V = vids[v.url], total = V.duracao || 30;
+      var de = Math.max(0, Math.min(Number(v.de) || 0, Math.max(0, total - 0.3)));
+      var ate = Math.min(total, de + 30, v.ate != null ? Number(v.ate) : total);
+      if (!(ate > de + 0.25)) ate = Math.min(total, de + 1);
+      var vel = VELOCIDADES.indexOf(Number(v.vel)) >= 0 ? Number(v.vel) : 1;
+      var vol = v.vol == null ? 1 : Math.max(0, Math.min(1, Number(v.vol)));
+      return { url: v.url, V: V, de: de, ate: ate, vel: vel, vol: vol };
+    });
     var capa = fotos[r.capa] ? r.capa : (usaveis[0] || null);
+    var capaF = capa ? fotos[capa] : (clipes[0] ? { img: clipes[0].V.img, fundo: clipes[0].V.fundo, retrato: clipes[0].V.retrato, w: clipes[0].V.w, h: clipes[0].V.h } : null);
     var antes = fotos[r.antes] ? r.antes : null, depois = fotos[r.depois] ? r.depois : null;
     var temAD = !!(antes && depois && antes !== depois);
+    var enc = r.encerramento || {}, estiloFim = ['cartao', 'whatsapp', 'contato', 'logo', 'nenhum'].indexOf(enc.estilo) >= 0 ? enc.estilo : 'cartao';
     var S = {
-      M: M, r: { capa: capa, antes: antes, depois: depois }, fotos: fotos, acento: acento,
+      M: M, r: { capa: capa, antes: antes, depois: depois }, fotos: fotos, capaF: capaF, acento: acento,
       nome: nome, sub: sub, marca: d.marca !== false, avatar: d.avatar || null, qr: null
     };
 
-    var k = M.ritmo, cenas = [];
+    var k = M.ritmo, base = [];
     var titulo = limpa(r.titulo || sv.titulo || 'Serviço concluído', 60);
     var eyebrow = ['SERVIÇO CONCLUÍDO', rotuloData(sv.data)].filter(Boolean).join(' · ');
-    cenas.push({
-      tipo: 'abertura', dur: 3.1 * k, eyebrow: M.forte ? 'SERVIÇO CONCLUÍDO' : eyebrow,
+    base.push({
+      id: 'abertura', tipo: 'abertura', dur: 3.1 * k, eyebrow: M.forte ? 'SERVIÇO CONCLUÍDO' : eyebrow,
       tit: ajustar('600 {t}px Fraunces', titulo, MAXW, 3, [96, 86, 76, 68]),
       titE: ajustar('italic 500 {t}px Fraunces', titulo, W - PAD * 2, 3, [84, 74, 66, 58]),
       titF: ajustar('800 {t}px "DM Sans"', titulo.toUpperCase(), MAXW, 3, [116, 100, 88, 78, 68])
     });
-    if (temAD) cenas.push({ tipo: 'antesDepois', dur: (M.forte ? 3.2 : 4.2) * k, legenda: limpa(sv.categoria || titulo, 40) });
+    if (temAD) base.push({ id: 'antesDepois', tipo: 'antesDepois', dur: (M.forte ? 3.2 : 4.2) * k, legenda: limpa(sv.categoria || titulo, 40) });
+
+    clipes.forEach(function (cl, i) {
+      base.push({ id: 'video:' + i, tipo: 'video', dur: Math.max(0.3, (cl.ate - cl.de) / cl.vel), V: cl.V, clip: cl, legenda: '' });
+    });
 
     var usadas = [capa, antes, depois];
     var detalhes = usaveis.filter(function (u) { return usadas.indexOf(u) < 0; });
@@ -650,8 +869,8 @@
     detalhes = detalhes.slice(0, M.forte ? 5 : 4);
     var legenda = limpa(sv.categoria || titulo, 34);
     detalhes.forEach(function (u, i) {
-      cenas.push({
-        tipo: 'foto', dur: (M.forte ? 1.6 : 2.3) * k, url: u, indice: i,
+      base.push({
+        id: 'foto:' + u, tipo: 'foto', dur: (M.forte ? 1.6 : 2.3) * k, url: u, indice: i,
         contador: String(i + 1).padStart(2, '0') + ' / ' + String(detalhes.length).padStart(2, '0'),
         legenda: legenda, legendaF: legenda.toUpperCase()
       });
@@ -659,21 +878,45 @@
 
     var av = sv.avaliacao;
     if (r.avaliacao && av && av.nota >= 1 && av.comentario) {
-      cenas.push({
-        tipo: 'avaliacao', dur: 3.6 * k, nota: Math.round(av.nota),
+      base.push({
+        id: 'avaliacao', tipo: 'avaliacao', dur: 3.6 * k, nota: Math.round(av.nota),
         linhas: quebrar('italic 400 64px Fraunces', '“' + limpa(av.comentario, 170) + '”', 860, 5),
         autor: limpa(av.autor || 'Cliente', 30) + ', cliente'
       });
     }
-    cenas.push({
-      tipo: 'fechamento', dur: 3.8,
-      nomeL: quebrar(M.forte ? '800 84px "DM Sans"' : 'italic 500 88px Fraunces', M.forte ? nome.toUpperCase() : nome, W - 160, 2),
-      chamada: limpa(r.chamada || 'Peça seu orçamento', 60),
-      linkTexto: linkLimpo(d.link)
+    var fechamento = null;
+    if (estiloFim !== 'nenhum') {
+      fechamento = {
+        id: 'fechamento', tipo: 'fechamento', dur: 3.8, estilo: estiloFim,
+        qr: enc.qr !== false, link: enc.link !== false,
+        whats: perfil.whatsapp ? telefoneBR(perfil.whatsapp) : null,
+        insta: limpa(String(perfil.instagram || '').replace(/^@/, ''), 30) || null,
+        nomeL: quebrar(M.forte ? '800 84px "DM Sans"' : 'italic 500 88px Fraunces', M.forte ? nome.toUpperCase() : nome, W - 160, 2),
+        chamada: limpa(r.chamada || 'Peça seu orçamento', 60),
+        linkTexto: linkLimpo(d.link)
+      };
+    }
+
+    /* linha do tempo editada: ordem do meio, cenas ocultas, duração, texto, transição */
+    var cfg = {}, ordem = [];
+    (r.cenas || []).forEach(function (x) { if (x && typeof x.id === 'string') { cfg[x.id] = x; ordem.push(x.id); } });
+    var abertura = base[0], meio = base.slice(1);
+    meio = meio.map(function (c, i) { return { c: c, p: ordem.indexOf(c.id) >= 0 ? ordem.indexOf(c.id) : 1000 + i }; })
+      .sort(function (a, b) { return a.p - b.p; }).map(function (x) { return x.c; });
+    var cenas = [abertura].concat(meio).filter(function (c) { return !(cfg[c.id] && cfg[c.id].oculta); });
+    if (!cenas.length) cenas = [abertura];
+    if (fechamento) cenas.push(fechamento);
+    cenas.forEach(function (c) {
+      var x = cfg[c.id] || {};
+      if (x.dur != null && c.tipo !== 'video') c.dur = Math.max(c.tipo === 'abertura' ? 1.2 : 0.8, Math.min(10, Number(x.dur) || c.dur));
+      c.texto = limpa(x.texto || '', 60);
+      c.trans = TRANSICOES.indexOf(x.trans) >= 0 ? x.trans : (TRANSICOES.indexOf(r.transicao) >= 0 ? r.transicao : 'modelo');
     });
+    var estiloTexto = ['legenda', 'destaque', 'caixa'].indexOf(r.textoEstilo) >= 0 ? r.textoEstilo : 'legenda';
+    var filtro = FILTROS[r.filtro] || '';
 
     /* QR do perfil com o código de rastreio */
-    if (d.link && global.qrcode) {
+    if (d.link && global.qrcode && fechamento && fechamento.qr) {
       try {
         var q = global.qrcode(0, 'M'); q.addData(d.link); q.make();
         var nmod = q.getModuleCount(), cel = 8, qc = canvas((nmod + 2) * cel, (nmod + 2) * cel), qg = qc.getContext('2d');
@@ -687,55 +930,107 @@
     var TR = M.tr, t = 0;
     cenas.forEach(function (c, i) { c.ini = i === 0 ? 0 : t - TR; t = c.ini + c.dur; });
     var duracao = Math.round(t * FPS) / FPS;
+    var cenasVideo = cenas.filter(function (c) { return c.tipo === 'video'; });
+    var ultima = cenas[cenas.length - 1];
 
     function desenhar(ctx, tempo) {
       tempo = Math.max(0, Math.min(duracao - 1e-6, tempo));
+      FILTRO_ATIVO = filtro;
       ctx.save();
       ctx.fillStyle = M.claro ? COR.papel : COR.tinta; ctx.fillRect(0, 0, W, H);
       for (var i = 0; i < cenas.length; i++) {
         var c = cenas[i], lt = tempo - c.ini;
         if (lt < 0 || lt >= c.dur) continue;
         var prox = cenas[i + 1];
-        /* a cena que sai fica desenhada por baixo enquanto a próxima entra */
-        if (prox && tempo >= prox.ini && i + 1 < cenas.length) {
-          desenharCena(ctx, c, lt, 1);
-          continue;
-        }
-        var trans = i > 0 ? clamp01(lt / TR) : 1;
-        desenharCena(ctx, c, lt, trans);
+        if (prox && tempo >= prox.ini && i + 1 < cenas.length) { desenharCena(ctx, c, lt, 1); continue; }
+        desenharCena(ctx, c, lt, i > 0 ? clamp01(lt / TR) : 1);
       }
-      var fim = cenas[cenas.length - 1];
-      marcaDagua(ctx, S, 1 - clamp01((tempo - fim.ini) / TR));
+      marcaDagua(ctx, S, fechamento ? 1 - clamp01((tempo - ultima.ini) / TR) : 1);
       ctx.restore();
+      FILTRO_ATIVO = '';
     }
 
     function desenharCena(ctx, c, lt, trans) {
       ctx.save();
+      var flash = 0;
       if (trans < 1) {
-        var e = eio(trans);
-        if (M.forte) {
+        var e = eio(trans), tipo = c.trans;
+        if (tipo === 'modelo') tipo = M.forte ? 'zoom' : M.claro ? 'subir' : 'fade';
+        if (tipo === 'fade') ctx.globalAlpha = e;
+        else if (tipo === 'subir') { ctx.globalAlpha = e; ctx.translate(0, (1 - e) * 60); }
+        else if (tipo === 'deslizar') ctx.translate((1 - e) * W, 0);
+        else if (tipo === 'zoom') {
           var s = lerp(1.12, 1, eo(trans));
           ctx.translate(W / 2, H / 2); ctx.scale(s, s); ctx.translate(-W / 2, -H / 2);
           ctx.globalAlpha = clamp01(trans * 1.6);
-        } else if (M.claro) {
-          ctx.globalAlpha = e; ctx.translate(0, (1 - e) * 60);
-        } else {
-          ctx.globalAlpha = e;
-        }
+        } else if (tipo === 'cortina') { ctx.beginPath(); ctx.rect(0, 0, e * W, H); ctx.clip(); }
+        else if (tipo === 'flash') flash = 1 - trans;
+        else if (tipo === 'desfoque') { ctx.globalAlpha = e; ctx.filter = 'blur(' + ((1 - e) * 22).toFixed(1) + 'px)'; }
+        /* 'corte': nada — a cena nova cobre a anterior de uma vez */
       }
       CENAS[c.tipo](ctx, lt, c, S);
+      if (c.texto && c.tipo !== 'fechamento') {
+        ctx.filter = 'none';
+        legendaLivre(ctx, c.texto, estiloTexto, entra(lt, 0.25, 0.5) * (lt > c.dur - 0.3 ? clamp01((c.dur - lt) / 0.3) : 1), S);
+      }
+      if (flash > 0) { ctx.filter = 'none'; ctx.globalAlpha = flash; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H); }
       ctx.restore();
     }
 
-    /* um quadro "assentado" de cada cena — para a capa do arquivo e o carrossel */
-    function quadrosChave() {
-      return cenas.map(function (c) {
-        var lt = c.tipo === 'antesDepois' ? c.dur - 0.25 : Math.min(c.dur - 0.25, 2.4);
-        return Math.min(duracao - 0.05, c.ini + lt);
+    function alvoDe(c, tempo) { return c.clip.de + clamp01((tempo - c.ini) / c.dur) * (c.clip.ate - c.clip.de); }
+    function ativo(c, tempo) { return tempo >= c.ini - 0.25 && tempo < c.ini + c.dur; }
+
+    /* prévia: o <video> toca junto, corrigido quando escorrega mais de 0,25 s */
+    function sincronizar(tempo, tocando) {
+      cenasVideo.forEach(function (c) {
+        var el = c.V.el;
+        if (!ativo(c, tempo)) { if (!el.paused) el.pause(); return; }
+        var alvo = alvoDe(c, tempo);
+        if (tocando) {
+          if (el.playbackRate !== c.clip.vel) el.playbackRate = c.clip.vel;
+          if (el.paused) { try { el.currentTime = alvo; } catch (e) {} var p = el.play(); if (p && p.catch) p.catch(function () {}); }
+          else if (Math.abs(el.currentTime - alvo) > 0.25) { try { el.currentTime = alvo; } catch (e) {} }
+        } else {
+          if (!el.paused) el.pause();
+          if (Math.abs(el.currentTime - alvo) > 0.03) { try { el.currentTime = alvo; } catch (e) {} }
+        }
       });
     }
 
-    return { duracao: duracao, cenas: cenas, desenhar: desenhar, quadrosChave: quadrosChave, modelo: M };
+    /* exportação: cada quadro espera o vídeo chegar no instante exato */
+    function quadroExato(tempo) {
+      var pend = [];
+      cenasVideo.forEach(function (c) {
+        var el = c.V.el;
+        if (!ativo(c, tempo)) return;
+        if (!el.paused) el.pause();
+        var alvo = alvoDe(c, tempo);
+        if (Math.abs(el.currentTime - alvo) < 0.004 && el.readyState >= 2) return;
+        pend.push(new Promise(function (ok) {
+          var tm = setTimeout(ok, 4000);
+          el.addEventListener('seeked', function h() { el.removeEventListener('seeked', h); clearTimeout(tm); ok(); });
+          try { el.currentTime = alvo; } catch (e) { clearTimeout(tm); ok(); }
+        }));
+      });
+      return pend.length ? Promise.all(pend) : null;
+    }
+
+    function pararVideos() { cenasVideo.forEach(function (c) { try { c.V.el.pause(); } catch (e) {} }); }
+
+    function quadrosChave() {
+      return cenas.map(function (c) {
+        var lt = c.tipo === 'antesDepois' ? c.dur - 0.25 : Math.min(c.dur - 0.25, c.tipo === 'video' ? c.dur / 2 : 2.4);
+        return Math.min(duracao - 0.05, c.ini + Math.max(0, lt));
+      });
+    }
+
+    return {
+      duracao: duracao, cenas: cenas, desenhar: desenhar, quadrosChave: quadrosChave, modelo: M,
+      sincronizar: sincronizar, quadroExato: quadroExato, pararVideos: pararVideos,
+      temVideo: cenasVideo.length > 0,
+      clipes: cenasVideo.map(function (c) { return { url: c.clip.url, ini: c.ini, dur: c.dur, de: c.clip.de, ate: c.clip.ate, vel: c.clip.vel, vol: c.clip.vol }; }),
+      temRastreio: !!(fechamento && (fechamento.qr || fechamento.link))
+    };
   }
 
   /* fontes do vídeo prontas antes do primeiro quadro (senão o canvas
@@ -754,7 +1049,8 @@
   global.FIELDO = global.FIELDO || {};
   global.FIELDO.StudioMotor = {
     W: W, H: H, FPS: FPS, MODELOS: MODELOS,
-    prepararFotos: prepararFotos, preparar: preparar, sugerirRoteiro: sugerirRoteiro,
+    prepararFotos: prepararFotos, preparar: preparar, prepararVideos: prepararVideos, sugerirRoteiro: sugerirRoteiro,
+    FILTROS: Object.keys(FILTROS), TRANSICOES: TRANSICOES, VELOCIDADES: VELOCIDADES,
     montar: montar, fontesProntas: fontesProntas, linkLimpo: linkLimpo,
     _quebrar: quebrar
   };

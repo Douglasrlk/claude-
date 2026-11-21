@@ -20,6 +20,9 @@
    tentado sozinho. Cancelar para tudo e libera o codificador.
 
    Depende de vendor/mp4-muxer (MIT) só no caminho 1.
+
+   v12.43 · com clipe de vídeo na linha do tempo, cada quadro espera o
+   <video> chegar no instante exato (linha.quadroExato) antes de desenhar.
    ════════════════════════════════════════════════════════════════ */
 (function (global) {
   'use strict';
@@ -122,6 +125,9 @@
       for (var i = 0; i < total; i++) {
         if (sinal && sinal.cancelado) throw cancelado();
         if (erro) throw erro;
+        /* clipe de vídeo na cena: espera o <video> chegar no instante exato */
+        var pq = linha.quadroExato ? linha.quadroExato(i / FPS) : null;
+        if (pq) await pq;
         linha.desenhar(ctx, i / FPS);
         var q = new VideoFrame(c, { timestamp: Math.round(i * passo), duration: Math.round(passo) });
         venc.encode(q, { keyFrame: i % (FPS * 2) === 0 });
@@ -198,7 +204,8 @@
         var agora = actx ? actx.currentTime : performance.now() / 1000;
         var t = agora - inicio;
         if (sinal && sinal.cancelado) { acabou = true; try { rec.stop(); } catch (e) {} return; }
-        if (t >= linha.duracao) { linha.desenhar(ctx, linha.duracao); acabou = true; setTimeout(function () { try { rec.stop(); } catch (e) {} }, 120); return; }
+        if (t >= linha.duracao) { if (linha.pararVideos) linha.pararVideos(); linha.desenhar(ctx, linha.duracao); acabou = true; setTimeout(function () { try { rec.stop(); } catch (e) {} }, 120); return; }
+        if (linha.sincronizar) linha.sincronizar(t, true);
         linha.desenhar(ctx, t);
         if (onProgresso) onProgresso(0.04 + 0.92 * t / linha.duracao, 'tempo-real');
         raf = requestAnimationFrame(quadro);
@@ -218,6 +225,8 @@
     var mot = M(), c = tela(mot.W, mot.H, false), ctx = c.getContext('2d', { alpha: false });
     var tempos = linha.quadrosChave(), out = [];
     for (var i = 0; i < tempos.length; i++) {
+      var pq = linha.quadroExato ? linha.quadroExato(tempos[i]) : null;
+      if (pq) await pq;
       linha.desenhar(ctx, tempos[i]);
       out.push(await new Promise(function (ok) { c.toBlob(ok, 'image/jpeg', 0.92); }));
       if (onProgresso) onProgresso((i + 1) / tempos.length, 'carrossel');

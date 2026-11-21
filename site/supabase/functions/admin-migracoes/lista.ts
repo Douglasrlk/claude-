@@ -1,4 +1,4 @@
-// Gerado a partir de supabase/migrations/ (v12.40–v12.42). É a LISTA FECHADA do que
+// Gerado a partir de supabase/migrations/ (v12.40–v12.43). É a LISTA FECHADA do que
 // o painel pode aplicar: o SQL recebido só roda se o SHA-256 dele for um
 // destes. Mudou uma vírgula no arquivo → hash diferente → recusado.
 export type Migracao = { id: string; ordem: number; arquivo: string; nome: string; destrutiva: boolean; sha256: string };
@@ -14,4 +14,5 @@ export const MIGRACOES: Migracao[] = [
   { id: 'admin_auditoria', ordem: 8, arquivo: '2026-11-18_admin_auditoria.sql', nome: 'Auditoria do painel (antes/depois de cada ação)', destrutiva: false, sha256: '89daebf55b7e5a6247dfd7d134fb71f451bbba36469a970ea41a22226b835995' },
   { id: 'fieldo_studio', ordem: 9, arquivo: '2026-11-19_fieldo_studio.sql', nome: 'Fieldo Studio e núcleo de mídia (cotas, vídeos, avisos)', destrutiva: false, sha256: '1273e9f89ff51233b08f0be28de8b1a4ebdad74f61cf9640422d21349fce67c7' },
   { id: 'locacao_precos_periodo', ordem: 10, arquivo: '2026-11-21_locacao_precos_periodo.sql', nome: 'Locação por período (diária, semana, quinzena, mês)', destrutiva: false, sha256: '2818f99bcebedfd7d7d976f1cb721d1a1248eaf9d27fe7b1bd0e65e93959a889' },
+  { id: 'studio_v2_videos', ordem: 11, arquivo: '2026-11-21_studio_v2_videos.sql', nome: 'Vídeo no relatório e Studio v2 (trilhas, edição, encerramentos)', destrutiva: false, sha256: 'c43680a61f3400a651fd2d544e1b7725a1b2d9366c1be032b0fdd473ac2b09f5' },
 ];

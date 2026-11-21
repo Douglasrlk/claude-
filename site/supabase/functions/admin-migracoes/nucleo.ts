@@ -72,6 +72,10 @@ const SONDAS: Record<string, string> = {
                               where table_schema = 'public' and table_name = 'equipamentos' and column_name = 'preco_quinzena')
                            and exists (select 1 from information_schema.columns
                               where table_schema = 'public' and table_name = 'locacao_itens' and column_name = 'cobranca') as ok`,
+  studio_v2_videos: `select exists (select 1 from information_schema.columns
+                        where table_schema = 'public' and table_name = 'reports' and column_name = 'videos')
+                     and to_regprocedure('private.studio_roteiro_valido(jsonb,jsonb,jsonb)') is not null
+                     and exists (select 1 from storage.buckets where id = 'videos') as ok`,
 };
 
 async function sondar(sql: Sql, m: Migracao): Promise<boolean | null> {

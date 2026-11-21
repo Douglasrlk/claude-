@@ -67,6 +67,8 @@ depende delas; depois tire o arquivo de `pendentes.txt` e regenere a baseline.
 
 ```bash
 node infra/tests/precos.test.mjs   # regra de preço por período + contrato + cópias do assistente
+node infra/tests/trilhas.test.mjs  # notação das 34 trilhas do Studio
+docker compose exec -T db psql -U postgres -At -f /dev/stdin < tests/studio_roteiro.sql   # validador do Studio v2
 ```
 
 ## Recomeçar do zero

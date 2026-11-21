@@ -121,6 +121,8 @@ services:
       FIELDO_SEED_DEMO: ${FIELDO_SEED_DEMO:-1}
     volumes:
       - ./db/post:/fieldo/post:ro
+      - ./db/pendentes.txt:/fieldo/pendentes.txt:ro
+      - ../site/supabase/migrations:/fieldo/migrations:ro
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
@@ -129,6 +131,11 @@ services:
           echo "db-post: já aplicado, nada a fazer"; exit 0
         fi
         psql -v ON_ERROR_STOP=1 -q -f /fieldo/post/10_storage.sql
+        # migrations pendentes de novo, agora como superusuário e com o storage
+        # criado: a parte de bucket/policy delas só roda aqui (são idempotentes)
+        grep -v '^\s*#' /fieldo/pendentes.txt | grep -v '^\s*$$' | while read -r m; do
+          psql -v ON_ERROR_STOP=1 -q -f "/fieldo/migrations/$$m"
+        done
         if [ "$$FIELDO_SEED_DEMO" = "1" ]; then psql -v ON_ERROR_STOP=1 -q -f /fieldo/post/20_demo.sql; fi
         echo "db-post: ok"
     restart: "no"

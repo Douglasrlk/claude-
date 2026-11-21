@@ -111,14 +111,14 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (8)</summary>
 
-- `CREATE INDEX idx_prof_is_public ON public.professionals USING btree (is_public) WHERE is_public`
-- `CREATE INDEX idx_professionals_origem ON public.professionals USING btree (origem) WHERE (origem IS NOT NULL)`
-- `CREATE UNIQUE INDEX professionals_cnpj_uk ON public.professionals USING btree (cnpj) WHERE (cnpj IS NOT NULL)`
-- `CREATE INDEX professionals_nichos_gin ON public.professionals USING gin (nichos)`
-- `CREATE INDEX professionals_cidades_gin ON public.professionals USING gin (cidades)`
 - `CREATE INDEX idx_prof_cidade ON public.professionals USING btree (city_slug, uf) WHERE (city_slug IS NOT NULL)`
 - `CREATE INDEX idx_prof_city_slug_publico ON public.professionals USING btree (city_slug) WHERE (is_public = true)`
+- `CREATE INDEX idx_prof_is_public ON public.professionals USING btree (is_public) WHERE is_public`
 - `CREATE INDEX idx_prof_slug ON public.professionals USING btree (slug) WHERE (slug IS NOT NULL)`
+- `CREATE INDEX idx_professionals_origem ON public.professionals USING btree (origem) WHERE (origem IS NOT NULL)`
+- `CREATE INDEX professionals_cidades_gin ON public.professionals USING gin (cidades)`
+- `CREATE UNIQUE INDEX professionals_cnpj_uk ON public.professionals USING btree (cnpj) WHERE (cnpj IS NOT NULL)`
+- `CREATE INDEX professionals_nichos_gin ON public.professionals USING gin (nichos)`
 
 </details>
 
@@ -177,8 +177,9 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 | `obra_id` | uuid | sim |  |
 | `titulo_publico` | text | sim |  |
 | `tipo` | text | não | `'servico'::text` |
+| `videos` | jsonb | não | `'[]'::jsonb` |
 
-<details><summary>Constraints (14)</summary>
+<details><summary>Constraints (15)</summary>
 
 - CHECK `chk_comentario_exige_nota`: `CHECK (((rating_comment IS NULL) OR (rating IS NOT NULL)))`
 - CHECK `chk_nota_implica_usado`: `CHECK (((rating IS NULL) OR (rating_used = true)))`
@@ -188,6 +189,7 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 - CHECK `reports_rating_check`: `CHECK (((rating >= 1) AND (rating <= 5)))`
 - CHECK `reports_tipo_check`: `CHECK ((tipo = ANY (ARRAY['servico'::text, 'portfolio'::text])))`
 - CHECK `reports_valor_check`: `CHECK ((valor >= (0)::numeric))`
+- CHECK `reports_videos_ck`: `CHECK (private.report_videos_ok(videos))`
 - FK `fk_rep_linked_budget`: `FOREIGN KEY (linked_budget_id, professional_id) REFERENCES budgets(id, professional_id) ON DELETE SET NULL (linked_budget_id)`
 - FK `reports_obra_id_fkey`: `FOREIGN KEY (obra_id) REFERENCES obras(id) ON DELETE SET NULL`
 - FK `reports_professional_id_fkey`: `FOREIGN KEY (professional_id) REFERENCES professionals(id) ON DELETE CASCADE`
@@ -219,15 +221,15 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (9)</summary>
 
-- `CREATE INDEX idx_rep_prof ON public.reports USING btree (professional_id, created_at DESC)`
-- `CREATE INDEX idx_rep_portfolio ON public.reports USING btree (professional_id, created_at DESC) WHERE (is_public AND portfolio_ok)`
 - `CREATE INDEX idx_rep_ativos ON public.reports USING btree (professional_id, created_at DESC) WHERE (arquivado_em IS NULL)`
-- `CREATE INDEX idx_rep_linked_budget_prof ON public.reports USING btree (linked_budget_id, professional_id)`
-- `CREATE INDEX idx_rep_token ON public.reports USING btree (rating_token)`
-- `CREATE INDEX idx_rep_pagamento ON public.reports USING btree (professional_id, payment_status, created_at DESC) WHERE (payment_status <> 'nao_cobrado'::text)`
 - `CREATE INDEX idx_rep_linked ON public.reports USING btree (linked_budget_id) WHERE (linked_budget_id IS NOT NULL)`
-- `CREATE INDEX reports_obra_idx ON public.reports USING btree (obra_id) WHERE (obra_id IS NOT NULL)`
+- `CREATE INDEX idx_rep_linked_budget_prof ON public.reports USING btree (linked_budget_id, professional_id)`
+- `CREATE INDEX idx_rep_pagamento ON public.reports USING btree (professional_id, payment_status, created_at DESC) WHERE (payment_status <> 'nao_cobrado'::text)`
+- `CREATE INDEX idx_rep_portfolio ON public.reports USING btree (professional_id, created_at DESC) WHERE (is_public AND portfolio_ok)`
+- `CREATE INDEX idx_rep_prof ON public.reports USING btree (professional_id, created_at DESC)`
+- `CREATE INDEX idx_rep_token ON public.reports USING btree (rating_token)`
 - `CREATE INDEX idx_reports_prof_publico ON public.reports USING btree (professional_id) WHERE (is_public = true)`
+- `CREATE INDEX reports_obra_idx ON public.reports USING btree (obra_id) WHERE (obra_id IS NOT NULL)`
 
 </details>
 
@@ -352,12 +354,12 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (6)</summary>
 
+- `CREATE UNIQUE INDEX budgets_mcp_idempotency_key_uk ON public.budgets USING btree (professional_id, mcp_idempotency_key) WHERE (mcp_idempotency_key IS NOT NULL)`
+- `CREATE INDEX idx_bud_approval ON public.budgets USING btree (approval_token)`
 - `CREATE INDEX idx_bud_ativos ON public.budgets USING btree (professional_id, created_at DESC) WHERE (arquivado_em IS NULL)`
 - `CREATE INDEX idx_bud_linked ON public.budgets USING btree (linked_report_id) WHERE (linked_report_id IS NOT NULL)`
-- `CREATE UNIQUE INDEX budgets_mcp_idempotency_key_uk ON public.budgets USING btree (professional_id, mcp_idempotency_key) WHERE (mcp_idempotency_key IS NOT NULL)`
-- `CREATE INDEX idx_bud_prof ON public.budgets USING btree (professional_id, created_at DESC)`
-- `CREATE INDEX idx_bud_approval ON public.budgets USING btree (approval_token)`
 - `CREATE INDEX idx_bud_linked_report_prof ON public.budgets USING btree (linked_report_id, professional_id)`
+- `CREATE INDEX idx_bud_prof ON public.budgets USING btree (professional_id, created_at DESC)`
 
 </details>
 
@@ -422,8 +424,8 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (3)</summary>
 
-- `CREATE INDEX idx_hash_prof ON public.document_hashes USING btree (professional_id, created_at DESC)`
 - `CREATE INDEX idx_hash_locadora ON public.document_hashes USING btree (locadora_id) WHERE (locadora_id IS NOT NULL)`
+- `CREATE INDEX idx_hash_prof ON public.document_hashes USING btree (professional_id, created_at DESC)`
 - `CREATE INDEX idx_hash_ref ON public.document_hashes USING btree (ref_id) WHERE (ref_id IS NOT NULL)`
 
 </details>
@@ -532,14 +534,14 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (8)</summary>
 
-- `CREATE UNIQUE INDEX obra_contratos_um_assinado_por_obra ON public.obra_contratos USING btree (obra_id) WHERE (status = 'assinado'::text)`
+- `CREATE INDEX obra_contratos_hash_idx ON public.obra_contratos USING btree (documento_hash) WHERE (documento_hash IS NOT NULL)`
+- `CREATE INDEX obra_contratos_obra_idx ON public.obra_contratos USING btree (obra_id, versao DESC)`
+- `CREATE INDEX obra_contratos_pdf_idx ON public.obra_contratos USING btree (pdf_hash) WHERE (pdf_hash IS NOT NULL)`
 - `CREATE INDEX obra_contratos_prof_idx ON public.obra_contratos USING btree (professional_id, updated_at DESC)`
+- `CREATE UNIQUE INDEX obra_contratos_token_hash_uk ON public.obra_contratos USING btree (token_hash) WHERE (token_hash IS NOT NULL)`
+- `CREATE UNIQUE INDEX obra_contratos_um_assinado_por_obra ON public.obra_contratos USING btree (obra_id) WHERE (status = 'assinado'::text)`
 - `CREATE UNIQUE INDEX obra_contratos_um_pendente_por_obra ON public.obra_contratos USING btree (obra_id) WHERE (status = 'aguardando_cliente'::text)`
 - `CREATE UNIQUE INDEX obra_contratos_um_rascunho_por_grupo ON public.obra_contratos USING btree (grupo_id) WHERE (status = 'rascunho'::text)`
-- `CREATE INDEX obra_contratos_pdf_idx ON public.obra_contratos USING btree (pdf_hash) WHERE (pdf_hash IS NOT NULL)`
-- `CREATE UNIQUE INDEX obra_contratos_token_hash_uk ON public.obra_contratos USING btree (token_hash) WHERE (token_hash IS NOT NULL)`
-- `CREATE INDEX obra_contratos_obra_idx ON public.obra_contratos USING btree (obra_id, versao DESC)`
-- `CREATE INDEX obra_contratos_hash_idx ON public.obra_contratos USING btree (documento_hash) WHERE (documento_hash IS NOT NULL)`
 
 </details>
 
@@ -698,9 +700,9 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (3)</summary>
 
-- `CREATE INDEX idx_obra_prof ON public.empreitadas USING btree (professional_id, created_at DESC)`
 - `CREATE INDEX idx_obra_empreiteiro ON public.empreitadas USING btree (empreiteiro_id) WHERE (empreiteiro_id IS NOT NULL)`
 - `CREATE INDEX idx_obra_empreiteiro_prof ON public.empreitadas USING btree (empreiteiro_id, professional_id)`
+- `CREATE INDEX idx_obra_prof ON public.empreitadas USING btree (professional_id, created_at DESC)`
 
 </details>
 
@@ -748,10 +750,10 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (5)</summary>
 
-- `CREATE INDEX idx_we_obra ON public.work_entries USING btree (empreitada_id)`
 - `CREATE INDEX idx_we_empreitada_prof ON public.work_entries USING btree (empreitada_id, professional_id)`
 - `CREATE INDEX idx_we_empreiteiro ON public.work_entries USING btree (empreiteiro_id) WHERE (empreiteiro_id IS NOT NULL)`
 - `CREATE INDEX idx_we_empreiteiro_prof ON public.work_entries USING btree (empreiteiro_id, professional_id)`
+- `CREATE INDEX idx_we_obra ON public.work_entries USING btree (empreitada_id)`
 - `CREATE INDEX idx_we_prof ON public.work_entries USING btree (professional_id, created_at DESC)`
 
 </details>
@@ -894,7 +896,7 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 ### `equipamentos`
 
 - Linhas em produção: **4** · RLS: ligada + FORCE · grants de tabela: anon `—`, authenticated `DISU`
-- **anon lê só estas colunas** (grant por coluna): `id`, `locadora_id`, `categoria_id`, `nome`, `marca`, `modelo`, `descricao`, `specs`, `fotos`, `preco_dia`, `preco_semana`, `preco_mes`, `caucao`, `quantidade`, `slug`, `ativo`, `is_public`, `created_at`, `updated_at`
+- **anon lê só estas colunas** (grant por coluna): `id`, `locadora_id`, `categoria_id`, `nome`, `marca`, `modelo`, `descricao`, `specs`, `fotos`, `preco_dia`, `preco_semana`, `preco_mes`, `caucao`, `quantidade`, `slug`, `ativo`, `is_public`, `created_at`, `updated_at`, `preco_quinzena`
 
 | coluna | tipo | nulo | default |
 |---|---|---|---|
@@ -917,12 +919,14 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 | `is_public` | boolean | não | `true` |
 | `created_at` | timestamp with time zone | não | `now()` |
 | `updated_at` | timestamp with time zone | não | `now()` |
+| `preco_quinzena` | numeric(10,2) | sim |  |
 
-<details><summary>Constraints (9)</summary>
+<details><summary>Constraints (10)</summary>
 
 - CHECK `equipamentos_caucao_check`: `CHECK ((caucao >= (0)::numeric))`
 - CHECK `equipamentos_preco_dia_check`: `CHECK ((preco_dia >= (0)::numeric))`
 - CHECK `equipamentos_preco_mes_check`: `CHECK ((preco_mes >= (0)::numeric))`
+- CHECK `equipamentos_preco_quinzena_check`: `CHECK ((preco_quinzena >= (0)::numeric))`
 - CHECK `equipamentos_preco_semana_check`: `CHECK ((preco_semana >= (0)::numeric))`
 - CHECK `equipamentos_quantidade_check`: `CHECK ((quantidade >= 0))`
 - FK `equipamentos_categoria_id_fkey`: `FOREIGN KEY (categoria_id) REFERENCES equipamento_categorias(id)`
@@ -949,9 +953,9 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (3)</summary>
 
+- `CREATE INDEX idx_equip_cat ON public.equipamentos USING btree (categoria_id)`
 - `CREATE INDEX idx_equip_locadora ON public.equipamentos USING btree (locadora_id)`
 - `CREATE INDEX idx_equip_pub ON public.equipamentos USING btree (is_public, ativo) WHERE (is_public AND ativo)`
-- `CREATE INDEX idx_equip_cat ON public.equipamentos USING btree (categoria_id)`
 
 </details>
 
@@ -1016,11 +1020,11 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (5)</summary>
 
-- `CREATE INDEX idx_loc_janela ON public.locacoes USING btree (data_saida, data_prevista_devolucao)`
-- `CREATE INDEX idx_loc_status ON public.locacoes USING btree (status)`
-- `CREATE INDEX idx_loc_rating_token ON public.locacoes USING btree (rating_token)`
-- `CREATE INDEX idx_loc_locadora ON public.locacoes USING btree (locadora_id)`
 - `CREATE INDEX idx_loc_consulta_token ON public.locacoes USING btree (consulta_token)`
+- `CREATE INDEX idx_loc_janela ON public.locacoes USING btree (data_saida, data_prevista_devolucao)`
+- `CREATE INDEX idx_loc_locadora ON public.locacoes USING btree (locadora_id)`
+- `CREATE INDEX idx_loc_rating_token ON public.locacoes USING btree (rating_token)`
+- `CREATE INDEX idx_loc_status ON public.locacoes USING btree (status)`
 
 </details>
 
@@ -1038,9 +1042,11 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 | `preco_dia_aplicado` | numeric(10,2) | sim |  |
 | `subtotal` | numeric(10,2) | sim |  |
 | `created_at` | timestamp with time zone | não | `now()` |
+| `cobranca` | jsonb | sim |  |
 
-<details><summary>Constraints (6)</summary>
+<details><summary>Constraints (7)</summary>
 
+- CHECK `locacao_itens_cobranca_ck`: `CHECK (((cobranca IS NULL) OR ((jsonb_typeof(cobranca) = 'object'::text) AND (pg_column_size(cobranca) <= 4000))))`
 - CHECK `locacao_itens_preco_dia_aplicado_check`: `CHECK ((preco_dia_aplicado >= (0)::numeric))`
 - CHECK `locacao_itens_quantidade_check`: `CHECK ((quantidade > 0))`
 - CHECK `locacao_itens_subtotal_check`: `CHECK ((subtotal >= (0)::numeric))`
@@ -1056,8 +1062,8 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (2)</summary>
 
-- `CREATE INDEX idx_item_loc ON public.locacao_itens USING btree (locacao_id)`
 - `CREATE INDEX idx_item_equip ON public.locacao_itens USING btree (equipamento_id)`
+- `CREATE INDEX idx_item_loc ON public.locacao_itens USING btree (locacao_id)`
 
 </details>
 
@@ -1091,9 +1097,9 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (3)</summary>
 
-- `CREATE UNIQUE INDEX idx_laudo_unico ON public.locacao_laudos USING btree (locacao_item_id, tipo)`
 - `CREATE INDEX idx_laudo_hash ON public.locacao_laudos USING btree (hash_id)`
 - `CREATE INDEX idx_laudo_item ON public.locacao_laudos USING btree (locacao_item_id)`
+- `CREATE UNIQUE INDEX idx_laudo_unico ON public.locacao_laudos USING btree (locacao_item_id, tipo)`
 
 </details>
 
@@ -1167,8 +1173,8 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (2)</summary>
 
-- `CREATE INDEX locacao_contratos_substituido_idx ON public.locacao_contratos USING btree (substituido_por)`
 - `CREATE INDEX locacao_contratos_locacao_idx ON public.locacao_contratos USING btree (locacao_id)`
+- `CREATE INDEX locacao_contratos_substituido_idx ON public.locacao_contratos USING btree (substituido_por)`
 
 </details>
 
@@ -1255,12 +1261,12 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (7)</summary>
 
+- `CREATE INDEX loc_contratos_grupo_idx ON public.loc_contratos USING btree (grupo_id, versao)`
+- `CREATE INDEX loc_contratos_locacao_idx ON public.loc_contratos USING btree (locacao_id)`
 - `CREATE INDEX loc_contratos_locadora_idx ON public.loc_contratos USING btree (locadora_id, updated_at DESC)`
-- `CREATE UNIQUE INDEX loc_contratos_um_pendente_por_locacao ON public.loc_contratos USING btree (locacao_id) WHERE (status = ANY (ARRAY['aguardando_cliente'::text, 'aguardando_locadora'::text]))`
 - `CREATE UNIQUE INDEX loc_contratos_token_hash_uk ON public.loc_contratos USING btree (token_hash) WHERE (token_hash IS NOT NULL)`
 - `CREATE UNIQUE INDEX loc_contratos_um_assinado_por_locacao ON public.loc_contratos USING btree (locacao_id) WHERE (status = 'assinado'::text)`
-- `CREATE INDEX loc_contratos_locacao_idx ON public.loc_contratos USING btree (locacao_id)`
-- `CREATE INDEX loc_contratos_grupo_idx ON public.loc_contratos USING btree (grupo_id, versao)`
+- `CREATE UNIQUE INDEX loc_contratos_um_pendente_por_locacao ON public.loc_contratos USING btree (locacao_id) WHERE (status = ANY (ARRAY['aguardando_cliente'::text, 'aguardando_locadora'::text]))`
 - `CREATE UNIQUE INDEX loc_contratos_um_rascunho_por_grupo ON public.loc_contratos USING btree (grupo_id) WHERE (status = 'rascunho'::text)`
 
 </details>
@@ -1463,8 +1469,8 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (2)</summary>
 
-- `CREATE INDEX idx_condo_manut_proxima ON public.condo_manutencoes_recorrentes USING btree (proxima_execucao)`
 - `CREATE INDEX idx_condo_manut_condominio ON public.condo_manutencoes_recorrentes USING btree (condominio_id, proxima_execucao)`
+- `CREATE INDEX idx_condo_manut_proxima ON public.condo_manutencoes_recorrentes USING btree (proxima_execucao)`
 
 </details>
 
@@ -1551,8 +1557,8 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (2)</summary>
 
-- `CREATE INDEX idx_companies_created_by ON gestao.companies USING btree (created_by)`
 - `CREATE UNIQUE INDEX companies_doc_uidx ON gestao.companies USING btree (doc_digits) WHERE (doc_digits <> ''::text)`
+- `CREATE INDEX idx_companies_created_by ON gestao.companies USING btree (created_by)`
 
 </details>
 
@@ -1598,8 +1604,8 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (2)</summary>
 
-- `CREATE INDEX idx_company_users_invited_by ON gestao.company_users USING btree (invited_by)`
 - `CREATE INDEX company_users_user_idx ON gestao.company_users USING btree (user_id) WHERE is_active`
+- `CREATE INDEX idx_company_users_invited_by ON gestao.company_users USING btree (invited_by)`
 
 </details>
 
@@ -1787,8 +1793,8 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (2)</summary>
 
-- `CREATE INDEX idx_listas_prof ON public.material_listas USING btree (professional_id, created_at DESC)`
 - `CREATE INDEX idx_lista_budget_prof ON public.material_listas USING btree (budget_id, professional_id)`
+- `CREATE INDEX idx_listas_prof ON public.material_listas USING btree (professional_id, created_at DESC)`
 
 </details>
 
@@ -1824,8 +1830,8 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (3)</summary>
 
-- `CREATE INDEX idx_preco_material ON public.material_precos USING btree (material_id)`
 - `CREATE INDEX idx_preco_lista_prof ON public.material_precos USING btree (lista_id, professional_id)`
+- `CREATE INDEX idx_preco_material ON public.material_precos USING btree (material_id)`
 - `CREATE INDEX idx_precos_estimativa ON public.material_precos USING btree (professional_id, material_id, data DESC)`
 
 </details>
@@ -1863,7 +1869,7 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 - CHECK `studio_videos_duracao_ms_check`: `CHECK (((duracao_ms >= 1000) AND (duracao_ms <= 120000)))`
 - CHECK `studio_videos_formato_check`: `CHECK ((formato = ANY (ARRAY['mp4'::text, 'webm'::text, 'carrossel'::text])))`
 - CHECK `studio_videos_modelo_check`: `CHECK ((modelo = ANY (ARRAY['classico'::text, 'impacto'::text, 'editorial'::text])))`
-- CHECK `studio_videos_trilha_check`: `CHECK ((trilha = ANY (ARRAY['leve'::text, 'ritmo'::text, 'calma'::text, 'nenhuma'::text])))`
+- CHECK `studio_videos_trilha_check`: `CHECK ((trilha ~ '^[a-z0-9_]{2,32}$'::text))`
 - FK `studio_videos_professional_id_fkey`: `FOREIGN KEY (professional_id) REFERENCES professionals(id) ON DELETE CASCADE`
 - FK `studio_videos_report_id_fkey`: `FOREIGN KEY (report_id) REFERENCES reports(id) ON DELETE CASCADE`
 - PK `studio_videos_pkey`: `PRIMARY KEY (id)`
@@ -1878,8 +1884,8 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (2)</summary>
 
-- `CREATE INDEX studio_videos_prof_idx ON public.studio_videos USING btree (professional_id, criado_em DESC)`
 - `CREATE INDEX studio_videos_avisos_idx ON public.studio_videos USING btree (gerado_em) WHERE (gerado_em IS NOT NULL)`
+- `CREATE INDEX studio_videos_prof_idx ON public.studio_videos USING btree (professional_id, criado_em DESC)`
 
 </details>
 
@@ -2048,8 +2054,8 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (2)</summary>
 
-- `CREATE INDEX idx_reg_acesso_user ON public.registros_acesso USING btree (user_id, ocorrido_em DESC)`
 - `CREATE INDEX idx_reg_acesso_data ON public.registros_acesso USING btree (ocorrido_em)`
+- `CREATE INDEX idx_reg_acesso_user ON public.registros_acesso USING btree (user_id, ocorrido_em DESC)`
 
 </details>
 
@@ -2084,9 +2090,9 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (3)</summary>
 
+- `CREATE INDEX idx_impact_events_report ON public.impact_events USING btree (report_id)`
 - `CREATE INDEX impact_events_prof_idx ON public.impact_events USING btree (professional_id, created_at DESC)`
 - `CREATE INDEX impact_events_prof_source_idx ON public.impact_events USING btree (professional_id, source, event_type)`
-- `CREATE INDEX idx_impact_events_report ON public.impact_events USING btree (report_id)`
 
 </details>
 
@@ -2160,10 +2166,10 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 <details><summary>Índices extras (5)</summary>
 
 - `CREATE INDEX analytics_events_anon_idx ON public.analytics_events USING btree (anonymous_id)`
-- `CREATE INDEX analytics_events_pathname_idx ON public.analytics_events USING btree (pathname)`
-- `CREATE INDEX analytics_events_event_created_idx ON public.analytics_events USING btree (event_name, created_at DESC)`
-- `CREATE INDEX analytics_events_session_idx ON public.analytics_events USING btree (session_id)`
 - `CREATE INDEX analytics_events_created_idx ON public.analytics_events USING btree (created_at DESC)`
+- `CREATE INDEX analytics_events_event_created_idx ON public.analytics_events USING btree (event_name, created_at DESC)`
+- `CREATE INDEX analytics_events_pathname_idx ON public.analytics_events USING btree (pathname)`
+- `CREATE INDEX analytics_events_session_idx ON public.analytics_events USING btree (session_id)`
 
 </details>
 
@@ -2301,8 +2307,8 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (3)</summary>
 
-- `CREATE INDEX council_reviews_requested_idx ON public.council_reviews USING btree (requested_at DESC)`
 - `CREATE INDEX council_reviews_incident_idx ON public.council_reviews USING btree (incident_id)`
+- `CREATE INDEX council_reviews_requested_idx ON public.council_reviews USING btree (requested_at DESC)`
 - `CREATE INDEX idx_council_reviews_change ON public.council_reviews USING btree (change_id)`
 
 </details>
@@ -2396,9 +2402,9 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (3)</summary>
 
+- `CREATE INDEX integrity_checks_baseline_idx ON public.integrity_checks USING btree (url) WHERE is_baseline`
 - `CREATE INDEX integrity_checks_run_id_idx ON public.integrity_checks USING btree (run_id)`
 - `CREATE INDEX integrity_checks_url_checked_at_idx ON public.integrity_checks USING btree (url, checked_at DESC)`
-- `CREATE INDEX integrity_checks_baseline_idx ON public.integrity_checks USING btree (url) WHERE is_baseline`
 
 </details>
 
@@ -2431,9 +2437,9 @@ Gerado por `infra/scripts/dicionario.py` a partir do banco em contêiner, cujo s
 
 <details><summary>Índices extras (3)</summary>
 
+- `CREATE INDEX idx_integrity_incidents_check ON public.integrity_incidents USING btree (check_id)`
 - `CREATE INDEX integrity_incidents_open_idx ON public.integrity_incidents USING btree (reviewed) WHERE (reviewed = false)`
 - `CREATE INDEX integrity_incidents_opened_at_idx ON public.integrity_incidents USING btree (opened_at DESC)`
-- `CREATE INDEX idx_integrity_incidents_check ON public.integrity_incidents USING btree (check_id)`
 
 </details>
 

@@ -23,7 +23,21 @@ server {
 
   location /rest/v1/    { set $u rest:3000;    rewrite ^/rest/v1/(.*)$ /$1 break;    proxy_pass http://$u; }
   location /auth/v1/    { set $u auth:9999;    rewrite ^/auth/v1/(.*)$ /$1 break;    proxy_pass http://$u; }
-  location /storage/v1/ { set $u storage:5000; rewrite ^/storage/v1/(.*)$ /$1 break; proxy_pass http://$u; }
+  # O storage-api auto-hospedado não responde CORS (no Supabase quem faz é o
+  # Kong). Sem isto, upload de foto/vídeo do navegador falha no preflight.
+  location /storage/v1/ {
+    if ($request_method = OPTIONS) {
+      add_header Access-Control-Allow-Origin * always;
+      add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, HEAD" always;
+      add_header Access-Control-Allow-Headers "authorization, apikey, content-type, x-upsert, x-client-info, cache-control, range" always;
+      add_header Access-Control-Max-Age 86400 always;
+      return 204;
+    }
+    proxy_hide_header Access-Control-Allow-Origin;
+    add_header Access-Control-Allow-Origin * always;
+    add_header Access-Control-Expose-Headers "content-length, content-range, etag" always;
+    set $u storage:5000; rewrite ^/storage/v1/(.*)$ /$1 break; proxy_pass http://$u;
+  }
   location /functions/v1/ {
     # perfil "functions" do compose; sem ele, responde 503 explicando
     set $fn http://functions:9000;

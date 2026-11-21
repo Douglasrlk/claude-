@@ -372,6 +372,10 @@
     .rr-chave summary::-webkit-details-marker{display:none}
     .rr-chave span{display:block;margin-top:.35rem;font-family:var(--mono);font-size:.78rem;word-break:break-all;color:var(--text)}
     .rr-fotos{margin-top:1rem}
+    .rr-videos{display:grid;gap:.75rem;margin:1rem 0 0}
+    .rr-video{margin:0}
+    .rr-video video{display:block;width:100%;max-height:72vh;background:#000;border-radius:var(--r-l);object-fit:contain}
+    .rr-video figcaption{font:500 .7rem var(--mono);letter-spacing:.04em;color:var(--muted);margin-top:.35rem}
     .rr-foto-hero{position:relative;display:block;aspect-ratio:3/2;border-radius:var(--r-l);overflow:hidden;background:var(--paper2);cursor:zoom-in}
     .rr-ampliar{position:absolute;right:.5rem;bottom:.5rem;display:flex;align-items:center;gap:.35rem;padding:.3rem .6rem;border-radius:99px;
       background:rgba(14,14,20,.66);color:#fff;font-size:.72rem;font-weight:500;pointer-events:none}
@@ -1290,6 +1294,19 @@ function renderRelatorio(r, prof) {
       '</section>';
   }
 
+  /* ── v12.43 · vídeos do serviço (até 3, de até 30 s) ──
+     preload="metadata" + poster: o cliente no 4G não baixa o vídeo
+     inteiro só por abrir o relatório. */
+  var videos = Array.isArray(r.videos) ? r.videos.filter(function (v) { return v && /^https?:\/\//.test(v.url || ''); }) : [];
+  var videosHTML = '';
+  if (videos.length) {
+    videosHTML = '<section class="rr-videos" aria-label="Vídeos do serviço">' + videos.map(function (v, i) {
+      return '<figure class="rr-video"><video controls playsinline preload="metadata"' +
+        (v.capa ? ' poster="' + esc(v.capa) + '"' : '') + ' src="' + esc(v.url) + '" aria-label="Vídeo ' + (i + 1) + ' do serviço"></video>' +
+        '<figcaption>Vídeo ' + (videos.length > 1 ? (i + 1) + ' de ' + videos.length + ' · ' : '') + Math.round(Number(v.duracao) || 0) + ' s</figcaption></figure>';
+    }).join('') + '</section>';
+  }
+
   /* ── detalhes ── */
   var detHTML = '';
   if (desc) detHTML += '<p class="rr-desc">' + esc(desc).replace(/\n/g, '<br>') + '</p>';
@@ -1312,7 +1329,7 @@ function renderRelatorio(r, prof) {
           ? '<button type="button" class="rr-btn rr-btn--sec" id="btnGerarCardRel" onclick="gerarCardRelatorio()">' +
               'Gerar card com essa avaliação<span class="rc-card-spin" id="spinCardRel"></span></button>' +
             /* v12.41 · e o vídeo, com a avaliação e o antes e depois */
-            ((r.photos && r.photos.length) ? '<a class="rr-btn rr-btn--sec" style="margin-top:.45rem;text-decoration:none;display:flex;justify-content:center" href="studio.html?r=' + encodeURIComponent(r.id) + '">Criar vídeo deste serviço</a>' : '')
+            (((r.photos && r.photos.length) || (r.videos && r.videos.length)) ? '<a class="rr-btn rr-btn--sec" style="margin-top:.45rem;text-decoration:none;display:flex;justify-content:center" href="studio.html?r=' + encodeURIComponent(r.id) + '">Criar vídeo deste serviço</a>' : '')
           : '') +
       '</section>';
   } else if (podeAvaliar) {
@@ -1360,6 +1377,7 @@ function renderRelatorio(r, prof) {
       (ctx.length ? '<p class="rr-ctx">' + ctx.join(' · ') + '</p>' : '') +
       valorHTML +
       fotosHTML +
+      videosHTML +
       (detHTML ? '<section class="rr-sec rr-det" aria-label="O que foi feito">' + detHTML + '</section>' : '') +
       ratingHTML +
       denovoHTML +
