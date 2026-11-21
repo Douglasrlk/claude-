@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Funil de Aquisição · Fieldo</title>
+<meta name="robots" content="noindex,nofollow"/>
+<!--
+  Fieldo · admin-analytics.html — v10.23
+
+  Mesmo padrão de segurança do admin.html que já existe pra admin-stats:
+  este arquivo NÃO faz parte do que sobe pro Netlify (não está referenciado
+  em nenhuma outra página, e não precisa estar). Abra direto do disco, ou
+  publique você mesmo atrás do bloqueio que preferir — a autorização real
+  não está no arquivo estar público ou não, está no x-admin-key exigido
+  pela Edge Function admin-analytics, comparado em tempo constante no
+  servidor. Sem a chave certa, a function devolve 403 e mais nada.
+
+  Por isso é seguro abrir isto localmente: os dados só chegam depois que
+  você digita a mesma FIELDO_ADMIN_KEY que já usa pro admin-stats.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --paper: #f5f2ec; --paper2: #ede9df; --paper3: #e4dfd2;
+    --ink: #0e0e14; --on-gold: #ffffff;
+    --text: #1a1a24; --text2: #4a4855; --muted: #625d57; --subtle: #625d57;
+    --border: rgba(14,14,20,.09); --border2: rgba(14,14,20,.16);
+    --gold: #856310; --gold-l: #b8880d; --gold-d: #7a5a10;
+    --gold-bg: rgba(154,114,24,.07); --gold-bd: rgba(154,114,24,.2);
+    --green: #1e5c38; --green-bg: rgba(30,92,56,.08); --green-bd: rgba(30,92,56,.22);
+    --red: #8b1a1a; --red-bg: rgba(139,26,26,.07); --red-bd: rgba(139,26,26,.2);
+    --amber: #8a5e0a; --amber-bg: rgba(154,114,24,.09); --amber-bd: rgba(154,114,24,.28);
+    --serif: 'Fraunces', 'Georgia', serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', 'Courier New', monospace;
+    --ez: cubic-bezier(.16,1,.3,1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #16161e; --paper2: #1e1e28; --paper3: #262631;
+      --ink: #f5f2ec; --on-gold: #0e0e14;
+      --text: #ede9df; --text2: #c4bdb0; --muted: #9a9089; --subtle: #9a9089;
+      --border: rgba(255,255,255,.08); --border2: rgba(255,255,255,.14);
+      --gold: #c49a30; --gold-l: #d4ab40; --gold-d: #cfa63a;
+      --gold-bg: rgba(196,154,48,.1); --gold-bd: rgba(196,154,48,.28);
+      --green-bg: rgba(60,160,110,.12); --green-bd: rgba(60,160,110,.3);
+      --red-bg: rgba(220,90,90,.1); --red-bd: rgba(220,90,90,.28);
+      --amber-bg: rgba(196,154,48,.12); --amber-bd: rgba(196,154,48,.32);
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--text); font-family: var(--sans); }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 1.75rem 1.25rem 5rem; }
+  h1, h2 { font-family: var(--serif); font-weight: 500; color: var(--ink); margin: 0; }
+  h1 { font-size: 1.5rem; } h1 em { font-style: italic; color: var(--gold-d); }
+  h2 { font-size: 1.05rem; margin-bottom: .7rem; }
+  .eyebrow { font-family: var(--mono); font-size: .62rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .3rem; }
+  .card { background: var(--paper); border: 1px solid var(--border2); border-radius: 12px; padding: 1.1rem 1.2rem; }
+  section { margin-top: 1.6rem; }
+
+  /* ── gate ── */
+  #gate { max-width: 380px; margin: 4rem auto; text-align: center; }
+  #gate input { width: 100%; padding: .75rem .9rem; border-radius: 9px; border: 1px solid var(--border2); background: var(--paper2); color: var(--text); font-family: var(--mono); font-size: .85rem; margin: 1rem 0 .7rem; }
+  #gate button, .btn { background: var(--gold); color: var(--on-gold); border: none; border-radius: 9px; padding: .7rem 1.2rem; font-family: var(--sans); font-weight: 600; font-size: .85rem; cursor: pointer; }
+  #gate .err { color: var(--red); font-size: .78rem; margin-top: .6rem; min-height: 1em; }
+  #dash { display: none; }
+
+  /* ── periodo ── */
+  .periodo { display: flex; gap: .35rem; background: var(--paper2); border: 1px solid var(--border2); border-radius: 10px; padding: 3px; margin: 1rem 0; width: fit-content; }
+  .periodo button { background: transparent; border: none; padding: .45rem .85rem; border-radius: 7px; font-family: var(--mono); font-size: .74rem; color: var(--muted); cursor: pointer; }
+  .periodo button.active { background: var(--paper); color: var(--ink); box-shadow: 0 1px 3px rgba(14,14,20,.08); }
+
+  /* ── prioridades ── */
+  .prio { display: flex; gap: .7rem; padding: .8rem .9rem; border-radius: 10px; margin-bottom: .55rem; border: 1px solid var(--border2); background: var(--paper2); align-items: flex-start; }
+  .prio b { display: block; font-size: .86rem; color: var(--ink); margin-bottom: .15rem; }
+  .prio .ev { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+  .prio .rec { font-size: .78rem; color: var(--text2); margin-top: .3rem; }
+
+  /* ── tiles ── */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: .6rem; }
+  .tile .lbl { font-family: var(--mono); font-size: .6rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); margin-bottom: .35rem; }
+  .tile .val { font-family: var(--serif); font-size: 1.55rem; color: var(--ink); line-height: 1.2; }
+  .tile .delta { font-family: var(--mono); font-size: .68rem; margin-top: .25rem; }
+  .delta.up { color: var(--green); } .delta.down { color: var(--red); } .delta.flat { color: var(--muted); }
+
+  /* ── funil ── */
+  .stage { position: relative; padding: .95rem 1.1rem; background: var(--paper); border: 1px solid var(--border2); border-radius: 11px; margin-bottom: .5rem; }
+  .stage-row { display: flex; align-items: center; justify-content: space-between; gap: .7rem; }
+  .stage-label { display: flex; align-items: center; gap: .55rem; font-size: .84rem; font-weight: 600; color: var(--text); }
+  .stage-num { font-family: var(--serif); font-size: 1.4rem; color: var(--ink); }
+  .stage-taxa { font-family: var(--mono); font-size: .68rem; color: var(--muted); margin-top: .3rem; }
+  .stage-bar-track { height: 6px; background: var(--paper3); border-radius: 99px; margin-top: .6rem; overflow: hidden; }
+  .stage-bar-fill { height: 100%; background: var(--gold); border-radius: 99px; }
+  .stage--leak { border-color: var(--gold-bd); background: var(--gold-bg); }
+  .leak-tag { font-family: var(--mono); font-size: .55rem; letter-spacing: .06em; text-transform: uppercase; background: var(--gold); color: var(--on-gold); padding: .16rem .5rem; border-radius: 999px; }
+
+  /* ── vazamento callout ── */
+  .vazamento { background: var(--amber-bg); border: 1px solid var(--amber-bd); border-radius: 11px; padding: 1rem 1.1rem; font-size: .85rem; color: var(--text); line-height: 1.55; }
+
+  /* ── tables ── */
+  table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+  th { text-align: left; font-family: var(--mono); font-size: .62rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: .5rem .6rem; border-bottom: 1px solid var(--border2); }
+  td { padding: .55rem .6rem; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  .n { font-family: var(--mono); text-align: right; }
+  .tblwrap { overflow-x: auto; border: 1px solid var(--border2); border-radius: 11px; }
+  .empty { color: var(--muted); font-size: .82rem; padding: 1rem; text-align: center; }
+
+  /* ── saude ── */
+  .saude { display: flex; align-items: center; gap: .5rem; font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-top: 2.2rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .dot { width: 7px; height: 7px; border-radius: 99px; background: var(--green); flex-shrink: 0; }
+  .dot.stale { background: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div id="gate">
+    <div class="eyebrow">Acesso restrito</div>
+    <h1>Funil de <em>Aquisição</em></h1>
+    <p style="color:var(--muted);font-size:.85rem">Mesma chave do admin-stats (FIELDO_ADMIN_KEY).</p>
+    <input type="password" id="chave" placeholder="x-admin-key" autocomplete="off"/>
+    <br/>
+    <button id="btnEntrar">Entrar</button>
+    <div class="err" id="gateErr"></div>
+  </div>
+
+  <div id="dash">
+    <div class="eyebrow">Diagnóstico</div>
+    <h1>Funil de <em>Aquisição</em></h1>
+    <div class="periodo" role="tablist">
+      <button data-dias="7">7 dias</button>
+      <button data-dias="14">14 dias</button>
+      <button data-dias="30" class="active">30 dias</button>
+      <button data-dias="90">90 dias</button>
+    </div>
+
+    <section id="secPrioridades"></section>
+
+    <section>
+      <h2>Resumo do período</h2>
+      <div class="tiles" id="tiles"></div>
+    </section>
+
+    <section>
+      <h2>Funil principal</h2>
+      <div id="vazamentoBox" style="margin-bottom:.8rem"></div>
+      <div id="funil"></div>
+    </section>
+
+    <section>
+      <h2>Origens</h2>
+      <div class="tblwrap"><table id="tblOrigens"></table></div>
+    </section>
+
+    <section>
+      <h2>Páginas</h2>
+      <div class="tblwrap"><table id="tblPaginas"></table></div>
+    </section>
+
+    <section>
+      <h2>Dispositivos</h2>
+      <div class="tblwrap"><table id="tblDispositivos"></table></div>
+    </section>
+
+    <section>
+      <h2>Erros técnicos</h2>
+      <div class="tblwrap"><table id="tblErros"></table></div>
+    </section>
+
+    <div class="saude" id="saude"></div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+var EDGE_URL = 'https://jrsctnncoljdcvdofxsg.supabase.co/functions/v1/admin-analytics';
+var _chave = sessionStorage.getItem('_fieldo_admin_key') || '';
+var _dias = 30;
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+function fmtPct(n) { return (n === null || n === undefined) ? '—' : n + '%'; }
+function fmtNum(n) { return (n === null || n === undefined) ? '0' : n.toLocaleString('pt-BR'); }
+
+function carregar(dias) {
+  _dias = dias;
+  document.querySelectorAll('.periodo button').forEach(function (b) {
+    b.classList.toggle('active', Number(b.dataset.dias) === dias);
+  });
+  document.getElementById('dash').style.opacity = '.55';
+  fetch(EDGE_URL + '?dias=' + dias, { headers: { 'x-admin-key': _chave } })
+    .then(function (r) {
+      if (r.status === 403) throw { forbidden: true };
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('dash').style.display = 'block';
+      sessionStorage.setItem('_fieldo_admin_key', _chave);
+      render(data);
+    })
+    .catch(function (err) {
+      if (err && err.forbidden) {
+        document.getElementById('gate').style.display = 'block';
+        document.getElementById('dash').style.display = 'none';
+        document.getElementById('gateErr').textContent = 'Chave incorreta.';
+        sessionStorage.removeItem('_fieldo_admin_key');
+        return;
+      }
+      console.error('[admin-analytics]', err);
+      document.getElementById('gateErr').textContent = '';
+      alert('Não foi possível carregar agora. Confira a conexão e tente de novo.');
+    })
+    .then(function () { document.getElementById('dash').style.opacity = '1'; });
+}
+
+function render(data) {
+  renderPrioridades(data.prioridades || []);
+  renderTiles(data);
+  renderFunil(data.funil || [], data.maior_vazamento);
+  renderTabela('tblOrigens',
+    ['Origem', 'Visitas', 'CTA', 'Cadastros', 'Visita → Cadastro'],
+    (data.origens || []).map(function (o) {
+      return [o.origem, fmtNum(o.visitas), fmtNum(o.cta_click), fmtNum(o.cadastros), fmtPct(o.taxa_visita_cadastro)];
+    }));
+  renderTabela('tblPaginas',
+    ['Página', 'Visitas', 'CTA', 'Taxa'],
+    (data.paginas || []).map(function (p) {
+      return [p.pathname, fmtNum(p.visitas), fmtNum(p.cta_click), fmtPct(p.taxa_cta)];
+    }));
+  renderTabela('tblDispositivos',
+    ['Dispositivo', 'Visitas', 'CTA', 'Taxa', 'Erros'],
+    (data.dispositivos || []).map(function (d) {
+      return [d.device, fmtNum(d.visitas), fmtNum(d.cta_click), fmtPct(d.taxa_cta), fmtNum(d.erros)];
+    }));
+  renderTabela('tblErros',
+    ['Evento', 'Mensagem', 'Ocorrências', 'Última vez'],
+    (data.erros || []).map(function (e) {
+      return [e.event_name, e.mensagem, fmtNum(e.ocorrencias), new Date(e.ultima_vez).toLocaleString('pt-BR')];
+    }));
+
+  var s = data.saude || {};
+  var haSeg = s.ultimo_evento_ha_segundos;
+  var stale = haSeg === null || haSeg > 3600 * 24;
+  document.getElementById('saude').innerHTML =
+    '<span class="dot' + (stale ? ' stale' : '') + '"></span>' +
+    (s.ultimo_evento_em ? 'Último evento há ' + fmtDuracao(haSeg) : 'Nenhum evento registrado ainda') +
+    ' · ' + fmtNum(s.eventos_periodo) + ' eventos neste período · gerado em ' +
+    new Date(data.gerado_em).toLocaleString('pt-BR');
+}
+
+function fmtDuracao(seg) {
+  if (seg < 60) return seg + 's';
+  if (seg < 3600) return Math.round(seg / 60) + 'min';
+  if (seg < 86400) return Math.round(seg / 3600) + 'h';
+  return Math.round(seg / 86400) + 'd';
+}
+
+function renderPrioridades(lista) {
+  var el = document.getElementById('secPrioridades');
+  if (!lista.length) { el.innerHTML = ''; return; }
+  var html = '<h2>O que precisa de atenção</h2>';
+  lista.forEach(function (p) {
+    html += '<div class="prio"><div>' + esc(p.nivel) + '</div><div>' +
+      '<b>' + esc(p.titulo) + '</b>' +
+      '<span class="ev">' + esc(p.evidencia) + '</span>' +
+      '<div class="rec">' + esc(p.recomendacao) + '</div>' +
+      '</div></div>';
+  });
+  el.innerHTML = html;
+}
+
+function renderTiles(data) {
+  var funil = data.funil || [];
+  var visitantes = funil[0] || { valor: 0 };
+  var cadastros  = funil.filter(function (f) { return f.key === 'signup_complete'; })[0] || { valor: 0 };
+  var pagantes   = funil.filter(function (f) { return f.key === 'assinatura'; })[0] || { valor: 0 };
+  var ativados   = funil.filter(function (f) { return f.key === 'first_work'; })[0] || { valor: 0 };
+  var taxaGeral  = visitantes.valor > 0 ? Math.round(cadastros.valor / visitantes.valor * 1000) / 10 : null;
+
+  var tiles = [
+    { lbl: 'Visitantes', val: fmtNum(visitantes.valor), delta: visitantes.variacao_pct },
+    { lbl: 'Cadastros', val: fmtNum(cadastros.valor), delta: cadastros.variacao_pct },
+    { lbl: 'Visita → Cadastro', val: fmtPct(taxaGeral), delta: null },
+    { lbl: 'Ativação (1º trabalho)', val: fmtNum(ativados.valor), delta: ativados.variacao_pct },
+    { lbl: 'Assinaram o Pro', val: fmtNum(pagantes.valor), delta: pagantes.variacao_pct },
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(function (t) {
+    var deltaHtml = '';
+    if (t.delta !== null && t.delta !== undefined) {
+      var cls = t.delta > 0 ? 'up' : (t.delta < 0 ? 'down' : 'flat');
+      deltaHtml = '<div class="delta ' + cls + '">' + (t.delta > 0 ? '↑' : t.delta < 0 ? '↓' : '·') + ' ' + Math.abs(t.delta) + '% vs período anterior</div>';
+    }
+    return '<div class="card tile"><div class="lbl">' + esc(t.lbl) + '</div><div class="val">' + t.val + '</div>' + deltaHtml + '</div>';
+  }).join('');
+}
+
+function renderFunil(funil, vazamento) {
+  var vb = document.getElementById('vazamentoBox');
+  vb.innerHTML = vazamento ? '<div class="vazamento">' + esc(vazamento.mensagem) + '</div>' : '';
+
+  var max = Math.max.apply(null, funil.map(function (f) { return f.valor; }).concat([1]));
+  document.getElementById('funil').innerHTML = funil.map(function (f, i) {
+    var pct = max > 0 ? Math.max(2, f.valor / max * 100) : 0;
+    var isLeak = vazamento && vazamento.para === f.label;
+    var taxa = (f.taxa_etapa_anterior !== undefined && f.taxa_etapa_anterior !== null)
+      ? '<div class="stage-taxa">' + f.taxa_etapa_anterior + '% da etapa anterior</div>' : '';
+    return '<div class="stage' + (isLeak ? ' stage--leak' : '') + '">' +
+      '<div class="stage-row">' +
+        '<div class="stage-label"><span>' + esc(f.emoji) + '</span><span>' + esc(f.label) + '</span></div>' +
+        '<div style="display:flex;align-items:center;gap:.5rem">' +
+          (isLeak ? '<span class="leak-tag">Vazamento</span>' : '') +
+          '<span class="stage-num">' + fmtNum(f.valor) + '</span>' +
+        '</div>' +
+      '</div>' +
+      taxa +
+      '<div class="stage-bar-track"><div class="stage-bar-fill" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderTabela(id, cabecalho, linhas) {
+  var el = document.getElementById(id);
+  if (!linhas.length) { el.parentElement.innerHTML = '<div class="empty">Sem dados neste período.</div>'; return; }
+  var thead = '<thead><tr>' + cabecalho.map(function (h, i) {
+    return '<th' + (i > 0 ? ' class="n"' : '') + '>' + esc(h) + '</th>';
+  }).join('') + '</tr></thead>';
+  var tbody = '<tbody>' + linhas.map(function (l) {
+    return '<tr>' + l.map(function (v, i) {
+      return '<td' + (i > 0 ? ' class="n"' : '') + '>' + esc(v) + '</td>';
+    }).join('') + '</tr>';
+  }).join('') + '</tbody>';
+  el.innerHTML = thead + tbody;
+}
+
+document.getElementById('btnEntrar').addEventListener('click', function () {
+  _chave = document.getElementById('chave').value.trim();
+  if (!_chave) return;
+  carregar(_dias);
+});
+document.getElementById('chave').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') document.getElementById('btnEntrar').click();
+});
+document.querySelectorAll('.periodo button').forEach(function (b) {
+  b.addEventListener('click', function () { carregar(Number(b.dataset.dias)); });
+});
+
+if (_chave) carregar(_dias);
+</script>
+
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

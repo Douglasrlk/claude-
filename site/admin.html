@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <meta name="referrer" content="no-referrer"/>
+  <title>Painel do Fieldo</title>
+  <!--
+    Fieldo v12.40 · painel único do dono (pedido de 18/11): Cadastros,
+    Analytics, Engenharia e Banco num lugar só, com uma chave só.
+
+    · Cadastros é nativo desta página e dá autonomia total: ver a ficha,
+      editar qualquer campo do profissional e da locadora (a lista de campos
+      vem do próprio banco), mudar e-mail/telefone do login, bloquear o
+      acesso, dar Pro e excluir. Toda ação fica na auditoria (antes/depois).
+    · Analytics, Engenharia e Banco são as telas que já existem, abertas
+      aqui dentro: leem a mesma chave (sessionStorage, só desta aba) e
+      entram já logadas. Melhoria nelas continua valendo aqui.
+    · A chave fica só nesta aba e some ao fechar. Toda decisão de permissão
+      é das Edge Functions (x-admin-key), nunca desta página.
+  -->
+  <style>
+    :root{--bg:#f0ece3;--paper:#f7f4ee;--paper2:#ede9df;--paper3:#e4dfd2;--ink:#0e0e14;--text:#1a1a24;--text2:#4a4855;--muted:#625d57;--border:rgba(14,14,20,.12);--border2:rgba(14,14,20,.2);
+      --gold:#856310;--gold-d:#7a5a10;--gold-bg:rgba(154,114,24,.09);--green:#1e5c38;--green-bg:rgba(30,92,56,.09);--red:#8b1a1a;--red-bg:rgba(139,26,26,.08);--amber:#8a5e0a;--amber-bg:rgba(138,94,10,.09);--on:#fff}
+    @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#15151b;--paper:#1e1e26;--paper2:#262630;--paper3:#30303b;--ink:#f3f0ea;--text:#ece8e0;--text2:#c4bfb6;--muted:#9c968c;--border:rgba(255,255,255,.12);--border2:rgba(255,255,255,.22);
+      --gold:#d4a73a;--gold-d:#e0b54a;--gold-bg:rgba(212,167,58,.12);--green:#6fcf97;--green-bg:rgba(111,207,151,.1);--red:#ff8a80;--red-bg:rgba(255,138,128,.1);--amber:#f2c14e;--amber-bg:rgba(242,193,78,.1);--on:#15151b}}
+    *{box-sizing:border-box}html,body{margin:0}
+    /* o topo é fixo: rolagem por foco/âncora para abaixo dele */
+    html{scroll-padding-top:72px}
+    body{background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+    button,input,select,textarea{font:inherit;color:inherit}
+    .topo{position:sticky;top:0;z-index:20;background:var(--ink);color:var(--bg)}
+    .topo-in{max-width:1100px;margin:0 auto;padding:.55rem 1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+    .marca{font-weight:700;letter-spacing:-.01em}.marca em{font-style:normal;color:#c49a30}
+    .abas{display:flex;gap:.25rem;flex-wrap:wrap;flex:1}
+    .aba{background:none;border:0;color:inherit;opacity:.7;padding:.45rem .75rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:.9rem}
+    .aba[aria-selected="true"]{opacity:1;background:rgba(255,255,255,.14)}
+    .aba:focus-visible{outline:2px solid #c49a30}
+    .sair{background:none;border:1px solid rgba(255,255,255,.3);color:inherit;border-radius:8px;padding:.3rem .7rem;cursor:pointer;font-size:.8rem}
+    main{max-width:1100px;margin:0 auto;padding:1rem}
+    .painel[hidden]{display:none}
+    .frame{width:100%;height:calc(100vh - 120px);min-height:520px;border:1px solid var(--border);border-radius:14px;background:var(--paper)}
+    .box{background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:1rem;margin-bottom:.8rem}
+    h1{font-size:1.35rem;margin:.2rem 0 .3rem;color:var(--ink)}h2{font-size:1.02rem;margin:0 0 .7rem;color:var(--ink)}
+    .sub{color:var(--text2);margin:0 0 1rem;font-size:.9rem}
+    .btn{border:0;border-radius:10px;padding:.55rem .95rem;cursor:pointer;background:var(--gold);color:var(--on);font-weight:600;min-height:40px}
+    .btn.sec{background:transparent;color:var(--gold-d);border:1px solid var(--gold)}
+    .btn.perigo{background:var(--red);color:#fff}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    input[type=text],input[type=password],input[type=search],input[type=email],input[type=tel],input[type=number],input[type=date],input[type=datetime-local],select,textarea{
+      width:100%;padding:.55rem .65rem;border-radius:9px;border:1px solid var(--border2);background:var(--paper2)}
+    textarea{min-height:76px;resize:vertical;font:.85rem/1.45 ui-monospace,Menlo,monospace}
+    textarea.prosa{font:inherit}
+    .linha{display:flex;gap:.5rem;align-items:center}.linha>input{flex:1}
+    .gate{max-width:440px;margin:12vh auto 0}
+    .msg{border-radius:10px;padding:.65rem .8rem;font-size:.88rem;margin-bottom:.8rem}
+    .msg.ok{background:var(--green-bg);color:var(--green)}.msg.erro{background:var(--red-bg);color:var(--red)}.msg.av{background:var(--amber-bg);color:var(--amber)}
+    /* cadastros */
+    .cad{display:grid;grid-template-columns:minmax(260px,360px) 1fr;gap:1rem;align-items:start}
+    @media (max-width:820px){.cad{grid-template-columns:1fr}}
+    .lista{max-height:calc(100vh - 220px);overflow:auto;padding:0;margin:.6rem 0 0;list-style:none}
+    .item{display:block;width:100%;text-align:left;background:var(--paper);border:1px solid var(--border);border-radius:11px;padding:.6rem .7rem;margin-bottom:.4rem;cursor:pointer}
+    .item[aria-current="true"]{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold-bg)}
+    .item b{display:block;font-size:.92rem}.item small{display:block;color:var(--muted);font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .chips{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.3rem}
+    .chip{font-size:.7rem;font-weight:700;padding:.12rem .45rem;border-radius:99px;background:var(--paper3);color:var(--text2)}
+    .chip.pro{background:var(--gold-bg);color:var(--gold-d)}.chip.ban{background:var(--red-bg);color:var(--red)}.chip.loc{background:var(--green-bg);color:var(--green)}
+    .ficha-topo{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;flex-wrap:wrap}
+    .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.7rem}
+    .campo label{display:flex;justify-content:space-between;gap:.4rem;font-size:.76rem;font-weight:600;color:var(--text2);margin-bottom:.2rem}
+    .campo label code{font-weight:400;color:var(--muted);font-size:.7rem}
+    .campo.larga{grid-column:1/-1}
+    .campo.mudou input,.campo.mudou textarea,.campo.mudou select{border-color:var(--gold);background:var(--gold-bg)}
+    .campo.ro input,.campo.ro textarea{opacity:.65}
+    .toggle{display:flex;align-items:center;gap:.5rem;min-height:40px}
+    .toggle input{width:1.2rem;height:1.2rem}
+    .acoes{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-top:.8rem}
+    .kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.5rem;font-size:.85rem}
+    .kv div{background:var(--paper2);border-radius:9px;padding:.45rem .6rem}.kv b{display:block;font-size:.72rem;color:var(--muted);font-weight:600}
+    .aud{list-style:none;margin:0;padding:0;font-size:.8rem}
+    .aud li{border-top:1px solid var(--border);padding:.45rem 0}.aud li:first-child{border-top:0}
+    .aud code{font:.72rem ui-monospace,Menlo,monospace;color:var(--text2);word-break:break-word}
+    .vazio{color:var(--muted);font-size:.9rem;padding:2rem 0;text-align:center}
+    details summary{cursor:pointer;font-weight:600;color:var(--gold-d)}
+  </style>
+</head>
+<body>
+<header class="topo"><div class="topo-in">
+  <span class="marca">Field<em>o</em> · Painel</span>
+  <nav class="abas" role="tablist" aria-label="Seções" id="abas" hidden>
+    <button class="aba" role="tab" data-aba="cadastros" aria-selected="true">Cadastros</button>
+    <button class="aba" role="tab" data-aba="analytics" aria-selected="false">Analytics</button>
+    <button class="aba" role="tab" data-aba="engenharia" aria-selected="false">Engenharia</button>
+    <button class="aba" role="tab" data-aba="banco" aria-selected="false">Banco</button>
+  </nav>
+  <button class="sair" id="sair" hidden>Sair</button>
+</div></header>
+
+<main>
+  <section class="gate" id="gate">
+    <div class="box">
+      <h1>Painel do Fieldo</h1>
+      <p class="sub">Cadastros, Analytics, Engenharia e Banco num lugar só. Use a chave de administrador (FIELDO_ADMIN_KEY).</p>
+      <div class="linha"><input type="password" id="chave" autocomplete="off" placeholder="Chave de administrador"/><button class="btn" id="entrar">Entrar</button></div>
+      <div id="gateMsg" style="margin-top:.6rem"></div>
+    </div>
+  </section>
+
+  <section class="painel" id="p-cadastros" hidden>
+    <div class="cad">
+      <div>
+        <input type="search" id="busca" placeholder="Buscar nome, e-mail, WhatsApp, cidade, slug ou id" aria-label="Buscar cadastros"/>
+        <p class="sub" id="contagem" style="margin:.5rem 0 0"></p>
+        <ul class="lista" id="lista"></ul>
+      </div>
+      <div id="ficha"><div class="box vazio">Escolha um cadastro na lista.</div></div>
+    </div>
+  </section>
+  <section class="painel" id="p-analytics" hidden><iframe class="frame" title="Analytics" data-src="admin-analytics.html"></iframe></section>
+  <section class="painel" id="p-engenharia" hidden><iframe class="frame" title="Engenharia" data-src="admin-engenharia.html"></iframe></section>
+  <section class="painel" id="p-banco" hidden><iframe class="frame" title="Migrations do banco" data-src="admin-migracoes.html"></iframe></section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var FN = 'https://jrsctnncoljdcvdofxsg.supabase.co/functions/v1/admin-cadastros';
+  var chave = '';
+  try { chave = sessionStorage.getItem('_fieldo_admin_key') || ''; } catch (e) {}
+  var contas = [], atual = null, ficha = null, tBusca = null;
+
+  /* rótulos amigáveis; coluna nova no banco aparece com o próprio nome */
+  var ROTULO = {
+    name: 'Nome', profissao: 'Profissão', specialty: 'Especialidade', city: 'Cidade', uf: 'UF', slug: 'Endereço do perfil (slug)',
+    phone: 'Telefone', whatsapp: 'WhatsApp', email: 'E-mail de contato', bio: 'Bio', logo_url: 'Foto/logo (URL)', instagram: 'Instagram',
+    pix_key: 'Chave Pix', pix_tipo: 'Tipo da chave Pix', include_pix: 'Mostrar Pix nos documentos', plan: 'Plano', plan_expires_at: 'Plano vence em',
+    is_public: 'Perfil público', portfolio_publico: 'Portfólio público', portfolio_aceito_em: 'Portfólio aceito em', niche: 'Nicho',
+    origem: 'Origem do cadastro', area_atendimento: 'Área de atendimento', tipo_atendimento: 'Tipo de atendimento', cnpj: 'CNPJ',
+    empresa_nome: 'Nome da empresa', cnpj_situacao: 'Situação do CNPJ', cnpj_abertura: 'Abertura do CNPJ', cnpj_verificado_em: 'CNPJ verificado em',
+    atua_desde: 'Atua desde (ano)', garantia: 'Garantia', formas_pagamento: 'Formas de pagamento', atende_urgencia: 'Atende urgência',
+    registros: 'Registros (CREA etc.)', outras_profissoes: 'Outras profissões (JSON)', nichos: 'Nichos', cidades_atendidas: 'Cidades atendidas',
+    cidades: 'Cidades', aceita_ligacao: 'Aceita ligação', nome: 'Nome', razao_social: 'Razão social', endereco: 'Endereço', horario: 'Horário (JSON)',
+    entrega: 'Faz entrega', raio_entrega_km: 'Raio de entrega (km)', responsavel: 'Responsável', city_slug: 'Cidade (normalizada)',
+    created_at: 'Criado em', updated_at: 'Atualizado em', id: 'ID'
+  };
+  var LARGA = { bio: 1, outras_profissoes: 1, horario: 1, area_atendimento: 1, registros: 1, garantia: 1, endereco: 1 };
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function dt(iso) { if (!iso) return '—'; try { return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }); } catch (e) { return iso; } }
+  function msg(el, txt, cls) { el.innerHTML = txt ? '<div class="msg ' + (cls || 'erro') + '">' + txt + '</div>' : ''; }
+  function chamar(corpo) {
+    return fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': chave }, body: JSON.stringify(corpo) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j._status = r.status; return j; }); });
+  }
+
+  /* ── entrada e abas ─────────────────────────────────────────── */
+  var elChave = document.getElementById('chave');
+  function entrar() {
+    chave = (elChave.value || chave).trim();
+    if (!chave) return;
+    msg(document.getElementById('gateMsg'), 'Conferindo…', 'av');
+    chamar({ acao: 'listar', busca: '' }).then(function (r) {
+      if (r._status === 403) { msg(document.getElementById('gateMsg'), 'Chave incorreta.'); return; }
+      if (!r.contas) { msg(document.getElementById('gateMsg'), 'Não foi possível entrar: ' + esc(r.error || r._status)); return; }
+      try { sessionStorage.setItem('_fieldo_admin_key', chave); } catch (e) {}
+      document.getElementById('gate').hidden = true;
+      document.getElementById('abas').hidden = false;
+      document.getElementById('sair').hidden = false;
+      contas = r.contas; desenharLista(); abrirAba(location.hash.replace('#', '') || 'cadastros');
+    }).catch(function () { msg(document.getElementById('gateMsg'), 'Sem conexão com o Supabase.'); });
+  }
+  function abrirAba(nome) {
+    if (!document.getElementById('p-' + nome)) nome = 'cadastros';
+    document.querySelectorAll('.aba').forEach(function (b) { b.setAttribute('aria-selected', b.dataset.aba === nome ? 'true' : 'false'); });
+    document.querySelectorAll('.painel').forEach(function (p) { p.hidden = p.id !== 'p-' + nome; });
+    var fr = document.querySelector('#p-' + nome + ' iframe');
+    if (fr && !fr.src) fr.src = fr.dataset.src;          /* carrega só quando abre */
+    try { history.replaceState(null, '', '#' + nome); } catch (e) {}
+  }
+  document.querySelectorAll('.aba').forEach(function (b) { b.onclick = function () { abrirAba(b.dataset.aba); }; });
+  document.getElementById('entrar').onclick = entrar;
+  elChave.addEventListener('keydown', function (e) { if (e.key === 'Enter') entrar(); });
+  document.getElementById('sair').onclick = function () { try { sessionStorage.removeItem('_fieldo_admin_key'); } catch (e) {} location.hash = ''; location.reload(); };
+
+  /* ── lista ──────────────────────────────────────────────────── */
+  function nomeConta(c) { return c.name || c.locadora_nome || c.email || c.phone || ('Conta ' + c.id.slice(0, 8)); }
+  function desenharLista() {
+    document.getElementById('contagem').textContent = contas.length + (contas.length === 1 ? ' cadastro' : ' cadastros') + (contas.length === 300 ? ' (mostrando os 300 mais novos; use a busca)' : '');
+    document.getElementById('lista').innerHTML = contas.length ? contas.map(function (c) {
+      var pro = c.plan === 'pro' || c.locadora_plan === 'pro';
+      var ban = c.banned_until && new Date(c.banned_until) > new Date();
+      return '<li><button class="item" data-id="' + c.id + '"' + (atual === c.id ? ' aria-current="true"' : '') + '>' +
+        '<b>' + esc(nomeConta(c)) + '</b><small>' + esc([c.profissao, c.city].filter(Boolean).join(' · ') || c.email || '') + '</small>' +
+        '<span class="chips">' + (c.name ? '<span class="chip">Profissional</span>' : '') + (c.locadora_nome ? '<span class="chip loc">Locadora</span>' : '') +
+        (pro ? '<span class="chip pro">Pro</span>' : '') + (ban ? '<span class="chip ban">Bloqueado</span>' : '') +
+        (c.relatorios ? '<span class="chip">' + c.relatorios + ' rel.</span>' : '') + '</span></button></li>';
+    }).join('') : '<li class="vazio">Nada encontrado.</li>';
+    document.querySelectorAll('.item').forEach(function (b) { b.onclick = function () { abrirFicha(b.dataset.id); }; });
+  }
+  document.getElementById('busca').addEventListener('input', function () {
+    var q = this.value; clearTimeout(tBusca);
+    tBusca = setTimeout(function () { chamar({ acao: 'listar', busca: q }).then(function (r) { if (r.contas) { contas = r.contas; desenharLista(); } }); }, 300);
+  });
+
+  /* ── ficha ──────────────────────────────────────────────────── */
+  function abrirFicha(id) {
+    atual = id; desenharLista();
+    var el = document.getElementById('ficha');
+    el.innerHTML = '<div class="box vazio">Carregando…</div>';
+    chamar({ acao: 'detalhe', id: id }).then(function (d) {
+      if (d._status !== 200) { el.innerHTML = '<div class="msg erro">Não foi possível abrir: ' + esc(d.error || d._status) + '</div>'; return; }
+      ficha = d; desenharFicha();
+    });
+  }
+
+  function valorInput(c, v) {
+    if (v == null) return '';
+    if (c.tipo === 'timestamp with time zone' || c.tipo === 'timestamp without time zone') {
+      var d = new Date(v); if (isNaN(d)) return '';
+      var z = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+      return z.toISOString().slice(0, 16);
+    }
+    if (c.tipo === 'text[]') return (v || []).join(', ');
+    if (c.tipo === 'jsonb' || c.tipo === 'json') return JSON.stringify(v, null, 2);
+    return String(v);
+  }
+  function campoHtml(tabela, c, v) {
+    var id = 'f_' + tabela + '_' + c.nome, ro = !c.editavel ? ' disabled' : '';
+    var rot = '<label for="' + id + '">' + esc(ROTULO[c.nome] || c.nome) + ' <code>' + esc(c.nome) + '</code></label>';
+    var attrs = ' id="' + id + '" data-tabela="' + tabela + '" data-col="' + esc(c.nome) + '"' + ro;
+    var inp;
+    if (c.tipo === 'boolean') inp = '<span class="toggle"><input type="checkbox"' + attrs + (v ? ' checked' : '') + '/><span>' + (v ? 'Sim' : 'Não') + '</span></span>';
+    else if (c.nome === 'plan') inp = '<select' + attrs + '>' + ['free', 'pro', 'team'].map(function (p) { return '<option' + (v === p ? ' selected' : '') + '>' + p + '</option>'; }).join('') + (['free', 'pro', 'team'].indexOf(v) < 0 && v ? '<option selected>' + esc(v) + '</option>' : '') + '</select>';
+    else if (c.tipo === 'jsonb' || c.tipo === 'json' || c.nome === 'bio') inp = '<textarea' + attrs + (c.nome === 'bio' ? ' class="prosa"' : '') + '>' + esc(valorInput(c, v)) + '</textarea>';
+    else {
+      var t = c.tipo === 'date' ? 'date' : /^timestamp/.test(c.tipo) ? 'datetime-local' : /int|numeric|real|double/.test(c.tipo) ? 'number' : 'text';
+      inp = '<input type="' + t + '"' + attrs + ' value="' + esc(valorInput(c, v)) + '"' + (c.tipo === 'text[]' ? ' placeholder="separe por vírgula"' : '') + '/>';
+    }
+    return '<div class="campo' + (LARGA[c.nome] ? ' larga' : '') + (ro ? ' ro' : '') + '">' + rot + inp + '</div>';
+  }
+
+  function formTabela(tabela, titulo, reg) {
+    var cs = (ficha.campos[tabela] || []);
+    if (!reg || !cs.length) return '';
+    return '<section class="box" data-form="' + tabela + '"><h2>' + titulo + '</h2><div class="grade">' +
+      cs.map(function (c) { return campoHtml(tabela, c, reg[c.nome]); }).join('') + '</div>' +
+      '<div class="acoes"><button class="btn" data-salvar="' + tabela + '" disabled>Salvar alterações</button>' +
+      (tabela === 'professionals' ? '<button class="btn sec" data-pro30="1">Dar Pro por 30 dias</button><button class="btn sec" data-free="1">Voltar ao grátis</button>' : '') +
+      '<span class="sub" style="margin:0" data-status="' + tabela + '"></span></div></section>';
+  }
+
+  function desenharFicha() {
+    var d = ficha, c = d.conta || {}, p = d.profissional, l = d.locadora, inv = d.inventario || {};
+    var ban = c.banned_until && new Date(c.banned_until) > new Date();
+    var nome = (p && p.name) || (l && l.nome) || c.email || ('Conta ' + atual.slice(0, 8));
+    var h = '<div class="box"><div class="ficha-topo"><div><h1>' + esc(nome) + '</h1>' +
+      '<p class="sub" style="margin:0">ID <code>' + esc(atual) + '</code> · criado ' + esc(dt(c.created_at)) + ' · último acesso ' + esc(dt(c.last_sign_in_at)) +
+      (c.is_anonymous ? ' · conta anônima' : '') + '</p></div>' +
+      (p && p.slug ? '<a class="btn sec" style="text-decoration:none" target="_blank" rel="noopener" href="/p/' + encodeURIComponent(p.slug) + '">Ver perfil público</a>' : '') + '</div>' +
+      (!d.auditoria_ativa ? '<div class="msg av" style="margin-top:.7rem">A auditoria ainda não está ativa: aplique a migration "Auditoria do painel" na aba Banco. As ações funcionam, mas não ficam registradas.</div>' : '') +
+      '<div class="kv" style="margin-top:.8rem">' +
+        ['relatorios', 'orcamentos', 'avaliacoes', 'selos', 'equipamentos', 'locacoes', 'contratos', 'arquivos'].map(function (k) {
+          return '<div><b>' + ({ relatorios: 'Relatórios', orcamentos: 'Orçamentos', avaliacoes: 'Avaliações', selos: 'Selos', equipamentos: 'Equipamentos', locacoes: 'Locações', contratos: 'Contratos', arquivos: 'Arquivos' }[k]) + '</b>' + esc(inv[k] || 0) + '</div>';
+        }).join('') + '</div></div>';
+
+    h += '<section class="box"><h2>Login</h2><div class="grade">' +
+      '<div class="campo"><label for="lgEmail">E-mail de acesso</label><input type="email" id="lgEmail" value="' + esc(c.email || '') + '"/></div>' +
+      '<div class="campo"><label for="lgTel">Telefone de acesso</label><input type="tel" id="lgTel" value="' + esc(c.phone || '') + '"/></div>' +
+      '<div class="campo"><label>Situação</label><div class="toggle"><span class="chip ' + (ban ? 'ban">Bloqueado até ' + esc(dt(c.banned_until)) : '">Ativo') + '</span></div></div>' +
+      '</div><div class="acoes"><button class="btn" id="lgSalvar">Salvar login</button>' +
+      '<button class="btn ' + (ban ? 'sec' : 'perigo') + '" id="lgBan">' + (ban ? 'Desbloquear acesso' : 'Bloquear acesso') + '</button>' +
+      '<span class="sub" style="margin:0" id="lgStatus"></span></div></section>';
+
+    h += formTabela('professionals', 'Profissional', p);
+    h += formTabela('locadoras', 'Locadora', l);
+
+    if ((d.assinaturas || []).length || (d.licencas || []).length) {
+      h += '<section class="box"><h2>Assinaturas e licenças</h2><div class="kv">' +
+        (d.assinaturas || []).map(function (a) { return '<div><b>Assinatura ' + esc(a.ambiente || '') + '</b>' + esc(a.status) + ' · ' + esc(a.ciclo || '') + ' · próx. ' + esc(a.proxima_cobranca || '—') + '</div>'; }).join('') +
+        (d.licencas || []).map(function (x) { return '<div><b>Licença' + (x.revenda ? ' · ' + esc(x.revenda) : '') + '</b>vence ' + esc(dt(x.expira)) + '</div>'; }).join('') +
+        '</div></section>';
+    }
+
+    h += '<section class="box"><details><summary>Auditoria desta conta (' + (d.auditoria || []).length + ')</summary><ul class="aud" style="margin-top:.6rem">' +
+      ((d.auditoria || []).map(function (a) {
+        return '<li><b>' + esc(dt(a.quando)) + ' · ' + esc(a.acao) + (a.tabela ? ' · ' + esc(a.tabela) : '') + '</b><br>' +
+          '<code>antes: ' + esc(JSON.stringify(a.antes)) + '</code><br><code>depois: ' + esc(JSON.stringify(a.depois)) + '</code></li>';
+      }).join('') || '<li class="sub">Nenhuma ação registrada.</li>') + '</ul></details></section>';
+
+    h += '<section class="box" style="border-color:var(--red)"><h2 style="color:var(--red)">Excluir cadastro</h2>' +
+      '<p class="sub">Apaga de vez a conta, o login, o perfil, relatórios, orçamentos, avaliações, locações, contratos e arquivos. Fica só o registro na auditoria. Não tem volta.</p>' +
+      '<div class="linha"><input type="text" id="exConf" placeholder="Digite EXCLUIR ' + esc(atual.slice(0, 8)) + '"/><button class="btn perigo" id="exBtn">Excluir</button></div>' +
+      '<div id="exMsg" style="margin-top:.6rem"></div></section>';
+
+    document.getElementById('ficha').innerHTML = h;
+    ligarFicha();
+  }
+
+  function lerCampo(el, c) {
+    if (c.tipo === 'boolean') return el.checked;
+    var v = el.value;
+    if (/^timestamp/.test(c.tipo)) return v ? new Date(v).toISOString() : null;
+    if (c.tipo === 'text[]') return v.split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+    if (c.tipo === 'jsonb' || c.tipo === 'json') { if (!v.trim()) return null; JSON.parse(v); return v; }
+    return v === '' ? null : v;
+  }
+
+  function ligarFicha() {
+    ['professionals', 'locadoras'].forEach(function (tabela) {
+      var form = document.querySelector('[data-form="' + tabela + '"]'); if (!form) return;
+      var reg = tabela === 'professionals' ? ficha.profissional : ficha.locadora;
+      var cs = {}; (ficha.campos[tabela] || []).forEach(function (c) { cs[c.nome] = c; });
+      var btn = form.querySelector('[data-salvar]'), status = form.querySelector('[data-status]');
+      function diferencas() {
+        var mud = {}, erro = null;
+        form.querySelectorAll('[data-col]').forEach(function (el) {
+          var c = cs[el.dataset.col]; if (!c || !c.editavel) return;
+          var orig = valorInput(c, reg[c.nome]), atualV = c.tipo === 'boolean' ? el.checked : el.value;
+          var mudou = c.tipo === 'boolean' ? (!!reg[c.nome] !== el.checked) : (orig !== atualV);
+          el.closest('.campo').classList.toggle('mudou', mudou);
+          if (mudou) { try { mud[c.nome] = lerCampo(el, c); } catch (e) { erro = (ROTULO[c.nome] || c.nome) + ': JSON inválido'; } }
+        });
+        return { mud: mud, erro: erro };
+      }
+      form.addEventListener('input', function (e) {
+        if (e.target.type === 'checkbox') e.target.nextElementSibling.textContent = e.target.checked ? 'Sim' : 'Não';
+        var r = diferencas(), n = Object.keys(r.mud).length;
+        btn.disabled = !n || !!r.erro;
+        status.textContent = r.erro || (n ? n + (n === 1 ? ' campo alterado' : ' campos alterados') : '');
+      });
+      btn.onclick = function () {
+        var r = diferencas(); if (r.erro || !Object.keys(r.mud).length) return;
+        salvarTabela(tabela, r.mud, btn, status);
+      };
+      var b30 = form.querySelector('[data-pro30]');
+      if (b30) b30.onclick = function () {
+        if (!confirm('Dar Pro por 30 dias (até ' + new Date(Date.now() + 30 * 864e5).toLocaleDateString('pt-BR') + ')?')) return;
+        salvarTabela(tabela, { plan: 'pro', plan_expires_at: new Date(Date.now() + 30 * 864e5).toISOString() }, b30, status);
+      };
+      var bf = form.querySelector('[data-free]');
+      if (bf) bf.onclick = function () {
+        if (!confirm('Voltar esta conta ao plano grátis agora?')) return;
+        salvarTabela(tabela, { plan: 'free' }, bf, status);
+      };
+    });
+
+    document.getElementById('lgSalvar').onclick = function () {
+      var b = this, st = document.getElementById('lgStatus'), c = ficha.conta || {};
+      var corpo = { acao: 'conta', id: atual }, em = document.getElementById('lgEmail').value.trim(), tl = document.getElementById('lgTel').value.trim();
+      if (em !== (c.email || '')) corpo.email = em;
+      if (tl.replace(/\D/g, '') !== String(c.phone || '').replace(/\D/g, '')) corpo.phone = tl;
+      if (!('email' in corpo) && !('phone' in corpo)) { st.textContent = 'Nada mudou.'; return; }
+      b.disabled = true; st.textContent = 'Salvando…';
+      chamar(corpo).then(function (r) { b.disabled = false; if (r.ok) { st.textContent = 'Login salvo.'; abrirFicha(atual); } else st.textContent = 'Erro: ' + (r.erro || r.error) + (r.mensagem ? ' · ' + r.mensagem : ''); });
+    };
+    document.getElementById('lgBan').onclick = function () {
+      var ban = ficha.conta && ficha.conta.banned_until && new Date(ficha.conta.banned_until) > new Date();
+      if (!confirm(ban ? 'Desbloquear o acesso desta conta?' : 'Bloquear o acesso? A pessoa deixa de conseguir entrar até você desbloquear. Os dados continuam.')) return;
+      var st = document.getElementById('lgStatus'); st.textContent = 'Salvando…';
+      chamar({ acao: 'conta', id: atual, bloquear: !ban }).then(function (r) { if (r.ok) { abrirFicha(atual); recarregarLista(); } else st.textContent = 'Erro: ' + (r.erro || r.error); });
+    };
+    document.getElementById('exBtn').onclick = function () {
+      var b = this, conf = document.getElementById('exConf').value, el = document.getElementById('exMsg');
+      if (conf.trim().toUpperCase() !== ('EXCLUIR ' + atual.slice(0, 8)).toUpperCase()) { msg(el, 'Digite exatamente EXCLUIR ' + atual.slice(0, 8) + '.'); return; }
+      b.disabled = true; msg(el, 'Excluindo…', 'av');
+      chamar({ acao: 'excluir', id: atual, confirmacao: conf }).then(function (r) {
+        if (!r.ok) { b.disabled = false; msg(el, esc(r.detalhe || r.erro || r.error || 'Falhou')); return; }
+        var a = r.apagado || {};
+        document.getElementById('ficha').innerHTML = '<div class="msg ok">Cadastro excluído' + (r.nome ? ': ' + esc(r.nome) : '') + '. Apagados ' +
+          (a.relatorios || 0) + ' relatórios, ' + (a.orcamentos || 0) + ' orçamentos, ' + (a.arquivos || 0) + ' arquivos' +
+          (r.arquivos_com_falha ? ' (' + r.arquivos_com_falha + ' arquivos falharam)' : '') + '.' + (r.auditado ? ' Registrado na auditoria.' : '') + '</div>';
+        atual = null; recarregarLista();
+      });
+    };
+  }
+
+  function salvarTabela(tabela, mud, btn, status) {
+    btn.disabled = true; status.textContent = 'Salvando…';
+    chamar({ acao: 'salvar', id: atual, tabela: tabela, alteracoes: mud }).then(function (r) {
+      if (r.ok) { status.textContent = 'Salvo: ' + (r.alterados || []).join(', ') + (r.auditado ? ' · auditado' : ''); abrirFicha(atual); recarregarLista(); return; }
+      btn.disabled = false;
+      status.textContent = 'Não salvou: ' + (r.erro === 'campos_recusados' ? 'campos recusados (' + (r.campos || []).join(', ') + ')' : (r.mensagem || r.erro || r.error));
+    }).catch(function () { btn.disabled = false; status.textContent = 'Sem conexão.'; });
+  }
+  function recarregarLista() {
+    chamar({ acao: 'listar', busca: document.getElementById('busca').value }).then(function (r) { if (r.contas) { contas = r.contas; desenharLista(); } });
+  }
+
+  /* Clicar num botão com um campo ainda em foco fazia a página rolar entre o
+     apertar e o soltar do mouse (troca de foco + topo fixo), e o clique caía
+     em outro lugar — o "Salvar" parecia não fazer nada. O mousedown não rouba
+     mais o foco nos botões; teclado (Tab + Enter) continua igual. */
+  document.addEventListener('mousedown', function (e) {
+    if (e.target.closest && e.target.closest('button.btn, .item')) e.preventDefault();
+  });
+
+  if (chave) { elChave.value = chave; entrar(); }
+})();
+</script>
+</body>
+</html>

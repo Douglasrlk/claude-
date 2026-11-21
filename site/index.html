@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Fieldo — sua reputação vira perfil público no Google</title>
+<meta name="description" content="Registre seus serviços, receba avaliações verdadeiras de clientes reais e apareça no Google. Fieldo é gratuito para começar."/>
+<meta name="robots" content="index,follow"/>
+
+<!-- v10.1 · Esta página ERA comece.html e virou a raiz do site.
+     Até a v10.0, "/" servia o painel do profissional, marcado
+     noindex — ou seja, o primeiro request que o Googlebot faz em
+     qualquer domínio recebia "não me indexe". A landing indexável
+     existia e estava num endereço secundário.
+
+     O canonical aponta para "/" e não para "/index.html" porque as
+     duas URLs entregam este mesmo arquivo; sem isto o Google escolhe
+     sozinho qual das duas indexar, e pode escolher a feia. -->
+<link rel="canonical" href="https://fieldo-zelo.com.br/"/>
+
+<!-- Open Graph — pra quando este link circular em grupo de profissionais -->
+<meta name="google-site-verification" content="E5dCD_p9gxuOdaP4rno2tnSs6x617mMUoxQvbjPUiZE" />
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://fieldo-zelo.com.br/"/>
+<meta property="og:title" content="Fieldo — sua reputação vira perfil público no Google"/>
+<meta property="og:description" content="Registre serviços, receba avaliações verdadeiras e apareça no Google. Grátis para começar."/>
+<!-- v12.20 · sem og:image o link chegava no WhatsApp só com texto.
+     1200×630, 59 KB (o WhatsApp ignora imagem pesada). -->
+<meta property="og:site_name" content="Fieldo"/>
+<meta property="og:locale" content="pt_BR"/>
+<meta property="og:image" content="https://fieldo-zelo.com.br/og-fieldo-v2.jpg"/>
+<meta property="og:image:secure_url" content="https://fieldo-zelo.com.br/og-fieldo-v2.jpg"/>
+<meta property="og:image:type" content="image/jpeg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Desenho de um profissional apertando um parafuso, ao lado da frase: Seu próximo cliente vai ver seu trabalho antes de te ligar."/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://fieldo-zelo.com.br/og-fieldo-v2.jpg"/>
+
+<!-- v10.21 · auditoria GEO — dado estruturado da marca.
+     Até aqui só o perfil individual (perfil-seo.ts) e as páginas de
+     lista tinham JSON-LD; a própria home, que é a página que explica
+     "o que é o Fieldo", não tinha nenhum. Sem isto, uma IA que lê só
+     o HTML não tem como distinguir "Fieldo" de qualquer outra palavra
+     na página — o texto existe, mas não está declarado como entidade.
+
+     Descreve o produto do jeito que ele funciona hoje, sem número
+     inventado (usuários, cobertura, "líder de mercado" etc.) — só o
+     que a própria landing já afirma: orçamento, registro de serviço
+     com prova, e o perfil público que aparece no Google. O domínio
+     é o mesmo placeholder do resto do arquivo (linha do canonical
+     acima) — canonical-origem.ts reescreve os três juntos para o
+     domínio que está servindo de fato. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://fieldo-zelo.com.br/#organizacao",
+      "name": "Fieldo",
+      "url": "https://fieldo-zelo.com.br/",
+      "logo": "https://fieldo-zelo.com.br/icons/icon-512.png",
+      "description": "O Fieldo é uma plataforma brasileira para encontrar e contratar profissionais autônomos pelo trabalho que eles já fizeram: cada perfil mostra fotos de trabalhos, serviços registrados com data e avaliações de quem contratou, e o contato é direto com o profissional pelo WhatsApp, sem cadastro e sem custo para quem contrata. Para o profissional, o Fieldo é a ferramenta de trabalho: orçamento, registro de cada serviço com foto e data, relatório para o cliente, avaliação de quem contratou e um perfil público que pode aparecer no Google.",
+      "areaServed": [
+        { "@type": "City", "name": "Caraguatatuba", "containedInPlace": { "@type": "State", "name": "São Paulo" } },
+        { "@type": "City", "name": "São Sebastião", "containedInPlace": { "@type": "State", "name": "São Paulo" } },
+        { "@type": "City", "name": "Ilhabela", "containedInPlace": { "@type": "State", "name": "São Paulo" } },
+        { "@type": "City", "name": "Ubatuba", "containedInPlace": { "@type": "State", "name": "São Paulo" } }
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "telephone": "+55-12-98840-6425",
+        "url": "https://wa.me/5512988406425",
+        "availableLanguage": "Portuguese"
+      },
+      "sameAs": ["https://www.instagram.com/fieldo.zelo/"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://fieldo-zelo.com.br/#site",
+      "name": "Fieldo",
+      "url": "https://fieldo-zelo.com.br/",
+      "publisher": { "@id": "https://fieldo-zelo.com.br/#organizacao" }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://fieldo-zelo.com.br/#perguntas",
+      "mainEntity": [
+        {"@type":"Question","name":"É grátis mesmo?","acceptedAnswer":{"@type":"Answer","text":"Sim. O plano grátis registra até 5 serviços por mês, com perfil público, orçamento e relatório com Pix. O plano Pro tira o limite. Não pede cartão para começar."}},
+        {"@type":"Question","name":"Preciso ter CNPJ?","acceptedAnswer":{"@type":"Answer","text":"Não. Se tiver, você pode informar depois: o Fieldo confere na Receita e mostra CNPJ ativo no seu perfil."}},
+        {"@type":"Question","name":"Meu cliente precisa baixar algum aplicativo?","acceptedAnswer":{"@type":"Answer","text":"Não. Ele recebe um link pelo WhatsApp e abre no celular: vê o relatório, paga pelo Pix e avalia."}},
+        {"@type":"Question","name":"Funciona sem internet?","acceptedAnswer":{"@type":"Answer","text":"Em parte. Com o Fieldo já aberto, você registra o serviço na obra sem sinal e ele sobe sozinho quando a conexão volta. Para abrir o app é preciso internet."}}
+      ]
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<!-- v12.17 · a landing tinha a pré-conexão mas não a folha de fontes: o título saía em Times. -->
+<!-- v12.17c · o dono preferiu a letra de antes (Noto Serif + Roboto, que o Android
+     mostrava quando a landing não carregava fonte nenhuma). Agora ela é carregada de
+     propósito, para sair igual no iPhone e no computador também. Só nesta página. -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,300..700;1,300..700&family=Roboto:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="fieldo.css"/>
+<style>:root{--serif:'Noto Serif',Georgia,serif;--sans:'Roboto',system-ui,sans-serif;}</style>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   v-rebuild-1 · RECONSTRUÇÃO COMPLETA DA LANDING (índice)
+   ─────────────────────────────────────────────────────────────
+   Pesquisa que embasou isto (registrada na conversa com o Rikelme,
+   não num arquivo — resumo aqui pra quem mexer depois):
+
+     1. QuoteIQ (SaaS de orçamento pra prestador de serviço) — o
+        "como funciona" em passos numerados curtos, e recursos
+        mostrados em UI real anotada, não ícone genérico solto.
+     2. Padrão "produto-protagonista" (Linear/Figma/Webflow) — Hero
+        com um mockup grande do produto + cards pequenos flutuando
+        ao redor, cada um mostrando um resultado concreto.
+     3. Tendência "interface real > ilustração" (SaaSFrame 2026) —
+        troca completa de fotografia por UI do próprio produto.
+
+   REGRA QUE GOVERNA TODA ESTA PÁGINA: nenhuma foto. Toda imagem
+   aqui é HTML/CSS/SVG representando uma tela real do Fieldo — não
+   existe <img> de pessoa nesta página. Onde o produto mostraria uma
+   FOTO do cliente (o card de avaliação, o registro de serviço), o
+   mockup usa um ícone de câmera como placeholder — nunca uma foto
+   de banco de imagem ou um rosto inventado.
+
+   Nenhum número de prova social é inventado aqui (ver seção
+   "confiança" abaixo) — só o mecanismo é mostrado, porque é o que
+   temos de real pra mostrar hoje.
+   ═══════════════════════════════════════════════════════════ */
+
+  * { box-sizing: border-box; }
+
+  /* ── NAV ─────────────────────────────────────────────────── */
+  .lp-nav {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(240,236,227,.88); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .lp-nav-inner {
+    max-width: 1040px; margin: 0 auto; padding: 0 1.25rem;
+    height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .lp-nav-links { display: flex; align-items: center; gap: 1.75rem; }
+  /* v12.9 · faixa do cliente */
+  .lp-cliente { display: block; text-align: center; padding: .6rem 1rem; background: var(--ink); color: rgba(255,255,255,.82);
+    font-size: .82rem; line-height: 1.4; text-decoration: none; }
+  .lp-cliente strong { color: #fff; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+  .lp-cliente:hover strong { color: var(--gold-l); }
+  @media (max-width: 460px) { .lp-cliente span { display: block; } }
+  .lp-nav-link {
+    font-family: var(--sans); font-size: .84rem; font-weight: 500; color: var(--text2);
+    text-decoration: none; transition: color var(--t);
+  }
+  .lp-nav-link:hover { color: var(--ink); }
+  .lp-nav-cta {
+    font-family: var(--sans); font-size: .82rem; font-weight: 600;
+    background: var(--gold); color: var(--on-gold); padding: .58rem 1.1rem;
+    border-radius: var(--r); text-decoration: none; white-space: nowrap;
+  }
+  @media (max-width: 700px) { .lp-nav-links a:not(.lp-nav-cta) { display: none; } }
+
+  /* ── HERO ────────────────────────────────────────────────── */
+  .lp-hero {
+    max-width: 1040px; margin: 0 auto; padding: 3.25rem 1.25rem 2.5rem;
+    display: flex; flex-direction: column; align-items: center; gap: 2.25rem; text-align: center;
+  }
+  .lp-hero-copy { max-width: 620px; }
+  .lp-hero-eyebrow {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-family: var(--mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--gold-text); margin-bottom: 1.1rem;
+  }
+  .lp-hero-eyebrow::before { content:''; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+  .lp-hero h1 {
+    font-family: var(--serif); font-weight: 400; font-size: clamp(2.1rem, 5.2vw, 3.15rem);
+    line-height: 1.08; color: var(--ink); margin: 0 0 1.1rem; letter-spacing: -.01em;
+  }
+  .lp-hero h1 em { font-style: italic; color: var(--gold-text); }
+  .lp-hero-sub {
+    font-family: var(--sans); font-size: 1.02rem; line-height: 1.6; color: var(--text2);
+    max-width: 500px; margin: 0 auto 1.75rem;
+  }
+  .lp-hero-actions { display: flex; flex-direction: column; align-items: center; gap: .7rem; }
+  .lp-note { font-family: var(--mono); font-size: .66rem; letter-spacing: .03em; color: var(--subtle); }
+
+  /* composição do produto no Hero — mockup central + cards flutuando */
+  .lp-hero-visual {
+    position: relative; width: 100%; max-width: 380px; margin: 0 auto;
+    padding: 0 1.25rem;
+  }
+  .lp-browser {
+    position: relative; z-index: 1; background: var(--paper); border: 1px solid var(--border2);
+    border-radius: var(--r-xl); box-shadow: 0 30px 60px rgba(14,14,20,.14); overflow: hidden;
+  }
+  .lp-browser-bar { display: flex; align-items: center; gap: 5px; padding: .6rem .75rem; background: var(--paper3); }
+  .lp-browser-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--paper5); }
+  .lp-browser-url {
+    margin-left: .5rem; flex: 1; font-family: var(--mono); font-size: .58rem; color: var(--subtle);
+    background: var(--paper); border-radius: 5px; padding: .25rem .55rem; text-align: left;
+  }
+  .lp-profile { padding: 1.15rem 1.1rem 1.3rem; text-align: left; }
+  .lp-profile-top { display: flex; align-items: center; gap: .7rem; margin-bottom: .9rem; }
+  .lp-avatar {
+    width: 42px; height: 42px; border-radius: 50%; background: var(--gold-bg); border: 1px solid var(--gold-bd);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .lp-profile-name { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 1rem; color: var(--ink); line-height: 1.1; }
+  .lp-profile-sub { font-family: var(--sans); font-size: .72rem; color: var(--muted); margin-top: .1rem; }
+  .lp-profile-rating { display: flex; align-items: baseline; gap: .35rem; margin-bottom: 1rem; }
+  .lp-profile-rating b { font-family: var(--serif); font-style: italic; font-size: 1.1rem; color: var(--ink); }
+  .lp-profile-stars { color: var(--gold); font-size: .68rem; letter-spacing: .03em; }
+  .lp-profile-rating span { font-family: var(--sans); font-size: .68rem; color: var(--muted); }
+  .lp-profile-shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; }
+  .lp-profile-shot {
+    aspect-ratio: 1; border-radius: 8px; background: var(--paper3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; color: var(--paper5);
+    overflow: hidden;
+  }
+  .lp-profile-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .lp-float {
+    position: absolute; z-index: 2; display: flex; align-items: center; gap: .45rem;
+    background: var(--paper); border: 1px solid var(--border2); border-radius: 12px;
+    padding: .5rem .7rem; box-shadow: 0 14px 30px rgba(14,14,20,.16);
+    font-family: var(--sans); font-size: .68rem; font-weight: 600; color: var(--ink);
+    white-space: nowrap;
+  }
+  .lp-float svg { flex-shrink: 0; }
+  .lp-float--google { top: -14px; left: -6px; color: var(--gold-text); }
+  .lp-float--orcamento { top: 34%; right: -22px; }
+  .lp-float--registro { bottom: 8%; left: -26px; }
+  @media (max-width: 460px) {
+    .lp-float--google { left: 2px; }
+    .lp-float--orcamento { right: -4px; }
+    .lp-float--registro { left: -4px; }
+  }
+
+  /* ── SEÇÃO genérica (título + intro) ────────────────────── */
+  .lp-section { max-width: 1040px; margin: 0 auto; padding: 3.75rem 1.25rem; }
+  .lp-section--tight { padding-top: 0; }
+  .lp-kicker {
+    font-family: var(--mono); font-size: .66rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--gold-text); text-align: center; margin-bottom: .6rem;
+  }
+  .lp-h2 {
+    font-family: var(--serif); font-weight: 400; font-size: clamp(1.55rem, 3.6vw, 2.15rem);
+    line-height: 1.15; color: var(--ink); text-align: center; max-width: 640px; margin: 0 auto 2.25rem;
+  }
+  .lp-h2 em { font-style: italic; color: var(--gold-text); }
+
+  /* ── COMO FUNCIONA ───────────────────────────────────────── */
+  .lp-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  @media (max-width: 820px) { .lp-steps { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .lp-steps { grid-template-columns: 1fr; } }
+  /* v-rebuild-2 · cada passo virou um cartão com contorno próprio, e o
+     número+título passou pra ANTES da miniatura (era depois). No mobile,
+     onde os 4 passos empilham em coluna única, a antiga ordem (miniatura
+     → número → título) fazia a miniatura do passo seguinte grudar
+     visualmente no texto do passo anterior — sem borda nenhuma separando
+     um passo do outro, ficava ambíguo de quem era cada caixa. Agora o
+     "01 Crie seu perfil" abre o cartão como cabeçalho, e span:.lp-step-n
+     e .lp-step-title já não podem ser confundidos com o passo anterior. */
+  .lp-step {
+    display: flex; flex-direction: column; gap: .7rem;
+    background: var(--paper); border: 1px solid var(--border); border-radius: var(--r-l);
+    padding: 1.1rem 1.1rem 1.25rem;
+  }
+  .lp-step-head { display: flex; align-items: baseline; gap: .55rem; }
+  .lp-step-n {
+    font-family: var(--mono); font-size: .64rem; letter-spacing: .06em; color: var(--gold); flex-shrink: 0;
+  }
+  .lp-step-title { font-family: var(--sans); font-size: .88rem; font-weight: 600; color: var(--ink); }
+  .lp-step-mini {
+    height: 108px; border-radius: var(--r); background: var(--paper2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; padding: .9rem;
+  }
+  .lp-step-sub { font-family: var(--sans); font-size: .76rem; color: var(--muted); line-height: 1.55; }
+
+  /* miniatura passo 1 — formulário */
+  .lp-mini-form { width: 100%; display: flex; flex-direction: column; gap: .35rem; }
+  .lp-mini-field { height: 16px; border-radius: 4px; background: var(--paper3); }
+  .lp-mini-field:nth-child(1) { width: 70%; }
+  .lp-mini-field:nth-child(2) { width: 90%; }
+  .lp-mini-field:nth-child(3) { width: 55%; background: var(--gold-bg); border: 1px solid var(--gold-bd); }
+
+  /* miniatura passo 2 — chat */
+  .lp-mini-chat { width: 100%; display: flex; flex-direction: column; gap: .3rem; align-items: flex-end; }
+  .lp-mini-bubble { border-radius: 8px; padding: .3rem .55rem; font-family: var(--mono); font-size: .5rem; color: var(--muted); background: var(--paper3); }
+  .lp-mini-bubble--gold { background: var(--gold-bg); border: 1px solid var(--gold-bd); color: var(--gold-text); align-self: flex-start; }
+
+  /* miniatura passo 3 — registro com foto (ícone, nunca foto real) */
+  .lp-mini-photo {
+    width: 46px; height: 46px; border-radius: 8px; background: var(--paper3); border: 1px dashed var(--paper5);
+    display: flex; align-items: center; justify-content: center; color: var(--subtle); flex-shrink: 0;
+  }
+  .lp-mini-photo-row { display: flex; align-items: center; gap: .5rem; width: 100%; }
+  .lp-mini-check {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--green); display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0; margin-left: auto;
+  }
+
+  /* miniatura passo 4 — busca */
+  .lp-mini-search { width: 100%; display: flex; flex-direction: column; gap: .3rem; }
+  .lp-mini-search-bar {
+    display: flex; align-items: center; gap: .3rem; background: var(--paper2); border: 1px solid var(--border2);
+    border-radius: 20px; padding: .3rem .5rem; font-family: var(--sans); font-size: .58rem; color: var(--muted);
+  }
+  .lp-mini-result { height: 10px; border-radius: 3px; background: var(--paper3); }
+  .lp-mini-result:nth-child(2) { width: 80%; }
+  .lp-mini-result:nth-child(3) { width: 60%; background: var(--gold-bg); }
+
+  /* ── ORÇAMENTOS ──────────────────────────────────────────── */
+  .lp-quote-wrap { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+  .lp2-ia-link { color: var(--gold-text); font-size: .95rem; text-align: center; text-underline-offset: 3px; }
+  .lp-quote-card {
+    width: 100%; max-width: 420px; background: var(--surface-ink); border-radius: var(--r-xl);
+    padding: 1.4rem 1.3rem 1.25rem; box-shadow: 0 24px 50px rgba(14,14,20,.22);
+  }
+  .lp-quote-top { display: flex; align-items: center; gap: .5rem; margin-bottom: 1.05rem; }
+  .lp-quote-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green-l); box-shadow: 0 0 0 3px var(--green-bg); }
+  .lp-quote-lbl { font-family: var(--mono); font-size: .6rem; letter-spacing: .05em; color: rgba(245,242,236,.45); }
+  .lp-quote-msgs { display: flex; flex-direction: column; gap: .55rem; }
+  .lp-quote-msg { font-size: .82rem; line-height: 1.5; padding: .6rem .8rem; border-radius: 10px; max-width: 88%; font-family: var(--sans); }
+  .lp-quote-msg.is-user { align-self: flex-end; background: rgba(245,242,236,.1); color: var(--on-ink); border-bottom-right-radius: 3px; }
+  .lp-quote-msg.is-bot { align-self: flex-start; background: rgba(245,242,236,.055); color: rgba(245,242,236,.85); border-bottom-left-radius: 3px; max-width: 96%; }
+  .lp-quote-result { background: rgba(184,136,13,.13); border: 1px solid rgba(184,136,13,.28); border-radius: 9px; padding: .6rem .7rem; margin-top: .5rem; }
+  .lp-quote-row { display: flex; justify-content: space-between; gap: .8rem; font-size: .72rem; color: rgba(245,242,236,.6); margin-bottom: .25rem; font-family: var(--sans); }
+  .lp-quote-row:last-child { margin-bottom: 0; }
+  .lp-quote-row b { color: var(--gold-l); font-weight: 600; }
+
+  /* ── PROVA DE TRABALHO ──────────────────────────────────── */
+  .lp-proof { display: flex; flex-direction: column; align-items: center; gap: 2rem; }
+  .lp-proof-chain {
+    display: flex; align-items: center; justify-content: center; gap: .5rem; flex-wrap: wrap;
+    font-family: var(--mono); font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em;
+  }
+  .lp-proof-chain b { color: var(--ink); font-weight: 600; }
+  .lp-proof-chain svg { color: var(--gold); flex-shrink: 0; }
+  .lp-report {
+    width: 100%; max-width: 380px; background: var(--paper); border: 1px solid var(--border2);
+    border-radius: var(--r-xl); box-shadow: 0 24px 50px rgba(14,14,20,.1); overflow: hidden;
+  }
+  .lp-report-head { padding: 1rem 1.1rem .8rem; border-bottom: 1px solid var(--border); }
+  .lp-report-eyebrow { font-family: var(--mono); font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: var(--subtle); }
+  .lp-report-title { font-family: var(--serif); font-style: italic; font-size: 1.15rem; color: var(--ink); margin-top: .2rem; }
+  .lp-report-body { padding: 1rem 1.1rem 1.15rem; display: flex; flex-direction: column; gap: .8rem; }
+  .lp-pix {
+    background: var(--gold-bg); border: 1px solid var(--gold-bd); border-radius: var(--r-l);
+    padding: .85rem .9rem; text-align: center;
+  }
+  .lp-pix-lbl { font-family: var(--mono); font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-d); }
+  .lp-pix-val { font-family: var(--serif); font-size: 1.3rem; color: var(--gold-d); margin: .2rem 0 .6rem; }
+  .lp-pix-btn {
+    width: 100%; background: var(--gold); color: var(--on-gold); border: none; border-radius: 9px;
+    padding: .6rem; font-family: var(--sans); font-size: .78rem; font-weight: 600;
+  }
+  .lp-pix-hint { font-size: .64rem; color: var(--gold-d); opacity: .85; margin-top: .5rem; line-height: 1.5; }
+  .lp-seal { display: flex; align-items: center; gap: .5rem; font-family: var(--mono); font-size: .66rem; color: var(--green); }
+  .lp-proof-text { max-width: 480px; text-align: center; font-family: var(--sans); font-size: .88rem; color: var(--text2); line-height: 1.65; }
+
+  /* ── GOOGLE ──────────────────────────────────────────────── */
+  .lp-google-wrap { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+  .lp-google-bar {
+    width: 100%; max-width: 380px; display: flex; align-items: center; gap: .6rem;
+    background: var(--paper); border: 1px solid var(--border2); border-radius: 24px;
+    padding: .65rem 1rem; box-shadow: 0 10px 26px rgba(14,14,20,.08);
+  }
+  .lp-google-bar input {
+    border: none; background: none; outline: none; font-family: var(--sans); font-size: .82rem;
+    color: var(--ink); flex: 1; font-style: italic;
+  }
+  .lp-google-result {
+    width: 100%; max-width: 380px; background: var(--paper); border: 1px solid var(--border2);
+    border-radius: var(--r-l); padding: 1rem 1.1rem; box-shadow: 0 10px 26px rgba(14,14,20,.08);
+  }
+  .lp-google-url { font-family: var(--sans); font-size: .68rem; color: var(--green); margin-bottom: .15rem; }
+  .lp-google-title { font-family: var(--sans); font-size: .92rem; color: #1a0dab; margin-bottom: .3rem; }
+  .lp-google-desc { font-family: var(--sans); font-size: .76rem; color: var(--muted); line-height: 1.5; }
+  .lp-google-note {
+    max-width: 480px; text-align: center; font-family: var(--sans); font-size: .78rem;
+    color: var(--subtle); line-height: 1.6;
+  }
+
+  /* ── CONFIANÇA ───────────────────────────────────────────── */
+  .lp-trust-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 700px) { .lp-trust-grid { grid-template-columns: 1fr; } }
+  .lp-trust-card {
+    background: var(--paper); border: 1px solid var(--border); border-radius: var(--r-l); padding: 1.35rem;
+  }
+  .lp-trust-badge {
+    width: 42px; height: 42px; border-radius: var(--r); background: var(--gold-bg); border: 1px solid var(--gold-bd);
+    display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;
+  }
+  .lp-trust-title { font-family: var(--sans); font-size: .88rem; font-weight: 600; color: var(--ink); }
+  .lp-trust-sub { font-family: var(--sans); font-size: .78rem; color: var(--muted); margin-top: .4rem; line-height: 1.6; }
+
+  /* ── PROFISSIONAIS REAIS ─────────────────────────────────────
+     v-fiel-prova · única exceção à regra "nenhuma foto" do topo
+     deste arquivo — e não é exceção de verdade: são fotos reais de
+     profissionais que JÁ estão públicas no perfil deles (/p/slug) e
+     em /explorar, sorteadas aqui a cada carregamento (ver script no
+     fim da página). Nunca mostra quem não tem foto de verdade
+     cadastrada, nem inventa nota — a seção inteira some sozinha se
+     ainda não houver profissional suficiente pra sortear. */
+  #profissionais { opacity: 0; transition: opacity .5s ease; }
+  #profissionais.is-loaded { opacity: 1; }
+  .lp-pros-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 700px) { .lp-pros-grid { grid-template-columns: 1fr; } }
+  .lp-pro-card {
+    display: block; text-align: center; text-decoration: none;
+    background: var(--paper); border: 1px solid var(--border); border-radius: var(--r-l);
+    padding: 1.4rem 1.1rem; transition: border-color .15s;
+  }
+  .lp-pro-card:hover { border-color: var(--gold-bd); }
+  .lp-pro-photo {
+    width: 62px; height: 62px; border-radius: 50%; margin: 0 auto .85rem;
+    overflow: hidden; background: var(--paper3); border: 1px solid var(--border2);
+  }
+  .lp-pro-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lp-pro-name { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: .98rem; color: var(--ink); }
+  .lp-pro-sub { font-family: var(--sans); font-size: .74rem; color: var(--muted); margin-top: .15rem; }
+  .lp-pro-rating { font-family: var(--sans); font-size: .72rem; color: var(--gold-text); margin-top: .6rem; }
+
+  /* ── PARA QUEM É ─────────────────────────────────────────── */
+  .lp-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; max-width: 560px; margin: 0 auto; }
+  .lp-chip {
+    font-family: var(--sans); font-size: .82rem; font-weight: 500; color: var(--text);
+    background: var(--paper); border: 1px solid var(--border2); border-radius: 999px; padding: .55rem 1.1rem;
+  }
+  .lp-chip--more { color: var(--subtle); border-style: dashed; }
+
+  /* ── TRANSFORMAÇÃO ───────────────────────────────────────── */
+  .lp-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border2); border-radius: var(--r-xl); overflow: hidden; max-width: 640px; margin: 0 auto; }
+  @media (max-width: 560px) { .lp-compare { grid-template-columns: 1fr; } }
+  .lp-compare-col { background: var(--paper); padding: 1.5rem 1.35rem; display: flex; flex-direction: column; gap: .9rem; }
+  .lp-compare-col--after { background: var(--gold-bg); }
+  .lp-compare-lbl { font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; color: var(--subtle); margin-bottom: .3rem; }
+  .lp-compare-col--after .lp-compare-lbl { color: var(--gold-text); }
+  .lp-compare-item { display: flex; align-items: center; gap: .55rem; font-family: var(--sans); font-size: .84rem; color: var(--text2); }
+  .lp-compare-col--after .lp-compare-item { color: var(--text); font-weight: 500; }
+  .lp-compare-item svg { flex-shrink: 0; }
+
+  /* ── CTA FINAL ───────────────────────────────────────────── */
+  .lp-final {
+    max-width: 720px; margin: 0 1.25rem 3.5rem; margin-left: auto; margin-right: auto;
+    text-align: center; padding: 3.25rem 1.75rem; border-radius: var(--r-xl);
+    background: var(--surface-ink); position: relative; overflow: hidden;
+  }
+  .lp-final::before {
+    content: ''; position: absolute; z-index: 0; top: -40%; left: 50%; transform: translateX(-50%);
+    width: 520px; height: 420px; max-width: 160vw;
+    background: radial-gradient(ellipse at center, rgba(184,136,13,.22) 0%, rgba(184,136,13,0) 70%);
+    pointer-events: none;
+  }
+  .lp-final > * { position: relative; z-index: 1; }
+  .lp-final h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(1.6rem, 4vw, 2.1rem); color: var(--on-ink); margin: 0 0 .7rem; }
+  .lp-final p { font-family: var(--sans); font-size: .92rem; color: rgba(255,255,255,.6); margin: 0 0 1.6rem; }
+
+  /* ── botão primário único, reutilizado em toda a página ─── */
+  .lp-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    font-family: var(--sans); font-weight: 600; font-size: .92rem;
+    background: var(--gold); color: var(--on-gold); padding: .95rem 1.6rem;
+    border-radius: var(--r); text-decoration: none; box-shadow: 0 10px 26px rgba(133,99,16,.22);
+    transition: transform var(--t), box-shadow var(--t);
+  }
+  .lp-btn:hover { transform: translateY(-1px); box-shadow: 0 14px 32px rgba(133,99,16,.28); }
+  .lp-btn--ghost {
+    background: transparent; color: var(--gold-text); border: 1px solid var(--gold-bd); box-shadow: none;
+    font-size: .82rem; padding: .75rem 1.3rem;
+  }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+  .lp-footer {
+    max-width: 1040px; margin: 0 auto; padding: 0 1.25rem 3rem; text-align: center;
+    display: flex; flex-direction: column; gap: .6rem;
+  }
+  .lp-footer a { font-family: var(--mono); font-size: .68rem; color: var(--gold-d); text-decoration: none; }
+
+  /* ── entrada suave ao rolar — sutil, sem prejudicar leitura ──
+     v-rebuild-1 · a classe .lp-reveal por si só NÃO esconde nada —
+     só fica invisível se o JS explicitamente adicionar .will-animate
+     (feito lá embaixo, só quando IntersectionObserver existe e a
+     pessoa não pediu "reduzir movimento"). Sem isso, se o script
+     falhar ou demorar, cada seção da página sumiria pra sempre. */
+  .lp-reveal.will-animate { opacity: 0; transform: translateY(14px); transition: opacity .6s var(--ez), transform .6s var(--ez); }
+  .lp-reveal.will-animate.is-in { opacity: 1; transform: translateY(0); }
+  /* ══════════════════════════════════════════════════════════
+     v12.17 · captação — hero que monta o perfil, prova real, FAQ
+     ══════════════════════════════════════════════════════════ */
+  .lp2-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .lp-nav-links { gap: 1.4rem; }
+  @media (max-width: 700px) { .lp-nav-links a.lp-nav-entrar { display: inline-flex; } .lp-nav-links { gap: .9rem; } }
+  .lp-nav-entrar { display: inline-flex; font-size: .88rem; color: var(--text2); text-decoration: none; min-height: 44px; align-items: center; }
+  .lp2-mini { font-family: var(--sans); font-size: .86rem; color: var(--text2); background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: .55rem .7rem; margin: 0 0 .75rem; line-height: 1.4; }
+  .lp2-mini b { color: #1a0dab; font-weight: 500; }
+  @media (min-width: 900px) { .lp2-mini { display: none; } }
+
+  .lp2-hero { max-width: 1080px; margin: 0 auto; padding: 2rem 1.25rem 3rem; display: grid; gap: 2rem; align-items: start; }
+  @media (min-width: 900px) { .lp2-hero { grid-template-columns: 1.05fr .95fr; gap: 3.25rem; padding-top: 3.5rem; padding-bottom: 4.5rem; } }
+  /* v12.17b · peso leve e espaçamento normal, como o resto do site. O corte
+     "opsz 144" + peso 600 + letras apertadas deixava o "e" parecido com "c". */
+  .lp2-hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.1rem, 7.4vw, 3.3rem); line-height: 1.12; letter-spacing: -.015em; color: var(--ink); margin: 0 0 1rem; text-wrap: balance; }
+  .lp2-hero h1 em { font-style: italic; color: var(--gold-text); }
+  .lp2-sub { font-family: var(--sans); font-size: 1.04rem; line-height: 1.55; color: var(--text2); margin: 0 0 1.5rem; max-width: 34rem; }
+
+  .lp2-monte { background: var(--paper); border: 1px solid var(--border2); border-radius: 18px; padding: 1.15rem 1.1rem 1rem; box-shadow: 0 18px 40px -24px rgba(14,14,20,.35); max-width: 34rem; }
+  .lp2-monte-tit { font-family: var(--serif); font-weight: 400; font-size: 1.22rem; color: var(--ink); margin-bottom: .8rem; }
+  .lp2-campo { border: 0; margin: 0 0 .85rem; padding: 0; min-width: 0; }
+  .lp2-campo legend, .lp2-label { display: block; font-family: var(--sans); font-size: .86rem; font-weight: 500; color: var(--text); margin-bottom: .45rem; padding: 0; }
+  .lp2-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .5rem; }
+  .lp2-chip { font-family: var(--sans); font-size: .86rem; min-height: 40px; padding: 0 .85rem; border-radius: 999px; border: 1px solid var(--border2); background: var(--bg); color: var(--text); cursor: pointer; }
+  .lp2-chip:hover { border-color: var(--border3); }
+  .lp2-chip[aria-pressed="true"] { background: var(--gold-bg); color: var(--gold-text); border-color: var(--gold); font-weight: 600; box-shadow: inset 0 0 0 1px var(--gold); }
+  .lp2-input { width: 100%; font-family: var(--sans); font-size: 1rem; min-height: 48px; padding: 0 .9rem; border-radius: 10px; border: 1px solid var(--border2); background: #fff; color: var(--text); }
+  .lp2-input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-bg); }
+  .lp2-cta { width: 100%; display: flex; align-items: center; justify-content: center; gap: .5rem; min-height: 54px; border: 0; border-radius: 12px; background: var(--gold); color: var(--on-gold); font-family: var(--sans); font-size: 1.02rem; font-weight: 600; cursor: pointer; margin-top: .2rem; box-shadow: 0 10px 24px rgba(133,99,16,.24); }
+  .lp2-cta:hover { background: var(--gold-d); }
+  .lp2-cta:focus-visible, .lp2-chip:focus-visible, .lp2-fixo-btn:focus-visible, .lp2-faq summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .lp2-nota { font-family: var(--sans); font-size: .8rem; color: var(--muted); text-align: center; margin: .6rem 0 0; }
+  /* v12.19d · depois de escolher a profissão, a cidade se destaca (sem abrir o teclado sozinho no celular) */
+  .lp2-label.vez { color: var(--gold-text); font-weight: 600; }
+  .lp2-input.vez { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-bg); animation: lp2vez 1.2s ease 2; }
+  @keyframes lp2vez { 50% { box-shadow: 0 0 0 6px rgba(154,114,24,.22); } }
+  @media (prefers-reduced-motion: reduce) { .lp2-input.vez { animation: none; } }
+
+  /* prévia: um resultado de busca de verdade, nas cores do Google */
+  .lp2-previa { display: grid; gap: .8rem; max-width: 30rem; width: 100%; justify-self: center; }
+  /* v12.20 · a coluna agora tem o rabisco em cima; o "sticky" saiu porque
+     rabisco + prévia passam da altura da tela e grudariam cortados. */
+  .lp2-lado { display: grid; gap: 1rem; justify-items: center; width: 100%; min-width: 0; }
+  @media (min-width: 900px) { .lp2-lado { margin-top: .2rem; } }
+  /* ══════════════════════════════════════════════════════════
+     v12.21 · peças soltas em volta do título. Desenhos à mão de
+     ferramentas (estrela de avaliação, tomada de 3 pinos, rolo,
+     chave, foto, colher de pedreiro, torneira, trena) em papel
+     colorido, flutuando devagar e andando em velocidades diferentes
+     na rolagem. Ficam nas margens: nunca atrás de texto, nunca
+     empurram o formulário. Sem movimento para quem pediu menos.
+     ══════════════════════════════════════════════════════════ */
+  .lp2-hero { position: relative; }
+  .lp2-hero > .lp2-hero-copy, .lp2-hero > .lp2-lado { position: relative; z-index: 1; }
+  .lp2-pecas { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+  /* peças que saem pela borda não podem abrir rolagem lateral (o iPhone
+     ignora overflow-x:hidden no body ao arrastar com o dedo) */
+  html { overflow-x: clip; }
+  @media (max-width: 1099px) { .lp2-pecas { overflow: hidden; } }
+  .lp2-peca { position: absolute; display: none; width: var(--t, 64px); aspect-ratio: 1;
+    transform: translate3d(0, calc(var(--sy, 0) * var(--k, .12) * -1px), 0); will-change: transform; }
+  .lp2-peca-in { display: block; width: 100%; height: 100%; border-radius: 3px;
+    background-color: var(--pc); color: var(--pt);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+    box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 6px 18px -10px rgba(40,30,10,.35);
+    transform: rotate(var(--r, 0deg)); }
+  .lp2-peca svg { display: block; width: 100%; height: 100%; padding: 7%; box-sizing: border-box; overflow: visible;
+    fill: none; stroke: currentColor; stroke-width: 4.4; stroke-linecap: round; stroke-linejoin: round; }
+  .c-ouro   { --pc: #e3c77c; --pt: #1b1a17; }
+  .c-tinta  { --pc: #1e1d1a; --pt: #efe7d2; }
+  .c-salvia { --pc: #c6d0b6; --pt: #1b1a17; }
+  .c-azul   { --pc: #bccad6; --pt: #1b1a17; }
+  .c-areia  { --pc: #ddcbae; --pt: #1b1a17; }
+
+  /* celular: três peças, nas bordas do título */
+  .p-a { --t: 76px; right: -26px; top: 6px;   --r: 7deg;  --k: .10; display: block; }
+  .p-b { --t: 54px; right: 18px;  top: 132px; --r: -9deg; --k: .22; display: block; }
+  .p-c { --t: 48px; left: 54%;    top: -4px;  --r: -6deg; --k: .16; display: block; }
+  @media (max-width: 899px) { .lp2-hero { padding-top: 3.1rem; } .lp2-hero h1 { padding-right: 44px; } }
+  @media (max-width: 370px) { .p-b { display: none; } }
+
+  /* computador: as margens laterais e o vão de cima */
+  @media (min-width: 900px) {
+    .p-a { --t: 92px;  left: -118px; right: auto; top: 64px;  --r: -6deg; --k: .10; }
+    .p-b { --t: 66px;  left: -74px;  right: auto; top: 470px; --r: 8deg;  --k: .26; }
+    .p-c { --t: 54px;  left: 36%;    top: -6px;   --r: 5deg;  --k: .18; }
+    .p-d { --t: 98px;  right: -124px; top: 18px;  --r: 9deg;  --k: .12; display: block; }
+    .p-e { --t: 70px;  right: -86px;  top: 380px; --r: -7deg; --k: .24; display: block; }
+    .p-f { --t: 58px;  left: -92px;   top: 300px; --r: 12deg; --k: .32; display: block; }
+    .p-g { --t: 62px;  right: -168px; top: 230px; --r: -4deg; --k: .30; display: block; }
+    .p-h { --t: 60px;  right: -84px;  top: 640px; --r: 6deg;  --k: .2;  display: block; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lp2-peca-in { animation: pecaEntra .8s cubic-bezier(.2,.8,.2,1) both, pecaFlutua var(--fd, 9s) ease-in-out infinite;
+      animation-delay: calc(var(--i) * 110ms + 150ms), calc(var(--i) * -1.3s); }
+    .lp2-peca:nth-child(2n) .lp2-peca-in { --fd: 11s; }
+    .lp2-peca:nth-child(3n) .lp2-peca-in { --fd: 13s; }
+    .lp2-peca svg path { stroke-dasharray: 1 1; stroke-dashoffset: 1;
+      animation: pecaTraco 1.1s ease-out forwards; animation-delay: calc(var(--i) * 110ms + 500ms); }
+  }
+  @keyframes pecaEntra { from { opacity: 0; transform: translateY(14px) scale(.9) rotate(var(--r, 0deg)); } }
+  @keyframes pecaFlutua {
+    0%, 100% { transform: translate(0, 0) rotate(var(--r, 0deg)); }
+    50%      { transform: translate(3px, -7px) rotate(calc(var(--r, 0deg) + 2.5deg)); }
+  }
+  @keyframes pecaTraco { to { stroke-dashoffset: 0; } }
+
+  .lp2-rabisco { margin: 0; width: 100%; max-width: 24rem; color: var(--ink); }
+  .lp2-rabisco svg { display: block; width: 100%; height: auto; aspect-ratio: 332 / 260; overflow: visible;
+    /* pernas e cano somem no papel, em vez de terminar num corte seco */
+    -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent 99%), linear-gradient(to left, transparent 0, #000 9%);
+    -webkit-mask-composite: source-in; mask-composite: intersect;
+    mask-image: linear-gradient(to bottom, #000 80%, transparent 99%), linear-gradient(to left, transparent 0, #000 9%);
+    --rab-fundo: var(--bg); --rab-ouro: #9a7218; }
+  /* v12.34 · seis profissionais que se alternam (rabisco.js). Até o script
+     sortear o da vez, o desenho que vem no HTML fica escondido (sem piscar
+     o encanador antes do sorteado); se o script não rodar, ele aparece
+     sozinho em 2,5 s. Tocar no desenho chama o próximo. */
+  .lp2-rabisco svg:not(.rab-pronto) > g { animation: rabEspera .01s linear 2.5s both; }
+  @keyframes rabEspera { from { opacity: 0; } to { opacity: 1; } }
+  .lp2-rabisco { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .lp2-rab-leg { display: flex; align-items: center; justify-content: center; gap: .7rem; min-height: 1.5rem; margin-top: .3rem;
+    font-family: var(--mono); font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-text); }
+  .lp2-rab-pontos { display: inline-flex; gap: 5px; }
+  .lp2-rab-pontos[hidden] { display: none; }
+  .lp2-rab-pontos i { width: 5px; height: 5px; border-radius: 50%; background: var(--border2); transition: background .3s, transform .3s; }
+  .lp2-rab-pontos i.vez { background: var(--gold-l); transform: scale(1.3); }
+  @media (prefers-reduced-motion: reduce) { .lp2-rabisco { cursor: default; } .lp2-rab-pontos i { transition: none; } }
+  .lp2-busca { display: flex; align-items: center; gap: .6rem; background: #fff; border-radius: 999px; padding: .85rem 1.1rem; box-shadow: 0 1px 6px rgba(32,33,36,.18); font-family: Arial, var(--sans); font-size: 1rem; color: #202124; min-height: 52px; overflow: hidden; white-space: nowrap; }
+  .lp2-caret { width: 2px; height: 1.1em; background: #1a73e8; animation: lp2pisca 1s steps(1) infinite; flex-shrink: 0; margin-left: -.45rem; }
+  @keyframes lp2pisca { 50% { opacity: 0; } }
+  .lp2-res { background: #fff; border-radius: 14px; padding: 1rem 1.1rem; font-family: Arial, var(--sans); box-shadow: 0 1px 3px rgba(32,33,36,.12); }
+  .lp2-res-url { font-size: .8rem; color: #4d5156; overflow-wrap: anywhere; }
+  .lp2-res-tit { font-size: 1.12rem; color: #1a0dab; line-height: 1.3; margin: .2rem 0 .3rem; overflow-wrap: anywhere; }
+  .lp2-res-desc { font-size: .86rem; color: #4d5156; line-height: 1.5; }
+  .lp2-cartao { background: var(--paper); border: 1px solid var(--border2); border-radius: 14px; padding: .9rem; }
+  .lp2-cartao-top { display: flex; align-items: center; gap: .7rem; margin-bottom: .75rem; }
+  .lp2-av { width: 42px; height: 42px; border-radius: 50%; background: var(--gold-bg); border: 1px dashed var(--gold-bd); display: grid; place-items: center; color: var(--gold-text); font-family: var(--serif); font-size: 1.1rem; flex-shrink: 0; }
+  .lp2-cartao-nome { font-family: var(--serif); font-weight: 400; font-size: 1.05rem; color: var(--ink); }
+  .lp2-cartao-sub { font-family: var(--sans); font-size: .84rem; color: var(--text2); overflow-wrap: anywhere; }
+  .lp2-fotos { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; }
+  .lp2-fotos .lp-profile-shot { aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--paper3); }
+  .lp2-fotos .lp-profile-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lp2-cartao-pe { font-family: var(--sans); font-size: .74rem; color: var(--muted); margin-top: .5rem; }
+  /* v12.35 · o serviço que o desenho termina entra como "foto" no cartão */
+  .lp2-fotos .lp2-shot-rab { position: relative; background: var(--paper2); animation: lp2ShotEntra .5s cubic-bezier(.2,.8,.2,1) both; }
+  .lp2-shot-rab svg { width: 100%; height: 100%; display: block; color: var(--ink); --rab-fundo: var(--paper2); --rab-ouro: #9a7218; }
+  .lp2-shot-novo { position: absolute; left: 5px; bottom: 5px; font-family: var(--mono); font-size: .56rem; letter-spacing: .1em; text-transform: uppercase;
+    color: #fff; background: var(--gold); padding: 3px 6px; border-radius: 4px; transition: opacity .5s; }
+  .lp2-shot-rab.visto .lp2-shot-novo { opacity: 0; }
+  @keyframes lp2ShotEntra { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .lp2-fotos .lp2-shot-rab { animation: none; } }
+
+  .lp2-passos { list-style: none; counter-reset: p; margin: 0 auto; padding: 0; max-width: 980px; display: grid; gap: 1rem; text-align: left; }
+  @media (min-width: 820px) { .lp2-passos { grid-template-columns: repeat(3, 1fr); gap: 1.25rem; } }
+  .lp2-passos li { counter-increment: p; background: var(--paper); border: 1px solid var(--border2); border-radius: 16px; padding: 1.15rem 1.15rem 1.2rem; }
+  .lp2-passos li::before { content: counter(p); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--gold-bg); color: var(--gold-text); border: 1px solid var(--gold-bd); font-family: var(--serif); font-size: 1.05rem; margin-bottom: .75rem; }
+  .lp2-passos b { display: block; font-family: var(--sans); font-size: 1.02rem; color: var(--ink); margin-bottom: .3rem; }
+  .lp2-passos span { font-family: var(--sans); font-size: .92rem; line-height: 1.55; color: var(--text2); }
+
+  .lp2-sec-sub { font-family: var(--sans); font-size: .95rem; color: var(--text2); text-align: center; margin: -.4rem auto 1.25rem; max-width: 36rem; line-height: 1.5; }
+  .lp2-mural { list-style: none; margin: 0 auto; padding: 0; max-width: 1040px; display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; }
+  @media (min-width: 700px) { .lp2-mural { grid-template-columns: repeat(4, 1fr); gap: .7rem; } }
+  .lp2-mural li { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--paper3); }
+  .lp2-mural img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lp2-mural span { position: absolute; left: .45rem; bottom: .45rem; right: .45rem; font-family: var(--sans); font-size: .74rem; color: #fff; background: rgba(14,14,20,.68); border-radius: 6px; padding: .2rem .45rem; width: fit-content; max-width: calc(100% - .9rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .lp2-legenda { font-family: var(--sans); font-size: .78rem; color: var(--muted); text-align: center; margin: 0; }
+  .lp2-lista { list-style: none; margin: 1.25rem auto 0; padding: 0; max-width: 34rem; display: grid; gap: .65rem; text-align: left; }
+  .lp2-lista li { position: relative; padding-left: 1.6rem; font-family: var(--sans); font-size: .95rem; line-height: 1.5; color: var(--text); }
+  .lp2-lista li::before { content: ""; position: absolute; left: 0; top: .32em; width: 15px; height: 15px; border-radius: 50%; background: var(--green-bg); border: 1.5px solid var(--green); }
+  .lp2-lista li::after { content: ""; position: absolute; left: 5px; top: calc(.32em + 3px); width: 4px; height: 7px; border: solid var(--green); border-width: 0 1.8px 1.8px 0; transform: rotate(45deg); }
+
+  .lp2-faq { max-width: 44rem; margin: 0 auto; display: grid; gap: .55rem; text-align: left; }
+  .lp2-faq details { background: var(--paper); border: 1px solid var(--border2); border-radius: 12px; }
+  .lp2-faq summary { cursor: pointer; list-style: none; font-family: var(--sans); font-weight: 600; font-size: .98rem; color: var(--ink); padding: .95rem 2.6rem .95rem 1rem; position: relative; min-height: 48px; }
+  .lp2-faq summary::-webkit-details-marker { display: none; }
+  .lp2-faq summary::after { content: "+"; position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); font-size: 1.3rem; font-weight: 400; color: var(--gold-text); }
+  .lp2-faq details[open] summary::after { content: "–"; }
+  .lp2-faq p { margin: 0; padding: 0 1rem 1rem; font-family: var(--sans); font-size: .93rem; line-height: 1.6; color: var(--text2); }
+
+  .lp2-fixo { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; padding: .6rem 1rem calc(.6rem + env(safe-area-inset-bottom)); background: rgba(240,236,227,.96); border-top: 1px solid var(--border2); transform: translateY(110%); transition: transform .25s var(--ez); }
+  .lp2-fixo.on { transform: translateY(0); }
+  .lp2-fixo-btn { display: flex; align-items: center; justify-content: center; min-height: 50px; border-radius: 12px; background: var(--gold); color: var(--on-gold); font-family: var(--sans); font-weight: 600; font-size: 1rem; text-decoration: none; }
+  @media (min-width: 900px) { .lp2-fixo { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .lp2-fixo { transition: none; } .lp2-caret { animation: none; } }
+
+  .lp2-footer { gap: 1rem; padding-bottom: 6rem; }
+  .lp2-footer-cliente { font-family: var(--sans) !important; font-size: .95rem !important; color: var(--ink) !important; text-decoration: underline !important; text-underline-offset: 3px; }
+  /* v12.30 · porta do cliente (ver a seção #contratar) */
+  .lp2-cli { background: var(--paper); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .lp2-cli-in { max-width: 1040px; margin: 0 auto; padding: 1.6rem 1.25rem 1.4rem; display: grid; gap: 1rem; }
+  .lp2-cli-olho { font-family: var(--mono); font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-text); }
+  .lp2-cli-tit { font-family: var(--serif); font-weight: 400; font-size: clamp(1.3rem, 3vw, 1.6rem); line-height: 1.2; color: var(--ink); margin: .3rem 0 .35rem; }
+  .lp2-cli-sub { font-family: var(--sans); font-size: .95rem; line-height: 1.5; color: var(--text2); margin: 0; }
+  .lp2-cli-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .5rem; }
+  .lp2-cli-form[hidden] { display: none; }
+  .lp2-cli-sel { width: 100%; min-width: 0; min-height: 48px; padding: 0 .8rem; border-radius: 10px; border: 1px solid var(--border2); background: #fff; color: var(--text); font-family: var(--sans); font-size: 1rem; }
+  .lp2-cli-sel:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-bg); }
+  .lp2-cli-btn { grid-column: 1 / -1; min-height: 48px; border: 0; border-radius: 10px; background: var(--ink); color: var(--paper); font-family: var(--sans); font-size: 1rem; font-weight: 500; cursor: pointer; padding: 0 1.3rem; }
+  .lp2-cli-btn:hover { background: var(--ink2, #2b2b36); }
+  .lp2-cli-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .lp2-cli-links { display: flex; flex-wrap: wrap; gap: .2rem 1.2rem; margin: 0; }
+  .lp2-cli-links a { font-family: var(--sans); font-size: .9rem; color: var(--ink); text-decoration: underline; text-decoration-color: var(--gold-bd); text-underline-offset: 3px; min-height: 40px; display: inline-flex; align-items: center; }
+  @media (min-width: 900px) {
+    .lp2-cli-in { grid-template-columns: minmax(0, 1fr) minmax(0, 30rem); align-items: center; column-gap: 2.5rem; }
+    .lp2-cli-form { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+    .lp2-cli-btn { grid-column: auto; }
+    .lp2-cli-links { grid-column: 1 / -1; }
+  }
+  .lp2-footer-cli { display: flex; flex-direction: column; align-items: center; gap: .35rem; text-align: center; }
+  .lp2-footer-cli-mais { display: flex; flex-wrap: wrap; justify-content: center; gap: .2rem 1.1rem; }
+  .lp2-footer-cli-mais a { font-family: var(--sans); font-size: .88rem; color: var(--text2); text-underline-offset: 3px; min-height: 40px; display: inline-flex; align-items: center; }
+  .lp2-footer-cli-mais a:hover { color: var(--ink); }
+  .lp2-footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.2rem; }
+  .lp2-footer-links a { font-family: var(--sans); font-size: .85rem; color: var(--text2); text-decoration: none; min-height: 40px; display: inline-flex; align-items: center; }
+  .lp2-footer-links a:hover { color: var(--ink); text-decoration: underline; }
+  #prova .lp-h2 { max-width: 40rem; margin-left: auto; margin-right: auto; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     v12.17 · AUDITORIA DE CAPTAÇÃO (29/10)
+     Medido em analytics_events, só visitantes reais (sem os testes
+     do zip nem quem já é usuário): 117 sessões na landing, 101 (86%)
+     saíram sem abrir outra página, 4 (3,4%) chegaram ao cadastro,
+     0 de 17 vindos de anúncio do Meta. Do formulário aberto ao
+     enviado: 18 de 33.
+     O que mudou e por quê está comentado em cada bloco abaixo.
+════════════════════════════════════════════════════════════ -->
+<header class="lp-nav">
+  <div class="lp-nav-inner">
+    <a href="/" class="topbar-logo" style="display:flex;align-items:center;gap:.5rem">
+      <div class="logo-icon" style="color:var(--ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      <span class="topbar-brand" style="font-size:1.05rem;color:var(--ink)">Field<em style="color:var(--gold-l)">o</em></span>
+    </a>
+    <nav class="lp-nav-links" aria-label="Principal">
+      <a href="#como-funciona" class="lp-nav-link">Como funciona</a>
+      <a href="#perguntas" class="lp-nav-link">Perguntas</a>
+      <a href="/ia/" class="lp-nav-link">Assistente de IA</a>
+      <!-- v12.29 · entrada de quem quer contratar. Só no computador: no
+           celular o menu mostra só Entrar e o botão, e a primeira tela
+           continua sendo a do profissional (decisão da v12.17). -->
+      <a href="#contratar" class="lp-nav-link">Contratar um profissional</a>
+      <!-- v12.17 · "Entrar" abria a MESMA tela de boas-vindas do
+           cadastro. Quem já tem conta cai direto no login. -->
+      <a href="entrar.html?entrar=1" class="lp-nav-link lp-nav-entrar">Entrar</a>
+      <a href="entrar.html?criar=1" class="lp-nav-cta" data-cta="nav">Criar perfil grátis</a>
+    </nav>
+  </div>
+</header>
+
+<main id="topo">
+<!-- ══════════════════════════════════════════════════════════
+     HERO — a pessoa monta o perfil enquanto lê.
+     A faixa preta "Procura um profissional?" que abria a página saiu
+     daqui: era a PRIMEIRA coisa da tela e levava o visitante para o
+     /explorar antes de ele ler o título. Foi para o rodapé.
+     O título passou de "merece ser encontrado e comprovado" (sobre o
+     trabalho) para o que o profissional ganha: o cliente confiar
+     antes de ligar.
+════════════════════════════════════════════════════════════ -->
+<section class="lp2-hero" aria-labelledby="lp2Titulo">
+  <div class="lp2-pecas" id="lp2Pecas" aria-hidden="true">
+    <span class="lp2-peca p-a c-ouro" style="--i:0"><span class="lp2-peca-in"><svg viewBox="0 0 100 100"><path pathLength="1" d="M49.8 20.5 L57.0 38.1 L75.7 39.5 L60.3 51.6 L65.2 69.8 L49.4 58.9 L34.0 70.3 L38.5 51.2 L24.5 40.3 L43.3 38.6 Z"/><path pathLength="1" d="M22 22 L27 27"/><path pathLength="1" d="M80 20 L75 26"/><path pathLength="1" d="M84 62 L77 60"/><path pathLength="1" d="M30 84 L68 84"/></svg></span></span>
+    <span class="lp2-peca p-b c-tinta" style="--i:1"><span class="lp2-peca-in"><svg viewBox="0 0 100 100"><path pathLength="1" d="M20 18 C40 16 62 16 82 19 C84 40 84 62 81 82 C60 84 40 84 19 81 C16 60 17 40 20 18"/><path pathLength="1" d="M50 28 C62 28 72 38 72 50 C72 62 62 72 50 72 C38 72 28 62 28 50 C28 38 38 29 51 28"/><path pathLength="1" d="M40 47 m-3.5 0 a3.5 3.5 0 1 0 7 0 a3.5 3.5 0 1 0 -7 0"/><path pathLength="1" d="M60 47 m-3.5 0 a3.5 3.5 0 1 0 7 0 a3.5 3.5 0 1 0 -7 0"/><path pathLength="1" d="M50 60 m-3.5 0 a3.5 3.5 0 1 0 7 0 a3.5 3.5 0 1 0 -7 0"/></svg></span></span>
+    <span class="lp2-peca p-c c-salvia" style="--i:2"><span class="lp2-peca-in"><svg viewBox="0 0 100 100"><path pathLength="1" d="M20 22 C34 20 52 20 68 22 C70 28 70 36 68 41 C52 43 34 43 20 41 C18 35 18 28 20 22"/><path pathLength="1" d="M68 31 L80 31 C82 31 82 33 82 35 L82 50 C82 53 80 53 78 53 L52 53 L51 62"/><path pathLength="1" d="M46 62 L56 62 L57 88 L45 88 Z"/><path pathLength="1" d="M26 30 L30 34"/><path pathLength="1" d="M38 28 L44 34"/><path pathLength="1" d="M52 28 L58 35"/></svg></span></span>
+    <span class="lp2-peca p-d c-areia" style="--i:3"><span class="lp2-peca-in"><svg viewBox="0 0 100 100"><path pathLength="1" d="M27 23 C19 23 14 30 15 37 L24 34 L30 40 L27 49 C35 50 42 44 42 36 L72 66 C70 74 76 81 84 80 L76 72 L79 64 L87 62 C88 54 81 48 73 50 L44 22 C43 15 36 12 28 14 L32 22"/></svg></span></span>
+    <span class="lp2-peca p-e c-azul" style="--i:4"><span class="lp2-peca-in"><svg viewBox="0 0 100 100"><path pathLength="1" d="M33 14 C44 13 56 13 67 14 C69 38 69 62 67 86 C56 87 44 87 33 86 C31 62 31 38 33 14"/><path pathLength="1" d="M38 66 L47 52 L53 59 L60 49 L64 56 L64 66 Z"/><path pathLength="1" d="M45 36 m-4.5 0 a4.5 4.5 0 1 0 9 0 a4.5 4.5 0 1 0 -9 0"/><path pathLength="1" d="M45 79 L55 79"/></svg></span></span>
+    <span class="lp2-peca p-f c-salvia" style="--i:5"><span class="lp2-peca-in"><svg viewBox="0 0 100 100"><path pathLength="1" d="M16 82 C26 66 38 52 50 42 C58 50 66 58 72 66 C56 72 36 78 16 82"/><path pathLength="1" d="M50 42 L58 34 L64 40"/><path pathLength="1" d="M60 36 L80 16"/><path pathLength="1" d="M66 42 L86 22"/><path pathLength="1" d="M80 16 C84 14 88 18 86 22"/></svg></span></span>
+    <span class="lp2-peca p-g c-ouro" style="--i:6"><span class="lp2-peca-in"><svg viewBox="0 0 100 100"><path pathLength="1" d="M12 40 L52 40 C66 40 74 48 74 60 L74 64 L64 64 L64 60 C64 54 60 50 52 50 L12 50"/><path pathLength="1" d="M36 40 L36 30"/><path pathLength="1" d="M24 28 C32 25 40 25 48 28"/><path pathLength="1" d="M69 72 C66 77 66 81 69 83 C72 81 72 77 69 72"/></svg></span></span>
+    <span class="lp2-peca p-h c-tinta" style="--i:7"><span class="lp2-peca-in"><svg viewBox="0 0 100 100"><path pathLength="1" d="M18 30 C28 28 46 28 58 30 C60 42 60 56 58 70 C46 72 28 72 18 70 C16 56 16 42 18 30"/><path pathLength="1" d="M38 50 m-7 0 a7 7 0 1 0 14 0 a7 7 0 1 0 -14 0"/><path pathLength="1" d="M58 62 L88 61 L88 69 L58 69"/><path pathLength="1" d="M66 61 L66 65"/><path pathLength="1" d="M74 61 L74 66"/><path pathLength="1" d="M82 61 L82 65"/></svg></span></span>
+  </div>
+  <div class="lp2-hero-copy">
+    <h1 id="lp2Titulo">Seu próximo cliente vai ver <em>seu trabalho</em> antes de te ligar.</h1>
+    <p class="lp2-sub">Registre cada serviço com foto e a avaliação de quem contratou. O Fieldo monta seu perfil, faz orçamento com Pix e coloca você na busca da sua cidade.</p>
+
+    <form class="lp2-monte" id="lp2Monte" action="entrar.html" method="get" novalidate>
+      <input type="hidden" name="criar" value="1"/>
+      <div class="lp2-monte-tit">Monte seu perfil agora</div>
+      <fieldset class="lp2-campo">
+        <legend>O que você faz</legend>
+        <div class="lp2-chips" id="lp2Chips" role="group" aria-label="Profissões comuns">
+          <button type="button" class="lp2-chip" data-p="Eletricista">Eletricista</button>
+          <button type="button" class="lp2-chip" data-p="Pedreiro">Pedreiro</button>
+          <button type="button" class="lp2-chip" data-p="Pintor">Pintor</button>
+          <button type="button" class="lp2-chip" data-p="Encanador">Encanador</button>
+          <button type="button" class="lp2-chip" data-p="Diarista">Diarista</button>
+          <button type="button" class="lp2-chip" data-p="Técnico de ar-condicionado">Ar-condicionado</button>
+        </div>
+        <label class="lp2-sr" for="lp2Prof">Sua profissão</label>
+        <input class="lp2-input" id="lp2Prof" name="p" type="text" maxlength="60" autocomplete="off" placeholder="Ou escreva: gesseiro, jardineiro, marceneiro…"/>
+      </fieldset>
+      <div class="lp2-campo">
+        <label class="lp2-label" for="lp2Cidade" id="lp2CidadeLbl">Sua cidade</label>
+        <input class="lp2-input" id="lp2Cidade" name="c" type="text" maxlength="60" autocomplete="address-level2" enterkeyhint="go" placeholder="Ex.: Caraguatatuba"/>
+      </div>
+      <p class="lp2-mini" id="lp2Mini" hidden aria-live="polite"></p>
+      <button class="lp2-cta" type="submit" data-cta="hero" id="lp2Cta">
+        <span id="lp2CtaTxt">Criar meu perfil grátis</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <p class="lp2-nota" id="lp2Nota">Grátis, sem cartão. Na próxima tela: seu nome e WhatsApp.</p>
+    </form>
+  </div>
+
+  <!-- v12.20 · coluna da direita: o rabisco animado + a prévia viva.
+       No computador fica no alto da coluna; no celular entra depois do
+       formulário, então a primeira tela do celular não muda.
+       O desenho é feito em código (rabisco.js), não é vídeo: leve, nítido
+       em qualquer tela, e parado para quem pediu menos movimento.
+       v12.34 · seis profissões, sorteadas e alternando; a profissão escolhida
+       no formulário troca o desenho para ela. O SVG abaixo é só o desenho
+       para quem está sem JavaScript: o rabisco.js monta o da vez. -->
+  <div class="lp2-lado">
+  <figure class="lp2-rabisco">
+<svg class="rabisco" id="rabisco" viewBox="72 40 332 260" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="rabTremor" x="-4%" y="-4%" width="108%" height="108%">
+      <feTurbulence id="rabRuido" type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="1" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+  <g filter="url(#rabTremor)" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- flange com cano -->
+    <g data-d="0,.7">
+      <path pathLength="1" d="M318 88C352 88 380 116 380 150C380 184 352 212 318 212C284 212 256 184 256 150C256 116 282 89 321 90"/>
+      <path pathLength="1" d="M369 114C380 114 392 113 404 113"/>
+      <path pathLength="1" d="M369 186C380 186 392 187 404 187"/>
+      <path pathLength="1" d="M318 132C328 132 336 140 336 150C336 160 328 168 318 168C308 168 300 160 300 150C300 141 307 133 319 133"/>
+    </g>
+    <g data-d=".35,.6" stroke-width="2.2">
+      <path pathLength="1" d="M324.5 106 L331 109.8 L331 117.2 L324.5 121 L318 117.2 L318 109.8 Z" transform="translate(-6.5 -7.5)"/>
+      <path pathLength="1" d="M324.5 106 L331 109.8 L331 117.2 L324.5 121 L318 117.2 L318 109.8 Z" transform="translate(32 14.5)"/>
+      <path pathLength="1" d="M324.5 106 L331 109.8 L331 117.2 L324.5 121 L318 117.2 L318 109.8 Z" transform="translate(32 58.5)"/>
+      <path pathLength="1" d="M324.5 106 L331 109.8 L331 117.2 L324.5 121 L318 117.2 L318 109.8 Z" transform="translate(-6.5 80.5)"/>
+      <path pathLength="1" d="M324.5 106 L331 109.8 L331 117.2 L324.5 121 L318 117.2 L318 109.8 Z" transform="translate(-44.6 14.5)"/>
+    </g>
+    <!-- cabeça e boné -->
+    <g id="rabCabeca">
+      <g data-d=".45,.7">
+        <path pathLength="1" d="M93 87C93 68 108 58 122 59C137 60 146 72 146 85"/>
+        <path pathLength="1" d="M93 87C110 83 129 82 146 84C155 83 163 84 170 88C162 91 151 90 143 88"/>
+        <path pathLength="1" d="M94 88C93 104 103 117 117 117C131 118 142 108 143 93L143 89"/>
+      </g>
+      <g data-d=".95,.45" stroke-width="2.2">
+        <path pathLength="1" d="M107 92C102 90 101 100 107 101"/>
+        <path pathLength="1" d="M128 91L137 90"/>
+        <path pathLength="1" d="M133 96.5L133.6 97.2"/>
+        <path pathLength="1" d="M143 97C147 100 146 103 141 104"/>
+        <path pathLength="1" d="M129 108C132 110.5 136 110.5 139 108"/>
+      </g>
+    </g>
+    <!-- corpo -->
+    <g data-d=".95,1.3">
+      <path pathLength="1" d="M110 116L111 125"/>
+      <path pathLength="1" d="M126 116L126 124"/>
+      <path pathLength="1" d="M111 124C96 127 87 140 86 160C85 190 88 225 90 252"/>
+      <path pathLength="1" d="M126 124C141 126 152 136 155 155C158 185 159 225 158 252"/>
+      <path pathLength="1" d="M111 124L118 136L126 124"/>
+      <path pathLength="1" d="M89 246C112 250 138 250 158 246"/>
+      <path pathLength="1" d="M117 244L128 244L128 252L117 252Z" stroke-width="2.2"/>
+      <path pathLength="1" d="M91 252L93 300"/>
+      <path pathLength="1" d="M157 252L155 300"/>
+      <path pathLength="1" d="M123 262L124 300"/>
+    </g>
+    <!-- braço (redesenhado a cada quadro) -->
+    <g id="rabBraco" opacity="0">
+      <path id="rabBracoFundo" fill="var(--rab-fundo, #f0ece3)" stroke="none" d=""/>
+      <path id="rabBracoA" d=""/>
+      <path id="rabBracoB" d=""/>
+      <path id="rabManga" d="" stroke-width="2.2"/>
+    </g>
+    <!-- parafuso da vez -->
+    <g id="rabParafuso" data-d="1.35,.35" stroke="var(--rab-ouro, #9a7218)">
+      <path pathLength="1" d="M0 -9.5L8.2 -4.75L8.2 4.75L0 9.5L-8.2 4.75L-8.2 -4.75Z"/>
+    </g>
+    <!-- chave + mão -->
+    <g id="rabChave">
+      <g data-d="1.5,.7" stroke="var(--rab-ouro, #9a7218)">
+        <path pathLength="1" d="M-12.3 -10.3A16 16 0 1 1 -12.3 10.3"/>
+        <path pathLength="1" d="M-12.3 10.3L2 8.6Q6 0 2 -8.6L-12.3 -10.3"/>
+        <path pathLength="1" d="M14 -5.2L90 -4.2"/>
+        <path pathLength="1" d="M14 5.2L90 4.2"/>
+        <path pathLength="1" d="M90 -4.2C94 -10 106 -11 109 -3C112 5 104 11 97 9C93 8 91 6 90 4.2"/>
+        <path pathLength="1" d="M99 -3.5L104 -1L104 3.5L99 5L95 2L95 -1Z" stroke-width="2"/>
+      </g>
+      <g id="rabMao" opacity="0">
+        <path fill="var(--rab-fundo, #f0ece3)" d="M61 -9C61 -14 78 -14 79 -8L80 8C79 13 62 13 61 8Z"/>
+        <path d="M67 -11L67 11" stroke-width="2"/>
+        <path d="M73 -11.5L73 11.5" stroke-width="2"/>
+      </g>
+    </g>
+    <!-- movimento e "pronto" -->
+    <path id="rabRastro" d="" stroke="var(--rab-ouro, #9a7218)" stroke-width="2.2" opacity="0"/>
+    <path id="rabRastro2" d="" stroke="var(--rab-ouro, #9a7218)" stroke-width="2" opacity="0"/>
+    <g id="rabPronto" stroke="var(--rab-ouro, #9a7218)" opacity="0">
+      <path id="rabCheck" pathLength="1" d="M204 88L214 99L236 72" stroke-width="3.2"/>
+      <path d="M244 70L251 64" stroke-width="2"/>
+      <path d="M246 82L255 81" stroke-width="2"/>
+      <path d="M236 58L238 50" stroke-width="2"/>
+    </g>
+  </g>
+</svg>
+  <figcaption class="lp2-rab-leg" aria-hidden="true"><span id="rabNome"></span><span class="lp2-rab-pontos" id="rabPontos"></span></figcaption>
+  </figure>
+
+  <!-- A prévia viva: o que o cliente vai ver quando procurar por ele.
+       Atualiza a cada letra. Nada de nota ou número inventado: o
+       resultado diz o que o perfil terá, não quantas estrelas. -->
+  <div class="lp2-previa" aria-live="polite" aria-label="Prévia de como o cliente encontra você">
+    <div class="lp2-busca">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f6368" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.4" y2="15.4"/></svg>
+      <span id="lp2Consulta">eletricista em sua cidade</span><span class="lp2-caret" aria-hidden="true"></span>
+    </div>
+    <div class="lp2-res">
+      <div class="lp2-res-url">fieldo-zelo.com.br › p › <span id="lp2Slug">seu-nome</span></div>
+      <div class="lp2-res-tit"><span id="lp2ResTit">Seu nome — Eletricista em sua cidade</span></div>
+      <div class="lp2-res-desc">Serviços registrados com foto e data, avaliações de quem contratou e orçamento com Pix.</div>
+    </div>
+    <div class="lp2-cartao">
+      <div class="lp2-cartao-top">
+        <span class="lp2-av" aria-hidden="true">?</span>
+        <div><div class="lp2-cartao-nome">Seu nome</div><div class="lp2-cartao-sub" id="lp2CartaoSub">Eletricista · sua cidade</div></div>
+      </div>
+      <div class="lp2-fotos" id="lpProfileShots">
+        <div class="lp-profile-shot"></div><div class="lp-profile-shot"></div><div class="lp-profile-shot"></div>
+      </div>
+      <div class="lp2-cartao-pe">Fotos de serviços reais registrados no Fieldo</div>
+    </div>
+  </div>
+  </div><!-- /.lp2-lado -->
+</section>
+<!-- ══════════════════════════════════════════════════════════
+     v12.30 · PORTA DO CLIENTE (auditoria SEO/GEO, Fase 5, achado P6)
+     Quem procura um profissional não tinha por onde entrar na home: o
+     título, o formulário e o resto da página falam com o profissional
+     (decisão medida da v12.17, que não muda). Esta faixa vem DEPOIS da
+     hero, então a primeira tela do celular continua a mesma. Sem
+     JavaScript ou sem resposta do banco, ficam só os dois links.
+════════════════════════════════════════════════════════════ -->
+<section class="lp2-cli" id="contratar" aria-labelledby="cliTit">
+  <div class="lp2-cli-in">
+    <div class="lp2-cli-txt">
+      <span class="lp2-cli-olho">Para quem quer contratar</span>
+      <h2 class="lp2-cli-tit" id="cliTit">Procura um profissional no Litoral Norte?</h2>
+      <p class="lp2-cli-sub">Veja o trabalho de quem atende a sua cidade e chame direto no WhatsApp, sem cadastro.</p>
+    </div>
+    <form class="lp2-cli-form" id="cliForm" action="/litoral-norte" method="get" hidden>
+      <label class="lp2-sr" for="cliProf">Profissão</label>
+      <select class="lp2-cli-sel" id="cliProf" required><option value="">Profissão</option></select>
+      <label class="lp2-sr" for="cliCidade">Cidade</label>
+      <select class="lp2-cli-sel" id="cliCidade" required>
+        <option value="">Cidade</option>
+        <option value="caraguatatuba">Caraguatatuba</option>
+        <option value="sao-sebastiao">São Sebastião</option>
+        <option value="ilhabela">Ilhabela</option>
+        <option value="ubatuba">Ubatuba</option>
+      </select>
+      <button class="lp2-cli-btn" type="submit">Ver profissionais</button>
+    </form>
+    <p class="lp2-cli-links"><a href="/litoral-norte" data-cliente="faixa-regiao">Ver por cidade</a><a href="/como-contratar" data-cliente="faixa-como">Como contratar</a></p>
+  </div>
+</section>
+<!-- /v12.30 porta do cliente -->
+
+<!-- ══════════════════════════════════════════════════════════
+     COMO FUNCIONA — 3 passos de verdade.
+     Eram 4 cartões com ilustrações cinza que pareciam tela
+     carregando. A sequência real tem 3 passos; o orçamento é parte do
+     segundo e ganha seção própria logo abaixo.
+════════════════════════════════════════════════════════════ -->
+<section class="lp-section lp-reveal" id="como-funciona" aria-labelledby="cfTit">
+  <h2 class="lp-h2" id="cfTit">Como funciona</h2>
+  <ol class="lp2-passos">
+    <li><b>Crie o perfil</b><span>Profissão, nome e cidade. Leva um minuto e já sai com o link pronto para mandar no WhatsApp.</span></li>
+    <li><b>Registre cada serviço</b><span>Tire a foto na obra, mesmo sem sinal. O cliente recebe um relatório com o valor e o Pix, e avalia em 10 segundos.</span></li>
+    <li><b>Seja escolhido</b><span>Com 3 serviços registrados seu perfil entra na busca. Quem procura vê fotos, datas e notas de quem já contratou você.</span></li>
+  </ol>
+</section>
+
+<!-- Fotos reais de trabalhos registrados. É a prova que o Fieldo tem e
+     o Instagram não: cada foto está ligada a um serviço com data. A
+     seção só aparece se a busca achar fotos. -->
+<section class="lp-section lp2-mural-sec" id="mural" style="display:none" aria-labelledby="muralTit">
+  <h2 class="lp-h2" id="muralTit">Trabalhos registrados no Fieldo</h2>
+  <p class="lp2-sec-sub">Fotos de serviços de verdade, lançadas pelos profissionais no dia em que foram feitos.</p>
+  <ul class="lp2-mural" id="lp2Mural"></ul>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     ORÇAMENTOS
+════════════════════════════════════════════════════════════ -->
+<section class="lp-section lp-reveal" id="orcamentos" aria-labelledby="orcTit">
+  <h2 class="lp-h2" id="orcTit">Orçamento pronto a partir de uma frase.</h2>
+  <div class="lp-quote-wrap">
+    <div class="lp-quote-card">
+      <div class="lp-quote-top"><span class="lp-quote-dot"></span><span class="lp-quote-lbl">assistente do Fieldo</span></div>
+      <div class="lp-quote-msgs">
+        <div class="lp-quote-msg is-user">cria um orçamento pra troca de 3 tomadas, uns R$180</div>
+        <div class="lp-quote-msg is-bot">
+          <div class="lp-quote-result">
+            <div class="lp-quote-row"><span>Troca de 3 tomadas</span><b>R$ 180,00</b></div>
+            <div class="lp-quote-row"><span>Pagamento</span><b>Pix incluso</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="lp2-legenda">Exemplo de conversa.</p>
+    <!-- v12.23 · link para as páginas do assistente de IA: além de explicar,
+         é o caminho que o Google segue da página inicial até elas. -->
+    <a class="lp2-ia-link" href="/ia/">O assistente de IA faz também diária, quinzena, obra e cobrança →</a>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     PROVA DE TRABALHO
+════════════════════════════════════════════════════════════ -->
+<section class="lp-section lp-reveal" id="prova" aria-labelledby="provaTit">
+  <h2 class="lp-h2" id="provaTit">O cliente recebe um relatório, não um "tá pronto" no WhatsApp.</h2>
+  <div class="lp-proof">
+    <div class="lp-report">
+      <div class="lp-report-head">
+        <div class="lp-report-eyebrow">Relatório de serviço</div>
+        <div class="lp-report-title">Troca de tomadas</div>
+      </div>
+      <div class="lp-report-body">
+        <div class="lp-pix">
+          <div class="lp-pix-lbl">Valor a pagar</div>
+          <div class="lp-pix-val">R$ 180,00</div>
+          <button class="lp-pix-btn" type="button" disabled>Copiar código Pix</button>
+          <div class="lp-pix-hint">Cole no app do banco em Pix Copia e Cola. O valor já vai preenchido.</div>
+        </div>
+        <div class="lp-seal">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.5l7.5 3v6c0 5-3.2 8.6-7.5 10-4.3-1.4-7.5-5-7.5-10v-6z"/><polyline points="9 12 11 14 15.5 9.5"/></svg>
+          Selo de autenticidade com código para conferir
+        </div>
+      </div>
+    </div>
+    <ul class="lp2-lista">
+      <li>Foto, data, local e valor do serviço num link só.</li>
+      <li>Pix com o valor já preenchido: o cliente paga sem pedir sua chave.</li>
+      <li>Uma avaliação por serviço, só de quem contratou. Não dá para comprar nem inflar.</li>
+      <li>Obra longa? Cada relatório desconta do valor combinado e o cliente vê quanto falta.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     PROFISSIONAIS REAIS (script no fim)
+════════════════════════════════════════════════════════════ -->
+<section class="lp-section" id="profissionais" style="display:none" aria-labelledby="prosTit">
+  <h2 class="lp-h2" id="prosTit">Quem já está no Fieldo</h2>
+  <div class="lp-pros-grid" id="lpProsGrid"></div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     PERGUNTAS — as objeções que fazem a pessoa sair sem criar.
+     Cada resposta é verdade hoje (plano grátis = 5 serviços/mês,
+     PLAN_LIMITS em db.js; CNPJ é opcional; cliente não instala nada).
+════════════════════════════════════════════════════════════ -->
+<section class="lp-section lp-reveal" id="perguntas" aria-labelledby="faqTit">
+  <h2 class="lp-h2" id="faqTit">Perguntas de quem está começando</h2>
+  <div class="lp2-faq" id="lp2Faq">
+    <details><summary>É grátis mesmo?</summary><p>Sim. O plano grátis registra até 5 serviços por mês, com perfil público, orçamento e relatório com Pix. O plano Pro tira o limite. Não pede cartão para começar.</p></details>
+    <details><summary>Preciso ter CNPJ?</summary><p>Não. Se tiver, você pode informar depois: o Fieldo confere na Receita e mostra "CNPJ ativo" no seu perfil.</p></details>
+    <details><summary>Meu cliente precisa baixar algum aplicativo?</summary><p>Não. Ele recebe um link pelo WhatsApp e abre no celular: vê o relatório, paga pelo Pix e avalia.</p></details>
+    <details><summary>Já mostro meu trabalho no Instagram. Por que usar?</summary><p>No Instagram o cliente vê fotos. No Fieldo ele vê cada serviço com data, local e a avaliação de quem contratou, e encontra você quando procura no Google pela sua profissão na sua cidade.</p></details>
+    <details><summary>Funciona sem internet?</summary><p>Em parte. Com o Fieldo já aberto, você registra o serviço na obra sem sinal e ele sobe sozinho quando a conexão volta. Para abrir o app é preciso internet.</p></details>
+    <details><summary>Quando apareço no Google?</summary><p>Com 3 serviços registrados seu perfil fica público e pode ser encontrado. Ninguém garante posição no Google, mas sem uma página sua você não aparece de jeito nenhum.</p></details>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     CTA FINAL — repete o que a pessoa montou lá em cima
+════════════════════════════════════════════════════════════ -->
+<section class="lp-section lp-section--tight lp-reveal" id="final">
+  <div class="lp-final">
+    <h2 id="lp2FinalTit">Seu perfil fica pronto em um minuto.</h2>
+    <p>Comece pelo serviço de hoje: tire a foto, mande o relatório e peça a avaliação.</p>
+    <a href="entrar.html?criar=1" class="lp-btn" data-cta="final" id="lp2FinalCta">
+      Criar meu perfil grátis
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+    </a>
+  </div>
+</section>
+</main>
+
+<!-- Botão fixo no celular: a página tem várias telas e o botão só
+     existia no topo e no fim. Aparece quando o formulário do topo sai
+     da tela e some quando o botão final entra. -->
+<div class="lp2-fixo" id="lp2Fixo" aria-hidden="true">
+  <a href="entrar.html?criar=1" class="lp2-fixo-btn" data-cta="fixo" id="lp2FixoBtn" tabindex="-1">Criar meu perfil grátis</a>
+</div>
+
+<footer class="lp-footer lp2-footer">
+  <!-- v12.29 · o cliente que chega aqui vai para a página da região
+       (as quatro cidades, por profissão) e tem o passo a passo ao lado. -->
+  <div class="lp2-footer-cli">
+    <a class="lp2-footer-cliente" href="/litoral-norte" data-cliente="rodape">Procura um profissional? Veja quem trabalha no Litoral Norte</a>
+    <span class="lp2-footer-cli-mais"><a href="/como-contratar" data-cliente="rodape-como">Como contratar</a><a href="/explorar" data-cliente="rodape-todos">Todos os profissionais</a></span>
+  </div>
+  <nav class="lp2-footer-links" aria-label="Rodapé">
+    <a href="/sobre">Sobre o Fieldo</a>
+    <a href="/ia/">Assistente de IA</a>
+    <a href="planos.html">Planos e preços</a>
+    <a href="revenda.html">Revenda</a>
+    <a href="zelo/">Para síndicos</a>
+    <a href="verificar.html">Verificar um documento</a>
+    <a href="https://www.instagram.com/fieldo.zelo/" target="_blank" rel="noopener me">Instagram</a>
+    <a href="entrar.html?entrar=1">Entrar</a>
+    <a href="/termos">Termos de Uso</a>
+    <a href="/privacidade">Privacidade</a>
+  </nav>
+  <div class="pub-pe-legal lp2-legal" data-legal="rodape"></div>
+</footer>
+
+<script>
+/* v12.30 · porta do cliente: as profissões que têm profissional REAL
+   (a mesma regra `indexavel` das páginas por cidade) no Litoral Norte,
+   e as quatro cidades com quantos atendem cada uma. O destino é a
+   página "profissão em cidade" quando existe alguém lá; senão, a
+   cidade na página da região, que diz que ainda não há ninguém. */
+(function () {
+  var form = document.getElementById('cliForm');
+  if (!form || !window.fetch) return;
+  var selP = document.getElementById('cliProf'), selC = document.getElementById('cliCidade');
+  /* @@PROFISSOES:INICIO — gerado de NICHO_POR_TERMO (lista-local.ts): nicho → [termo, singular, plural] */
+  var PROF = {"eletrica":["eletricista","Eletricista","Eletricistas"],"hidraulica":["encanador","Encanador","Encanadores"],"pintura":["pintor","Pintor","Pintores"],"alvenaria":["pedreiro","Pedreiro","Pedreiros"],"serralheria":["serralheiro","Serralheiro","Serralheiros"],"ar-condicionado":["tecnico-de-ar-condicionado","Técnico de ar-condicionado","Técnicos de ar-condicionado"],"informatica":["tecnico-de-informatica","Técnico de informática","Técnicos de informática"],"imoveis":["corretor-de-imoveis","Corretor de imóveis","Corretores de imóveis"],"construtor":["empreiteiro","Empreiteiro","Empreiteiros"],"azulejista":["azulejista","Azulejista","Azulejistas"],"gesseiro":["gesseiro","Gesseiro","Gesseiros"],"telhadista":["telhadista","Telhadista","Telhadistas"],"impermeabilizacao":["impermeabilizador","Impermeabilizador","Impermeabilizadores"],"marceneiro":["marceneiro","Marceneiro","Marceneiros"],"carpinteiro":["carpinteiro","Carpinteiro","Carpinteiros"],"vidraceiro":["vidraceiro","Vidraceiro","Vidraceiros"],"soldador":["soldador","Soldador","Soldadores"],"montador-de-moveis":["montador-de-moveis","Montador de móveis","Montadores de móveis"],"marido-de-aluguel":["marido-de-aluguel","Marido de aluguel","Maridos de aluguel"],"desentupidor":["desentupidor","Desentupidor","Desentupidores"],"energia-solar":["instalador-de-energia-solar","Instalador de energia solar","Instaladores de energia solar"],"cameras-e-alarmes":["instalador-de-cameras-e-alarmes","Instalador de câmeras e alarmes","Instaladores de câmeras e alarmes"],"redes-e-internet":["tecnico-de-redes-e-internet","Técnico de redes e internet","Técnicos de redes e internet"],"antenista":["antenista","Antenista","Antenistas"],"eletrodomesticos":["tecnico-de-eletrodomesticos","Técnico de eletrodomésticos","Técnicos de eletrodomésticos"],"tecnico-de-celular":["tecnico-de-celular","Técnico de celular","Técnicos de celular"],"chaveiro":["chaveiro","Chaveiro","Chaveiros"],"jardineiro":["jardineiro","Jardineiro","Jardineiros"],"piscineiro":["piscineiro","Piscineiro","Piscineiros"],"diarista":["diarista","Diarista","Diaristas"],"limpeza-pos-obra":["limpeza-pos-obra","Limpeza pós-obra","Limpeza pós-obra"],"higienizacao-de-estofados":["higienizacao-de-estofados","Higienização de estofados","Higienização de estofados"],"dedetizacao":["dedetizador","Dedetizador","Dedetizadores"],"limpeza-de-caixa-dagua":["limpeza-de-caixa-d-agua","Limpeza de caixa d'água","Limpeza de caixa d'água"],"tapeceiro":["tapeceiro","Tapeceiro","Tapeceiros"],"costureira":["costureira","Costureira","Costureiras"],"fretes-e-mudancas":["fretes-e-mudancas","Fretes e mudanças","Fretes e mudanças"],"locacao-de-equipamentos":["locacao-de-equipamentos","Locação de equipamentos","Locação de equipamentos"],"mecanico":["mecanico","Mecânico","Mecânicos"],"eletricista-automotivo":["eletricista-automotivo","Eletricista automotivo","Eletricistas automotivos"],"funilaria":["funileiro","Funileiro","Funileiros"],"estetica-automotiva":["estetica-automotiva","Estética automotiva","Estética automotiva"],"borracheiro":["borracheiro","Borracheiro","Borracheiros"],"guincho":["guincho","Guincho","Guinchos"],"cabeleireiro":["cabeleireiro","Cabeleireiro","Cabeleireiros"],"barbeiro":["barbeiro","Barbeiro","Barbeiros"],"manicure":["manicure","Manicure","Manicures"],"maquiador":["maquiador","Maquiador","Maquiadores"],"esteticista":["esteticista","Esteticista","Esteticistas"],"massoterapeuta":["massoterapeuta","Massoterapeuta","Massoterapeutas"],"personal-trainer":["personal-trainer","Personal trainer","Personal trainers"],"professor-particular":["professor-particular","Professor particular","Professores particulares"],"professor-de-musica":["professor-de-musica","Professor de música","Professores de música"],"fotografo":["fotografo","Fotógrafo","Fotógrafos"],"videomaker":["videomaker","Videomaker","Videomakers"],"designer-grafico":["designer-grafico","Designer gráfico","Designers gráficos"],"buffet":["buffet-e-eventos","Buffet e eventos","Buffets e eventos"],"confeiteiro":["confeiteiro","Confeiteiro","Confeiteiros"],"cozinheiro":["cozinheiro","Cozinheiro","Cozinheiros"],"cuidador-de-idosos":["cuidador-de-idosos","Cuidador de idosos","Cuidadores de idosos"],"baba":["baba","Babá","Babás"],"adestrador":["adestrador","Adestrador","Adestradores"],"banho-e-tosa":["banho-e-tosa","Banho e tosa","Banho e tosa"],"arquiteto":["arquiteto","Arquiteto","Arquitetos"],"engenheiro-civil":["engenheiro-civil","Engenheiro civil","Engenheiros civis"],"topografo":["topografo","Topógrafo","Topógrafos"],"contador":["contador","Contador","Contadores"],"despachante":["despachante","Despachante","Despachantes"],"artesao":["artesao","Artesão","Artesãos"]};
+  /* @@PROFISSOES:FIM */
+  var CIDADES = ['caraguatatuba', 'sao-sebastiao', 'ilhabela', 'ubatuba'];
+  var NOMES = { 'caraguatatuba': 'Caraguatatuba', 'sao-sebastiao': 'São Sebastião', 'ilhabela': 'Ilhabela', 'ubatuba': 'Ubatuba' };
+  var U = 'https://jrsctnncoljdcvdofxsg.supabase.co/rest/v1/professional_stats?indexavel=is.true&limit=500&select=niche,nichos,city_slug';
+  var K = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impyc2N0bm5jb2xqZGN2ZG9meHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMTEzMzgsImV4cCI6MjA5MDc4NzMzOH0.XJj5d37fOgK4nN9B3xI_x7P1HE_4lvnYC_qx_5eF0FI';
+  var H = { headers: { apikey: K, Authorization: 'Bearer ' + K } };
+  var T = function (ev, props) { try { window.FieldoAnalyticsLite && FieldoAnalyticsLite.track(ev, props || {}); } catch (e) {} };
+  var cont = {};   /* nicho → cidade → quantos moram ou atendem */
+  /* com `cidades` (fase 3: quem mora + quem atende); sem a coluna, 400 → só quem mora */
+  fetch(U + ',cidades', H)
+    .then(function (r) { return r.status === 400 ? fetch(U, H) : r; })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (lista) {
+      (Array.isArray(lista) ? lista : []).forEach(function (p) {
+        var cs = (p.cidades && p.cidades.length) ? p.cidades : (p.city_slug ? [p.city_slug] : []);
+        var ns = (p.nichos && p.nichos.length) ? p.nichos : (p.niche ? [p.niche] : []);
+        ns.filter(function (n, i) { return PROF[n] && ns.indexOf(n) === i; }).forEach(function (n) {
+          cs.forEach(function (c) {
+            if (!NOMES[c]) return;
+            cont[n] = cont[n] || {};
+            cont[n][c] = (cont[n][c] || 0) + 1;
+          });
+        });
+      });
+      var total = function (n) { var t = 0; for (var c in cont[n]) t += cont[n][c]; return t; };
+      var nichos = Object.keys(cont).sort(function (a, b) { return total(b) - total(a) || PROF[a][1].localeCompare(PROF[b][1], 'pt-BR'); });
+      if (!nichos.length) return;
+      nichos.forEach(function (n) {
+        var o = document.createElement('option');
+        o.value = n; o.textContent = PROF[n][1];
+        selP.appendChild(o);
+      });
+      form.hidden = false;
+    })
+    .catch(function () {});
+  /* com a profissão escolhida, cada cidade diz quantos atendem */
+  selP.addEventListener('change', function () {
+    var n = selP.value;
+    Array.prototype.forEach.call(selC.options, function (o) {
+      if (!o.value) return;
+      var q = n && cont[n] ? (cont[n][o.value] || 0) : null;
+      o.textContent = NOMES[o.value] + (q === null ? '' : q ? ' (' + q + ')' : ' (ainda ninguém)');
+    });
+  });
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var n = selP.value, c = selC.value;
+    if (!n || !c) { (n ? selC : selP).focus(); return; }
+    var q = (cont[n] && cont[n][c]) || 0;
+    T('landing_cliente_busca', { nicho: n, cidade: c, n: q });
+    location.href = q ? '/' + PROF[n][0] + '-em-' + c : '/litoral-norte#c-' + c;
+  });
+})();
+</script>
+<script src="analytics-lite.js" defer></script>
+<script src="rabisco.js" defer></script>
+<script src="pecas.js" defer></script>
+<script>
+/* v-fiel-prova · busca profissionais REAIS (mesma tabela pública que
+   /explorar já usa, mesma chave anônima já exposta em db.js — não é
+   dado novo nem credencial nova) e sorteia alguns pra mostrar aqui.
+   Só entram quem tem: foto de verdade cadastrada (logo_url — nunca
+   mostra iniciais/ícone como se fosse foto) e pelo menos 3 serviços
+   registrados (o mesmo piso que já libera o perfil pra indexação em
+   /p/slug). Nota só aparece quando existe avaliação real. Se a busca
+   falhar ou não achar ninguém, a seção simplesmente não aparece —
+   resto da página intacto, nada quebra. */
+(function () {
+  'use strict';
+  var SUPABASE_URL = 'https://jrsctnncoljdcvdofxsg.supabase.co';
+  var ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impyc2N0bm5jb2xqZGN2ZG9meHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMTEzMzgsImV4cCI6MjA5MDc4NzMzOH0.XJj5d37fOgK4nN9B3xI_x7P1HE_4lvnYC_qx_5eF0FI';
+  var QTD_MOSTRAR = 3;
+
+  var sec  = document.getElementById('profissionais');
+  var grid = document.getElementById('lpProsGrid');
+  if (!sec || !grid) return;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /* sorteio sem repetição (Fisher-Yates parcial) — "randon" que o
+     Rikelme pediu: cada carregamento da página pode mostrar um trio
+     diferente, não sempre os mesmos 3. */
+  function sortear(lista, n) {
+    var copia = lista.slice();
+    for (var i = copia.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = copia[i]; copia[i] = copia[j]; copia[j] = tmp;
+    }
+    return copia.slice(0, n);
+  }
+
+  var url = SUPABASE_URL + '/rest/v1/professional_stats' +
+    '?select=name,profissao,city,slug,logo_url,media_geral,total_geral,total_servicos_confirmados' +
+    '&logo_url=not.is.null' +
+    '&total_servicos_confirmados=gte.3' +
+    '&limit=40';
+
+  /* v12.26 · mesma regra do perfil-seo: `indexavel` da vista (3 serviços
+     reais, ou biografia + 6 fotos de trabalho). Antes do SQL da v12.26 a
+     coluna não existe (400) → a consulta de antes. */
+  var urlNova = url.replace('&total_servicos_confirmados=gte.3', '&indexavel=is.true');
+  var hdr = { headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY } };
+  fetch(urlNova, hdr)
+    .then(function (r) { return r.status === 400 ? fetch(url, hdr) : r; })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (lista) {
+      if (!Array.isArray(lista) || lista.length === 0) return;
+      var sorteados = sortear(lista, Math.min(QTD_MOSTRAR, lista.length));
+
+      grid.innerHTML = sorteados.map(function (p) {
+        var temNota = p.media_geral && Number(p.total_geral) > 0;
+        var nota = temNota ? parseFloat(p.media_geral).toFixed(1) : null;
+        var sub = [p.profissao, p.city].filter(Boolean).map(esc).join(' · ');
+        return (
+          '<a class="lp-pro-card" href="/p/' + encodeURIComponent(p.slug) + '">' +
+            '<div class="lp-pro-photo"><img src="' + esc(p.logo_url) + '" alt="" loading="lazy" ' +
+              'onerror="this.closest(\'.lp-pro-card\').remove()"/></div>' +
+            '<div class="lp-pro-name">' + esc(p.name) + '</div>' +
+            (sub ? '<div class="lp-pro-sub">' + sub + '</div>' : '') +
+            (nota
+              ? '<div class="lp-pro-rating">★ ' + nota + ' · ' + p.total_geral + ' avalia' + (Number(p.total_geral) === 1 ? 'ção' : 'ções') + '</div>'
+              : '') +
+          '</a>'
+        );
+      }).join('');
+
+      sec.style.display = '';
+      /* rAF pra garantir que o navegador já pintou display:'' antes de
+         mudar a opacidade — senão a transição não roda, ela só "pisca". */
+      requestAnimationFrame(function () { sec.classList.add('is-loaded'); });
+    })
+    .catch(function () { /* sem rede ou instabilidade — seção fica escondida, sem quebrar o resto */ });
+})();
+
+/* v12.35 · quando o desenho termina o serviço, ele entra como a "foto"
+   mais nova do cartão "Seu nome" (as outras andam uma casa; fica o
+   limite de 3). É o que o Fieldo faz: serviço feito vira foto no perfil. */
+(function () {
+  'use strict';
+  var wrap = document.getElementById('lpProfileShots'); if (!wrap) return;
+  var pe = document.querySelector('.lp2-cartao-pe'), primeiro = true;
+  document.addEventListener('fieldo:rabisco-pronto', function (e) {
+    var d = e.detail; if (!d || !d.svg) return;
+    var q = document.createElement('div');
+    q.className = 'lp-profile-shot lp2-shot-rab'; q.setAttribute('aria-hidden', 'true'); q.setAttribute('data-cena', d.id);
+    q.innerHTML = d.svg + '<span class="lp2-shot-novo">Novo</span>';
+    wrap.insertBefore(q, wrap.firstChild);
+    while (wrap.children.length > 3) wrap.removeChild(wrap.lastChild);
+    setTimeout(function () { q.classList.add('visto'); }, 2600);
+    if (primeiro && pe) { primeiro = false; pe.textContent = 'Cada serviço que você registra vira foto no seu perfil'; }
+  });
+})();
+
+/* v-fiel-prova-2 · o mockup do hero ("Seu nome aqui") é ilustrativo
+   de propósito — continua sem foto de rosto nenhuma, pra não colar o
+   rosto de um profissional específico numa identidade genérica/
+   inventada. Mas os 3 quadradinhos abaixo da nota já representavam
+   "fotos de serviço registrado" com um ícone de câmera — aqui, sim,
+   dá pra trocar por fotos REAIS de serviços já registrados (sem
+   nome nem rosto de pessoa junto, só a foto do trabalho em si), a
+   mesma tabela pública que relatorio.html/perfil-seo.ts já leem
+   (reports, coluna "photos", só quando is_public=true). Se não achar
+   foto nenhuma, os quadradinhos ficam exatamente como estavam. */
+(function () {
+  'use strict';
+  var SUPABASE_URL = 'https://jrsctnncoljdcvdofxsg.supabase.co';
+  var ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impyc2N0bm5jb2xqZGN2ZG9meHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMTEzMzgsImV4cCI6MjA5MDc4NzMzOH0.XJj5d37fOgK4nN9B3xI_x7P1HE_4lvnYC_qx_5eF0FI';
+
+  var wrap = document.getElementById('lpProfileShots');
+  if (!wrap) return;
+  var quadros = wrap.querySelectorAll('.lp-profile-shot');
+  if (!quadros.length) return;
+
+  function sortear(lista, n) {
+    var copia = lista.slice();
+    for (var i = copia.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = copia[i]; copia[i] = copia[j]; copia[j] = tmp;
+    }
+    return copia.slice(0, n);
+  }
+
+  var url = SUPABASE_URL + '/rest/v1/reports' +
+    '?select=photos&is_public=eq.true&portfolio_ok=eq.true&photos=not.is.null&order=created_at.desc&limit=40';
+
+  fetch(url, { headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY } })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (relatorios) {
+      if (!Array.isArray(relatorios)) return;
+      // um relatório pode ter várias fotos — junta tudo num único poço antes de sortear
+      var todasFotos = [];
+      relatorios.forEach(function (rep) {
+        if (Array.isArray(rep.photos)) {
+          rep.photos.forEach(function (f) { if (typeof f === 'string' && f) todasFotos.push(f); });
+        }
+      });
+      if (!todasFotos.length) return;
+
+      var sorteadas = sortear(todasFotos, Math.min(quadros.length, todasFotos.length));
+      sorteadas.forEach(function (fotoUrl, i) {
+        var img = document.createElement('img');
+        img.loading = 'lazy';
+        img.alt = '';
+        img.src = fotoUrl;
+        /* se a foto não carregar (link quebrado, etc.), volta o
+           quadradinho pro estado original em vez de ficar com um
+           ícone de imagem quebrada. */
+        img.onerror = function () { img.remove(); };
+        quadros[i].innerHTML = '';
+        quadros[i].appendChild(img);
+      });
+    })
+    .catch(function () { /* sem rede — quadradinhos ficam como estavam (ícone de câmera) */ });
+})();
+</script>
+<script>
+/* v12.17 · o hero que monta o perfil.
+   A pessoa escolhe a profissão e a cidade; a prévia mostra a busca e
+   o resultado dela no Google enquanto digita; o botão leva ao cadastro
+   com os dois campos já preenchidos (entrar.html?criar=1&p=&c=), onde
+   falta só o nome. Também lê ?p= e ?c= do próprio link, para anúncio
+   e campanha abrirem já personalizados (ex.: ?p=pintor&c=ubatuba). */
+(function () {
+  'use strict';
+  var T = function (ev, props) { try { window.FieldoAnalyticsLite && FieldoAnalyticsLite.track(ev, props || {}); } catch (e) {} };
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $('lp2Monte'); if (!form) return;
+  var inP = $('lp2Prof'), inC = $('lp2Cidade');
+  var chips = Array.prototype.slice.call(document.querySelectorAll('.lp2-chip'));
+  var reduz = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function limpa(s) { return String(s || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60); }
+  function titulo(s) {
+    var min = { de: 1, da: 1, do: 1, das: 1, dos: 1, e: 1, em: 1 };
+    return limpa(s).toLowerCase().split(' ').map(function (w, i) {
+      return (i > 0 && min[w]) ? w : w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(' ');
+  }
+  function slug(s) {
+    return limpa(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+  function param(n) { try { return new URLSearchParams(location.search).get(n) || ''; } catch (e) { return ''; } }
+
+  /* Ao abrir: o que veio no link vence o que ficou guardado. */
+  var guardado = {};
+  try { guardado = JSON.parse(localStorage.getItem('fieldo_lp_monte') || '{}') || {}; } catch (e) {}
+  var pIni = param('p') || guardado.p || '', cIni = param('c') || guardado.c || '';
+  if (pIni) inP.value = titulo(pIni.replace(/-/g, ' '));
+  if (cIni) inC.value = titulo(cIni.replace(/-/g, ' '));
+
+  var animando = !pIni && !cIni && !reduz, exemplos = ['eletricista', 'pedreiro', 'pintor', 'diarista'], ex = 0;
+
+  function destino() {
+    var p = limpa(inP.value), c = limpa(inC.value), q = 'criar=1';
+    if (p) q += '&p=' + encodeURIComponent(p);
+    if (c) q += '&c=' + encodeURIComponent(c);
+    return 'entrar.html?' + q;
+  }
+
+  function render() {
+    var p = limpa(inP.value), c = limpa(inC.value);
+    var P = p ? titulo(p) : '', C = c ? titulo(c) : '';
+    if (!animando) $('lp2Consulta').textContent = (p ? p.toLowerCase() : 'sua profissão') + ' em ' + (c ? c.toLowerCase() : 'sua cidade');
+    $('lp2ResTit').textContent = 'Seu nome — ' + (P || 'Sua profissão') + ' em ' + (C || 'sua cidade');
+    $('lp2Slug').textContent = 'seu-nome' + (p ? '-' + slug(p) : '') + (c ? '-' + slug(c) : '');
+    $('lp2CartaoSub').textContent = (P || 'Sua profissão') + ' · ' + (C || 'sua cidade');
+    /* no celular a prévia fica abaixo do formulário: esta linha mostra o
+       efeito ali mesmo, enquanto a pessoa digita */
+    var mini = $('lp2Mini');
+    if (mini) {
+      mini.hidden = !(p && c);
+      if (p && c) mini.innerHTML = 'Quem procurar <b>' + (p + ' em ' + c).toLowerCase().replace(/[&<>"]/g, '') + '</b> no Google vai poder achar seu perfil.';
+    }
+    $('lp2CtaTxt').textContent = P && P.length <= 26 ? 'Criar meu perfil de ' + P : 'Criar meu perfil grátis';
+    /* v12.19d · a nota dizia "falta só o seu nome" mesmo sem cidade —
+       e na tela seguinte apareciam nome, cidade e profissão */
+    var nota = $('lp2Nota');
+    if (nota) nota.textContent = 'Grátis, sem cartão. ' + (p && c ? 'Na próxima tela: seu nome e WhatsApp.'
+      : p ? 'Na próxima tela: nome, WhatsApp e cidade.' : 'Leva um minuto.');
+    if (c) { $('lp2CidadeLbl').classList.remove('vez'); inC.classList.remove('vez'); $('lp2CidadeLbl').textContent = 'Sua cidade'; }
+    $('lp2FinalTit').textContent = P
+      ? 'Seu perfil de ' + P + (C ? ' em ' + C : '') + ' fica pronto em um minuto.'
+      : 'Seu perfil fica pronto em um minuto.';
+    var href = destino();
+    ['lp2FinalCta', 'lp2FixoBtn'].forEach(function (id) { var a = $(id); if (a) a.href = href; });
+    document.querySelectorAll('.lp-nav-cta').forEach(function (a) { a.href = href; });
+    chips.forEach(function (b) { b.setAttribute('aria-pressed', String(!!p && b.dataset.p.toLowerCase() === p.toLowerCase())); });
+    /* v12.34 · a profissão escolhida vira o desenho (e ele para de alternar) */
+    if (window.FieldoRabisco) FieldoRabisco.profissao(p);
+    try { localStorage.setItem('fieldo_lp_monte', JSON.stringify({ p: p, c: c })); } catch (e) {}
+  }
+
+  /* A busca "digitando sozinha" até a pessoa mexer — o único movimento
+     automático da página, e para no primeiro toque. */
+  /* v12.34 · a busca digita a profissão do desenho da vez; sem o desenho
+     (fora da tela, ou sem o script), segue a lista de exemplos */
+  var vez = 0;
+  function digitar(palavra) {
+    if (!animando) return;
+    var meu = ++vez, alvo = (palavra || exemplos[ex % exemplos.length]) + ' em sua cidade', i = 0, el = $('lp2Consulta');
+    (function passo() {
+      if (!animando || meu !== vez) return;
+      el.textContent = alvo.slice(0, i++);
+      if (i <= alvo.length) return setTimeout(passo, 55);
+      setTimeout(function () { if (meu !== vez) return; ex++; digitar(); }, palavra ? 9000 : 1600);
+    })();
+  }
+  document.addEventListener('fieldo:rabisco', function (e) { if (animando && e.detail && !e.detail.fixa) digitar(e.detail.busca); });
+
+  var mexeu = false;
+  function primeiraVez(como) {
+    animando = false;
+    if (!mexeu) { mexeu = true; T('lp_monte_interacao', { como: como }); }
+  }
+  /* v12.19d · investigação de 30/10: um visitante tocou 3 vezes em
+     "Pintor" e não seguiu. O toque levava o cursor para a cidade; no
+     celular isso abre o teclado, que cobre o botão "Criar meu perfil".
+     A pessoa fechava o teclado, tocava de novo, e o teclado voltava.
+     Agora: no celular (toque) o teclado NÃO abre sozinho — a cidade
+     fica destacada com "Agora, sua cidade" e o botão continua à vista.
+     No computador (sem teclado na tela) o cursor ainda vai para a cidade. */
+  var toque = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+  function botaoAVista() {
+    var cta = $('lp2Cta'); if (!cta) return;
+    var vv = window.visualViewport, alt = vv ? vv.height : innerHeight;
+    var r = cta.getBoundingClientRect();
+    if (r.bottom > alt - 8) window.scrollBy({ top: r.bottom - alt + 16, behavior: reduz ? 'auto' : 'smooth' });
+  }
+  chips.forEach(function (b) {
+    b.addEventListener('click', function () {
+      primeiraVez('chip');
+      inP.value = b.dataset.p; render(); T('lp_monte_chip', { p: b.dataset.p });
+      if (limpa(inC.value)) return;
+      if (toque) {
+        $('lp2CidadeLbl').textContent = 'Agora, sua cidade';
+        $('lp2CidadeLbl').classList.add('vez'); inC.classList.add('vez');
+        botaoAVista();
+      } else inC.focus();
+    });
+  });
+  /* com o teclado aberto, mantém o botão acima dele */
+  inC.addEventListener('focus', function () {
+    if (!toque) return;
+    setTimeout(botaoAVista, 350);
+    if (window.visualViewport) {
+      var f = function () { botaoAVista(); };
+      visualViewport.addEventListener('resize', f);
+      inC.addEventListener('blur', function sai() { visualViewport.removeEventListener('resize', f); inC.removeEventListener('blur', sai); });
+    }
+  });
+  var digitouCidade = false;
+  inC.addEventListener('input', function () { if (!digitouCidade && limpa(inC.value)) { digitouCidade = true; T('lp_monte_cidade', {}); } });
+  [inP, inC].forEach(function (el) {
+    el.addEventListener('focus', function () { primeiraVez(el === inP ? 'profissao' : 'cidade'); render(); });
+    el.addEventListener('input', render);
+  });
+
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    T('landing_cta_click', { local: 'hero', tem_profissao: !!limpa(inP.value), tem_cidade: !!limpa(inC.value) });
+    location.href = destino();
+  });
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest && ev.target.closest('a[data-cta]');
+    if (a) T('landing_cta_click', { local: a.dataset.cta, tem_profissao: !!limpa(inP.value), tem_cidade: !!limpa(inC.value) });
+    var cl = ev.target.closest && ev.target.closest('a[data-cliente]');
+    if (cl) T('landing_cliente_click', { local: cl.dataset.cliente });
+  });
+
+  render();
+  if (animando) digitar(); else render();
+
+  /* ── botão fixo no celular ─────────────────────────────────── */
+  var fixo = $('lp2Fixo'), btnFixo = $('lp2FixoBtn');
+  if (fixo && 'IntersectionObserver' in window) {
+    var heroVisivel = true, finalVisivel = false;
+    var atualiza = function () {
+      var on = !heroVisivel && !finalVisivel;
+      fixo.classList.toggle('on', on);
+      fixo.setAttribute('aria-hidden', String(!on));
+      if (btnFixo) btnFixo.tabIndex = on ? 0 : -1;
+    };
+    new IntersectionObserver(function (es) { heroVisivel = es[0].isIntersecting; atualiza(); }).observe(form);
+    var fim = $('final');
+    if (fim) new IntersectionObserver(function (es) { finalVisivel = es[0].isIntersecting; atualiza(); }).observe(fim);
+  }
+
+  /* ── medição: até onde leem e o que abrem ─────────────────────
+     Antes só existia "abriu a página". 86% saíam sem outra página e
+     não dava para saber se liam metade ou nada. */
+  var marcos = [25, 50, 75, 100], vistos = {};
+  window.addEventListener('scroll', function () {
+    var h = document.documentElement.scrollHeight - innerHeight;
+    if (h <= 0) return;
+    var pct = Math.round(scrollY / h * 100);
+    marcos.forEach(function (m) { if (pct >= m && !vistos[m]) { vistos[m] = 1; T('lp_rolagem', { pct: m }); } });
+  }, { passive: true });
+  if ('IntersectionObserver' in window) {
+    var secs = document.querySelectorAll('main section[id]');
+    var ioS = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { T('lp_secao', { id: e.target.id }); ioS.unobserve(e.target); } });
+    }, { threshold: .4 });
+    secs.forEach(function (s) { ioS.observe(s); });
+  }
+  document.querySelectorAll('#lp2Faq details').forEach(function (d) {
+    d.addEventListener('toggle', function () { if (d.open) T('lp_faq', { q: d.querySelector('summary').textContent.slice(0, 60) }); });
+  });
+})();
+
+/* Mural: fotos reais de serviços públicos, com a categoria. Some se não
+   houver foto (a seção começa escondida). */
+(function () {
+  'use strict';
+  var SUPABASE_URL = 'https://jrsctnncoljdcvdofxsg.supabase.co';
+  var ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impyc2N0bm5jb2xqZGN2ZG9meHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMTEzMzgsImV4cCI6MjA5MDc4NzMzOH0.XJj5d37fOgK4nN9B3xI_x7P1HE_4lvnYC_qx_5eF0FI';
+  var sec = document.getElementById('mural'), ul = document.getElementById('lp2Mural');
+  if (!sec || !ul) return;
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  fetch(SUPABASE_URL + '/rest/v1/reports?select=photos,category_label&is_public=eq.true&portfolio_ok=eq.true&photos=not.is.null&order=created_at.desc&limit=30',
+        { headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY } })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (rows) {
+      var itens = (Array.isArray(rows) ? rows : []).filter(function (r) { return Array.isArray(r.photos) && typeof r.photos[0] === 'string' && /^https:\/\//.test(r.photos[0]); }).slice(0, 8);
+      if (itens.length < 4) return;
+      itens = itens.slice(0, itens.length >= 8 ? 8 : 4);
+      ul.innerHTML = itens.map(function (r) {
+        return '<li><img src="' + esc(r.photos[0]) + '" alt="' + esc('Serviço de ' + (r.category_label || 'profissional') + ' registrado no Fieldo') + '" loading="lazy" decoding="async" onerror="this.closest(\'li\').remove()"/>' +
+          (r.category_label ? '<span>' + esc(r.category_label) + '</span>' : '') + '</li>';
+      }).join('');
+      sec.style.display = '';
+    })
+    .catch(function () {});
+})();
+</script>
+
+<script>
+/* v-rebuild-1 · entrada progressiva ao rolar — puramente visual,
+   nunca esconde conteúdo de quem tem JS desligado (lp-reveal só
+   aplica opacidade via classe, e o CSS já degrada bem sem isto:
+   sem @media prefers-reduced-motion:no-preference, tudo fica
+   visível por padrão). */
+(function () {
+  'use strict';
+  if (!('IntersectionObserver' in window)) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var els = document.querySelectorAll('.lp-reveal');
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
+    });
+  }, { threshold: .12, rootMargin: '0px 0px -40px 0px' });
+  /* só entra opacity:0 depois de já estar observado — nunca há um
+     instante em que o conteúdo dependa do JS pra existir visualmente */
+  els.forEach(function (el) { el.classList.add('will-animate'); io.observe(el); });
+})();
+</script>
+
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

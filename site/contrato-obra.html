@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta name="theme-color" content="#f5f2ec"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Contrato da obra · Fieldo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <style>
+    /* v12.40 · contrato de obra (tela do profissional). Um passo por vez:
+       dados → revisar e assinar → acompanhar. O cliente assina pelo link. */
+    body { background: var(--bg); }
+    .co { max-width: 640px; margin: 0 auto; padding: 1rem 1rem 4rem; }
+    .co-voltar { display: inline-flex; align-items: center; gap: .3rem; color: var(--text2); font-size: .86rem; text-decoration: none; min-height: 44px; }
+    .co-tit { font-family: var(--serif); font-weight: 600; font-size: 1.55rem; line-height: 1.15; margin: .2rem 0 .25rem; color: var(--ink); }
+    .co-sub { font-size: .9rem; color: var(--text2); margin: 0 0 1.1rem; line-height: 1.45; }
+    .co-box { background: var(--paper); border: 1px solid var(--border2); border-radius: 16px; padding: 1rem 1.05rem; margin-bottom: .9rem; }
+    .co-box h2 { font-size: 1rem; font-weight: 600; margin: 0 0 .75rem; color: var(--text); }
+    .co-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+    .co-grid .inteira { grid-column: 1 / -1; }
+    .co-grid .field-group { min-width: 0; }
+    .field-textarea { min-height: 96px; resize: vertical; }
+    .co-dica { font-size: .76rem; color: var(--muted); line-height: 1.45; margin: .2rem 0 0; }
+    .co-erro { font-size: .76rem; color: var(--red, #8b1a1a); margin-top: .2rem; }
+    .co-inv .field-input, .co-inv .field-textarea { border-color: var(--red-bd, rgba(139,26,26,.4)); }
+    .co-parc { display: grid; grid-template-columns: 1fr 7.5rem 2.4rem; gap: .4rem; align-items: start; margin-bottom: .5rem; }
+    .co-parc .co-q { grid-column: 1 / 3; }
+    .co-x { width: 2.4rem; height: 2.6rem; border: 1px solid var(--border2); border-radius: 10px; background: var(--paper2); cursor: pointer; font-size: 1rem; color: var(--text2); }
+    .co-soma { font-size: .8rem; color: var(--text2); margin: .3rem 0 0; }
+    .co-soma.ruim { color: var(--red, #8b1a1a); font-weight: 600; }
+    .co-lnk { background: none; border: 0; padding: .35rem 0; font: 600 .84rem var(--sans); color: var(--gold-d); cursor: pointer; text-decoration: none; }
+    .co-perigo { color: var(--red, #8b1a1a); }
+    .co-cta { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; border: 0; border-radius: 12px; background: var(--gold);
+      color: var(--on-gold); font: 600 .95rem var(--sans); cursor: pointer; text-decoration: none; margin-top: .4rem; }
+    .co-cta:disabled { opacity: .55; cursor: not-allowed; }
+    .co-cta--wa { background: #1d7a46; color: #fff; }
+    .co-cta--sec { background: transparent; color: var(--gold-d); border: 1px solid var(--gold-bd); }
+    .co-faltam { background: var(--amber-bg, rgba(138,94,10,.07)); border: 1px solid var(--amber-bd, rgba(138,94,10,.2)); color: var(--amber, #8a5e0a);
+      border-radius: 10px; padding: .65rem .8rem; font-size: .82rem; line-height: 1.5; margin: .2rem 0 .6rem; }
+    .co-faltam ul { margin: .25rem 0 0 1rem; padding: 0; }
+    .co-doc { background: #fff; color: #1c1a17; border: 1px solid var(--border); border-radius: 10px; padding: .9rem 1rem; font-size: .84rem; line-height: 1.6; max-height: 55vh; overflow-y: auto; }
+    .co-doc .ctr-h1 { font-size: 1rem; text-align: center; margin: .2rem 0 .35rem; }
+    .co-doc .ctr-h2 { font-size: .9rem; margin: .9rem 0 .3rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+    .co-doc .ctr-h3 { font-size: .85rem; margin: .7rem 0 .2rem; }
+    .co-doc .ctr-p { margin: .25rem 0; } .co-doc .ctr-ul { margin: .25rem 0 .25rem 1.1rem; padding: 0; }
+    .co-check { display: flex; gap: .6rem; align-items: flex-start; font-size: .85rem; line-height: 1.5; margin: .7rem 0; }
+    .co-check input { margin-top: .25rem; width: 1.15rem; height: 1.15rem; flex: none; }
+    .co-canvas { width: 100%; height: 140px; border: 1px dashed var(--border2); border-radius: 8px; background: #fff; touch-action: none; display: block; }
+    .co-status { display: flex; gap: .75rem; align-items: flex-start; }
+    .co-st-ico { width: 40px; height: 40px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    .co-st-ok { background: var(--green-bg); border: 2px solid var(--green-bd); color: var(--green); }
+    .co-st-and { background: var(--gold-bg); border: 2px solid var(--gold-bd); color: var(--gold-d); }
+    .co-st-no { background: var(--paper3); border: 2px solid var(--border2); color: var(--muted); }
+    .co-st-tit { font-weight: 600; font-size: .98rem; }
+    .co-st-sub { font-size: .82rem; color: var(--text2); line-height: 1.5; margin-top: .15rem; }
+    .co-ass { list-style: none; margin: .8rem 0 0; padding: 0; }
+    .co-ass li { display: flex; justify-content: space-between; gap: .75rem; padding: .5rem 0; border-top: 1px solid var(--border); font-size: .84rem; }
+    .co-ass small { color: var(--muted); }
+    .co-aviso { font-size: .76rem; color: var(--muted); line-height: 1.5; margin: .7rem 0 0; }
+    .co-acoes { display: flex; flex-wrap: wrap; gap: .3rem 1.1rem; margin-top: .6rem; }
+    .co-link { font-family: var(--mono); font-size: .7rem; word-break: break-all; background: var(--paper2); border-radius: 8px; padding: .5rem .6rem; margin-top: .6rem; color: var(--text2); }
+    @media (max-width: 420px) { .co-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<main class="co" id="co"><p class="co-sub">Carregando…</p></main>
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="db.js"></script>
+<script src="locacao/contrato-doc.js"></script>
+<script src="locacao/assinatura-pad.js"></script>
+<script src="locacao/contrato-pdf.js"></script>
+<script src="obra-contrato-doc.js"></script>
+<script src="db.obra.contratos.js"></script>
+<script>
+(function () {
+  'use strict';
+  var main = document.getElementById('co');
+  var params = new URLSearchParams(location.search);
+  var obraId = params.get('obra');
+  var C = FIELDO.ObraContratos, D = FieldoContratoDoc, T = ObraContratoDoc;
+  var obra = null, versoes = [], atual = null, pad = null;
+
+  function e(s) { return FIELDO.UI.esc(s); }
+  function toast(m) { try { FIELDO.UI.toast(m); } catch (x) {} }
+  function brl(v) { return D.brl(v) || '—'; }
+  function dh(iso) { return D.fmtDataHora(iso); }
+
+  if (!FIELDO.Auth.isLoggedIn()) { location.href = 'entrar.html'; return; }
+  if (!obraId) { location.href = 'obra.html'; return; }
+
+  function voltar() { return '<a class="co-voltar" href="obra.html?id=' + encodeURIComponent(obraId) + '">‹ Obra</a>'; }
+
+  function carregar() {
+    Promise.all([FIELDO.Obras.get(obraId), C.daObra(obraId).catch(function () { return null; })]).then(function (r) {
+      obra = r[0]; versoes = r[1];
+      if (!obra) { main.innerHTML = voltar() + '<p class="co-sub">Obra não encontrada.</p>'; return; }
+      if (versoes === null) {
+        main.innerHTML = voltar() + '<h1 class="co-tit">Contrato da obra</h1><div class="co-faltam">Não foi possível carregar os contratos agora. Verifique a conexão. ' +
+          'Se o recurso acabou de ser lançado, ele pode ainda não estar ativo no servidor.</div>';
+        return;
+      }
+      /* a versão que manda: rascunho em edição > pendente > assinada > a mais nova */
+      atual = versoes.filter(function (v) { return v.status === 'rascunho'; })[0] ||
+              versoes.filter(function (v) { return v.status === 'aguardando_cliente'; })[0] ||
+              versoes.filter(function (v) { return v.status === 'assinado'; })[0] || versoes[0] || null;
+      if (!atual) return telaInicio();
+      if (atual.status === 'rascunho') return telaEditar();
+      return telaStatus();
+    }).catch(function () {
+      main.innerHTML = voltar() + '<p class="co-sub">Sem conexão. Tente de novo.</p>';
+    });
+  }
+
+  /* ── 1. sem contrato ─────────────────────────────────────────── */
+  function telaInicio() {
+    main.innerHTML = voltar() +
+      '<h1 class="co-tit">Contrato da obra</h1>' +
+      '<p class="co-sub">' + e(obra.titulo || 'Obra') + ' · ' + e(obra.cliente) + '</p>' +
+      '<div class="co-box"><h2>Feche a obra com contrato assinado</h2>' +
+        '<p class="co-sub" style="margin:0 0 .6rem">Você preenche o que falta (CPF do cliente, endereço, prazo e forma de pagamento), assina e manda o link. ' +
+        'O cliente lê e assina pelo celular, sem cadastro. Os dois ficam com o PDF e qualquer pessoa pode conferir a autenticidade.</p>' +
+        '<ul class="co-dica" style="margin:0 0 .4rem 1rem;padding:0;line-height:1.7"><li>Valor, prazo, parcelas, garantia e o que acontece em caso de atraso ou desistência</li>' +
+        '<li>Assinatura eletrônica com data, hora, IP e código de integridade</li><li>Mudança de escopo vira nova versão (aditivo), assinada de novo</li></ul>' +
+        '<div id="coErro"></div>' +
+        '<button type="button" class="co-cta" id="coCriar">Criar contrato desta obra</button>' +
+      '</div>';
+    document.getElementById('coCriar').onclick = function () {
+      var b = this; b.disabled = true; b.textContent = 'Criando…';
+      C.criar(obraId).then(carregar).catch(function (err) {
+        b.disabled = false; b.textContent = 'Criar contrato desta obra';
+        document.getElementById('coErro').innerHTML = '<div class="co-faltam">' + e(err.message) +
+          (err.code === 'pro_necessario' ? ' <a class="co-lnk" href="planos.html">Ver planos →</a>' : '') + '</div>';
+      });
+    };
+  }
+
+  /* ── 2. rascunho: dados ──────────────────────────────────────── */
+  function campo(id, rotulo, valor, opts) {
+    opts = opts || {};
+    var attrs = ' class="field-input" id="' + id + '" data-campo="' + id + '"' + (opts.tipo ? ' type="' + opts.tipo + '"' : '') +
+      (opts.inputmode ? ' inputmode="' + opts.inputmode + '"' : '') + (opts.ph ? ' placeholder="' + e(opts.ph) + '"' : '') +
+      (opts.max ? ' maxlength="' + opts.max + '"' : '') + (opts.auto ? ' autocomplete="' + opts.auto + '"' : ' autocomplete="off"');
+    var input = opts.area
+      ? '<textarea' + attrs.replace('field-input', 'field-input field-textarea') + '>' + e(valor == null ? '' : valor) + '</textarea>'
+      : '<input' + attrs + ' value="' + e(valor == null ? '' : valor) + '"/>';
+    return '<div class="field-group' + (opts.inteira ? ' inteira' : '') + '" data-bloco="' + id + '"><label class="field-label" for="' + id + '">' + rotulo + '</label>' + input +
+      (opts.dica ? '<p class="co-dica">' + opts.dica + '</p>' : '') + '</div>';
+  }
+  function valorBr(n) { return n == null || n === '' ? '' : Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function lerValor(s) {
+    s = String(s || '').replace(/[^\d,.-]/g, '');
+    if (s.indexOf(',') !== -1) s = s.replace(/\./g, '').replace(',', '.');
+    var n = parseFloat(s); return isFinite(n) ? Math.round(n * 100) / 100 : null;
+  }
+
+  function telaEditar() {
+    var d = atual.dados || {}, ct = d.contratada || {}, cl = d.contratante || {}, ob = d.obra || {}, pg = d.pagamento || {}, cd = d.condicoes || {};
+    main.innerHTML = voltar() +
+      '<h1 class="co-tit">Contrato da obra</h1>' +
+      '<p class="co-sub">' + e(atual.numero) + ' · versão ' + e(atual.versao) + ' · rascunho. Preencha e toque em <strong>Revisar e assinar</strong>.</p>' +
+      '<form id="coForm" novalidate>' +
+      '<section class="co-box"><h2>Você (contratada)</h2><div class="co-grid">' +
+        campo('contratada.nome', 'Nome ou razão social', ct.nome, { inteira: true, max: 200, auto: 'name' }) +
+        campo('contratada.documento', 'CPF ou CNPJ', ct.documento ? D.fmtDoc(ct.documento) : '', { inputmode: 'numeric', max: 20 }) +
+        campo('contratada.telefone', 'Telefone', ct.telefone ? D.fmtTel(ct.telefone) : '', { inputmode: 'tel', max: 20 }) +
+        campo('contratada.cidade', 'Cidade/UF', ct.cidade, { inteira: true, max: 120 }) +
+      '</div><p class="co-dica">Seu CPF/CNPJ vai no contrato e no termo de assinaturas. Não aparece no seu perfil público.</p></section>' +
+      '<section class="co-box"><h2>Cliente (contratante)</h2><div class="co-grid">' +
+        campo('contratante.nome', 'Nome completo', cl.nome, { inteira: true, max: 200 }) +
+        campo('contratante.documento', 'CPF ou CNPJ', cl.documento ? D.fmtDoc(cl.documento) : '', { inputmode: 'numeric', max: 20, dica: 'O cliente confirma esse número ao assinar.' }) +
+        campo('contratante.telefone', 'Telefone', cl.telefone ? D.fmtTel(cl.telefone) : '', { inputmode: 'tel', max: 20 }) +
+        campo('contratante.endereco', 'Endereço do cliente', cl.endereco, { inteira: true, max: 300 }) +
+      '</div></section>' +
+      '<section class="co-box"><h2>A obra</h2><div class="co-grid">' +
+        campo('obra.titulo', 'Nome da obra', ob.titulo, { inteira: true, max: 200 }) +
+        campo('obra.endereco', 'Endereço da obra', ob.endereco, { inteira: true, max: 300 }) +
+        campo('obra.descricao', 'O que será feito', ob.descricao, { inteira: true, area: true, max: 4000,
+          ph: 'Ex.: demolição do piso e revestimento da cozinha, troca da tubulação da pia, 4 tomadas novas, reboco e pintura das paredes.',
+          dica: 'Seja específico: o que não estiver aqui não faz parte do contrato.' }) +
+        campo('obra.inicio', 'Início', ob.inicio, { tipo: 'date' }) +
+        campo('obra.termino_previsto', 'Término previsto', ob.termino_previsto, { tipo: 'date' }) +
+        campo('obra.valor_total', 'Valor total (R$)', valorBr(ob.valor_total), { inputmode: 'decimal', inteira: true }) +
+      '</div></section>' +
+      '<section class="co-box"><h2>Pagamento</h2><div class="co-grid">' +
+        campo('pagamento.forma', 'Forma de pagamento', pg.forma || 'Pix', { inteira: true, max: 120 }) +
+      '</div><div style="margin-top:.7rem" id="coParcelas"></div>' +
+        '<button type="button" class="co-lnk" id="coAddParc">+ Adicionar parcela</button>' +
+        '<p class="co-soma" id="coSoma"></p></section>' +
+      '<section class="co-box"><h2>Condições</h2><div class="co-grid">' +
+        '<div class="field-group inteira"><label class="field-label" for="condicoes.materiais">Quem fornece o material</label>' +
+          '<select class="field-input" id="condicoes.materiais" data-campo="condicoes.materiais">' +
+            [['contratante', 'O cliente (eu só faço a mão de obra)'], ['contratada', 'Eu (material incluso no preço)'], ['misto', 'Parte cada um']].map(function (o) {
+              return '<option value="' + o[0] + '"' + (cd.materiais === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+            }).join('') + '</select></div>' +
+        campo('condicoes.materiais_obs', 'Detalhe sobre o material (opcional)', cd.materiais_obs, { inteira: true, area: true, max: 4000 }) +
+        campo('condicoes.garantia_meses', 'Garantia (meses)', cd.garantia_meses, { inputmode: 'numeric', max: 3 }) +
+        campo('condicoes.foro', 'Foro (cidade/UF)', cd.foro, { max: 120 }) +
+        campo('condicoes.multa_atraso', 'Atraso no pagamento (opcional)', cd.multa_atraso, { inteira: true, area: true, max: 4000,
+          dica: 'Se ficar em branco, vale: multa de 2%, juros de 1% ao mês e suspensão dos trabalhos depois de aviso de 5 dias.' }) +
+      '</div></section>' +
+      '<div id="coFaltam"></div>' +
+      '<button type="submit" class="co-cta" id="coRevisar">Revisar e assinar</button>' +
+      '<div class="co-acoes"><button type="button" class="co-lnk" id="coSalvar">Salvar rascunho</button>' +
+        '<button type="button" class="co-lnk co-perigo" id="coDescartar">Descartar rascunho</button></div>' +
+      '<p class="co-aviso">Modelo para obras e reformas residenciais, com base no Código Civil (empreitada, arts. 610 a 626) e no Código de Defesa do Consumidor. ' +
+        'Obra grande, com projeto, ART/RRT ou alvará, pede revisão de um advogado.</p>' +
+      '</form>';
+
+    var parcelas = (pg.parcelas || []).map(function (p) { return { descricao: p.descricao, valor: p.valor, quando: p.quando }; });
+    function desenharParcelas() {
+      var box = document.getElementById('coParcelas');
+      box.innerHTML = parcelas.length ? parcelas.map(function (p, i) {
+        return '<div class="co-parc" data-i="' + i + '">' +
+          '<input class="field-input" aria-label="Parcela ' + (i + 1) + ': descrição" data-p="descricao" maxlength="200" placeholder="Ex.: Sinal" value="' + e(p.descricao || '') + '"/>' +
+          '<input class="field-input" aria-label="Parcela ' + (i + 1) + ': valor" data-p="valor" inputmode="decimal" placeholder="0,00" value="' + e(valorBr(p.valor)) + '"/>' +
+          '<button type="button" class="co-x" aria-label="Remover parcela ' + (i + 1) + '" data-rm="' + i + '">×</button>' +
+          '<input class="field-input co-q" aria-label="Parcela ' + (i + 1) + ': quando" data-p="quando" maxlength="120" placeholder="Quando: ex. na assinatura, ao fim da hidráulica" value="' + e(p.quando || '') + '"/>' +
+        '</div>';
+      }).join('') : '<p class="co-dica" style="margin:0 0 .4rem">Sem parcelas: o pagamento fica "conforme as etapas registradas". Para combinar valores e datas, adicione as parcelas.</p>';
+      box.querySelectorAll('input[data-p]').forEach(function (inp) {
+        inp.addEventListener('input', function () {
+          var i = +inp.closest('.co-parc').getAttribute('data-i'), k = inp.getAttribute('data-p');
+          parcelas[i][k] = k === 'valor' ? lerValor(inp.value) : inp.value;
+          soma();
+        });
+      });
+      box.querySelectorAll('[data-rm]').forEach(function (b) {
+        b.onclick = function () { parcelas.splice(+b.getAttribute('data-rm'), 1); desenharParcelas(); };
+      });
+      soma();
+    }
+    function soma() {
+      var el = document.getElementById('coSoma'); if (!parcelas.length) { el.textContent = ''; return; }
+      var s = parcelas.reduce(function (a, p) { return a + (Number(p.valor) || 0); }, 0);
+      var tot = lerValor(document.getElementById('obra.valor_total').value);
+      var ok = tot != null && Math.abs(s - tot) < 0.01;
+      el.className = 'co-soma' + (ok ? '' : ' ruim');
+      el.textContent = 'Parcelas somam ' + brl(s) + (tot != null ? (ok ? ' · bate com o total' : ' · o total da obra é ' + brl(tot)) : '');
+    }
+    desenharParcelas();
+    document.getElementById('coAddParc').onclick = function () { parcelas.push({ descricao: '', valor: null, quando: '' }); desenharParcelas(); };
+    document.getElementById('obra.valor_total').addEventListener('input', soma);
+
+    function edicao() {
+      var ed = {};
+      main.querySelectorAll('[data-campo]').forEach(function (el) {
+        var k = el.getAttribute('data-campo').split('.'), v = el.value;
+        if (k[1] === 'valor_total') v = lerValor(v);
+        else if (k[1] === 'garantia_meses') v = v === '' ? null : parseInt(v, 10);
+        else if (k[1] === 'documento' || k[1] === 'telefone') v = String(v).replace(/\D/g, '');
+        ed[k[0]] = ed[k[0]] || {};
+        ed[k[0]][k[1]] = v;
+      });
+      ed.pagamento = ed.pagamento || {};
+      ed.pagamento.parcelas = parcelas.filter(function (p) { return Number(p.valor) > 0; })
+        .map(function (p) { return { descricao: p.descricao || '', valor: Number(p.valor), quando: p.quando || '' }; });
+      return ed;
+    }
+    function salvar() {
+      return C.salvar(atual.id, edicao()).then(function (r) { atual.dados = r.dados; return r; });
+    }
+    function marcarFaltas(lista) {
+      main.querySelectorAll('.co-inv').forEach(function (el) { el.classList.remove('co-inv'); });
+      lista.forEach(function (f) {
+        var campoId = f.campo === 'obra.prazo' ? 'obra.termino_previsto' : f.campo === 'pagamento.parcelas' ? null : f.campo;
+        var b = campoId && main.querySelector('[data-bloco="' + campoId + '"]'); if (b) b.classList.add('co-inv');
+      });
+      document.getElementById('coFaltam').innerHTML = lista.length
+        ? '<div class="co-faltam" role="alert"><strong>Falta completar:</strong><ul>' + lista.map(function (f) { return '<li>' + e(f.rotulo) + '</li>'; }).join('') + '</ul></div>' : '';
+    }
+
+    document.getElementById('coSalvar').onclick = function () {
+      salvar().then(function () { toast('Rascunho salvo'); }).catch(function (err) { toast(err.message || 'Não foi possível salvar'); });
+    };
+    document.getElementById('coDescartar').onclick = function () {
+      if (!confirm('Descartar este rascunho? Ele é cancelado e você pode criar outro depois.')) return;
+      C.cancelar(atual.id, 'rascunho descartado').then(carregar).catch(function (err) { toast(err.message); });
+    };
+    document.getElementById('coForm').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var b = document.getElementById('coRevisar'); b.disabled = true; b.textContent = 'Salvando…';
+      salvar().then(function () {
+        var f = T.faltam(atual.dados);
+        b.disabled = false; b.textContent = 'Revisar e assinar';
+        marcarFaltas(f);
+        if (f.length) { document.getElementById('coFaltam').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+        telaRevisar();
+      }).catch(function (err) { b.disabled = false; b.textContent = 'Revisar e assinar'; toast(err.message || 'Sem conexão'); });
+    });
+  }
+
+  /* ── 3. revisar e assinar ────────────────────────────────────── */
+  function telaRevisar() {
+    var texto = T.render(atual.dados, atual.numero, atual.versao);
+    var cl = atual.dados.contratante || {}, ob = atual.dados.obra || {};
+    main.innerHTML = '<button type="button" class="co-voltar co-lnk" id="coEditar" style="font-weight:500">‹ Voltar e editar</button>' +
+      '<h1 class="co-tit">Revisar e assinar</h1>' +
+      '<p class="co-sub">Leia o contrato. Ao assinar, ele é congelado e o link vai para ' + e(cl.nome) + ' assinar.</p>' +
+      '<section class="co-box"><h2>' + e(ob.titulo) + ' · ' + e(brl(ob.valor_total)) + '</h2>' +
+        '<div class="co-doc" tabindex="0" aria-label="Texto do contrato">' + D.toHtml(texto) + '</div></section>' +
+      '<section class="co-box"><h2>Sua assinatura</h2>' +
+        '<label class="co-check"><input type="checkbox" id="coAceite"/><span>' + e(T.ACEITE_CONTRATADA) + '</span></label>' +
+        '<div class="field-label">Desenhe sua assinatura (opcional)</div>' +
+        '<canvas class="co-canvas" id="coPad" aria-label="Área para desenhar a assinatura"></canvas>' +
+        '<div class="co-acoes"><button type="button" class="co-lnk" id="coLimpar">Limpar desenho</button></div>' +
+        '<div class="field-group" style="margin-top:.6rem"><label class="field-label" for="coValidade">O link para o cliente vale por</label>' +
+          '<select class="field-input" id="coValidade"><option value="7">7 dias</option><option value="15" selected>15 dias</option><option value="30">30 dias</option></select></div>' +
+        '<div id="coErro"></div>' +
+        '<button type="button" class="co-cta" id="coEnviar">Assinar e gerar link para o cliente</button>' +
+        '<p class="co-aviso">Registramos data, hora, IP, navegador e o código do texto como evidência do seu aceite.</p>' +
+      '</section>';
+    pad = AssinaturaPad(document.getElementById('coPad'));
+    document.getElementById('coLimpar').onclick = function () { pad.limpar(); };
+    document.getElementById('coEditar').onclick = telaEditar;
+    document.getElementById('coEnviar').onclick = function () {
+      var err = document.getElementById('coErro');
+      if (!document.getElementById('coAceite').checked) { err.innerHTML = '<div class="co-faltam" role="alert">Marque a confirmação de leitura e aceite.</div>'; return; }
+      var b = this; b.disabled = true; b.textContent = 'Assinando…';
+      C.enviar(atual.id, texto, pad.png(), +document.getElementById('coValidade').value).then(function () {
+        toast('Contrato assinado por você. Agora envie ao cliente.');
+        carregar();
+      }).catch(function (x) {
+        b.disabled = false; b.textContent = 'Assinar e gerar link para o cliente';
+        var campos = x.detalhe && x.detalhe.campos ? ' (' + x.detalhe.campos.join(', ') + ')' : '';
+        err.innerHTML = '<div class="co-faltam" role="alert">' + e(x.message + campos) + '</div>';
+      });
+    };
+    window.scrollTo(0, 0);
+  }
+
+  /* ── 4. depois de enviado ────────────────────────────────────── */
+  function telaStatus() {
+    var st = atual.status, d = atual.dados || {}, cl = d.contratante || {}, ob = d.obra || {};
+    var ass = atual.obra_contrato_assinaturas || [];
+    var tok = C.Tokens.ler(atual.id);
+    var link = tok ? C.linkAssinatura(tok) : null;
+    var ico = st === 'assinado' ? ['co-st-ok', '✓'] : st === 'aguardando_cliente' ? ['co-st-and', '…'] : ['co-st-no', '–'];
+    var sub = {
+      aguardando_cliente: 'Você já assinou. Falta ' + e((cl.nome || 'o cliente').split(' ')[0]) + ' abrir o link e assinar' +
+        (atual.token_expira_em ? ' (o link vale até ' + e(dh(atual.token_expira_em)) + ')' : '') + '.',
+      assinado: 'Assinado pelas duas partes em ' + e(dh(atual.concluido_em)) + '. Vale como contrato da obra.',
+      recusado: 'O cliente recusou esta versão. Converse com ele e crie uma nova versão com o que mudar.',
+      cancelado: 'Este contrato foi cancelado.',
+      substituido: 'Esta versão foi substituída por uma mais nova.'
+    }[st] || '';
+
+    var h = voltar() + '<h1 class="co-tit">Contrato da obra</h1>' +
+      '<p class="co-sub">' + e(atual.numero) + ' · versão ' + e(atual.versao) + ' · ' + e(ob.titulo) + ' · ' + e(brl(ob.valor_total)) + '</p>' +
+      '<section class="co-box"><div class="co-status"><div class="co-st-ico ' + ico[0] + '" aria-hidden="true">' + ico[1] + '</div>' +
+        '<div><div class="co-st-tit">' + e(C.STATUS[st] || st) + '</div><div class="co-st-sub">' + sub + '</div></div></div>' +
+        (ass.length ? '<ul class="co-ass">' + ass.slice().sort(function (a, b) { return String(a.assinado_em).localeCompare(String(b.assinado_em)); }).map(function (a) {
+          return '<li><div><strong>' + e(a.nome) + '</strong><br><small>' + (a.parte === 'contratada' ? 'Você (contratada)' : 'Cliente (contratante)') + '</small></div><small>' + e(dh(a.assinado_em)) + '</small></li>';
+        }).join('') + '</ul>' : '');
+
+    if (st === 'aguardando_cliente') {
+      h += link
+        ? '<a class="co-cta co-cta--wa" target="_blank" rel="noopener" href="' + e(FIELDO.UI.waLink(cl.telefone, C.mensagemWhatsApp(cl.nome, link)) || ('https://wa.me/?text=' + encodeURIComponent(C.mensagemWhatsApp(cl.nome, link)))) + '">Enviar para o cliente no WhatsApp</a>' +
+          '<div class="co-acoes"><button type="button" class="co-lnk" id="coCopiar">Copiar link</button><button type="button" class="co-lnk" id="coNovoLink">Gerar novo link</button></div>'
+        : '<p class="co-sub" style="margin:.7rem 0 .2rem">O link foi gerado em outro aparelho. Gere um novo para enviar daqui (o anterior deixa de valer).</p>' +
+          '<button type="button" class="co-cta" id="coNovoLink">Gerar novo link</button>';
+      h += '<div class="co-acoes"><button type="button" class="co-lnk" id="coNovaVersao">Corrigir (criar nova versão)</button>' +
+        '<button type="button" class="co-lnk co-perigo" id="coCancelar">Cancelar contrato</button></div>';
+    } else if (st === 'assinado') {
+      h += '<button type="button" class="co-cta" id="coPdf">Baixar PDF assinado</button>' +
+        '<div class="co-acoes"><a class="co-lnk" href="verificar.html?hash=' + encodeURIComponent(atual.documento_hash) + '" target="_blank" rel="noopener">Conferir na página Verificar</a>' +
+        '<button type="button" class="co-lnk" id="coNovoLink">Link para o cliente baixar</button>' +
+        '<button type="button" class="co-lnk" id="coNovaVersao">Fazer aditivo (nova versão)</button></div>';
+    } else {
+      h += '<button type="button" class="co-cta co-cta--sec" id="coNovaVersao">Criar nova versão</button>';
+    }
+    h += '</section>';
+    h += '<section class="co-box"><details><summary class="co-lnk" style="list-style:none;cursor:pointer">Ver o texto do contrato</summary>' +
+      '<div class="co-doc" id="coTexto" style="margin-top:.6rem">Carregando…</div>' +
+      '<p class="co-aviso">Código de integridade (SHA-256): <span style="font-family:var(--mono);word-break:break-all">' + e(atual.documento_hash || '') + '</span></p></details></section>';
+    main.innerHTML = h;
+
+    var det = main.querySelector('details');
+    det.addEventListener('toggle', function () {
+      if (!det.open || det._ok) return; det._ok = true;
+      C.getById(atual.id).then(function (c) { document.getElementById('coTexto').innerHTML = D.toHtml(c && c.documento_texto); });
+    });
+    var bc = document.getElementById('coCopiar');
+    if (bc) bc.onclick = function () {
+      (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(function () { toast('Link copiado'); })
+        .catch(function () { prompt('Copie o link:', link); });
+    };
+    var bn = document.getElementById('coNovoLink');
+    if (bn) bn.onclick = function () {
+      if (st === 'aguardando_cliente' && link && !confirm('Gerar um novo link? O link enviado antes deixa de funcionar.')) return;
+      C.novoLink(atual.id, 15).then(function (r) {
+        if (st === 'assinado') {
+          var l = C.linkAssinatura(r.token);
+          window.open('https://wa.me/?text=' + encodeURIComponent('Segue o contrato da obra assinado, para você baixar o PDF: ' + l), '_blank');
+        }
+        carregar();
+      }).catch(function (x) { toast(x.message); });
+    };
+    var bv = document.getElementById('coNovaVersao');
+    if (bv) bv.onclick = function () {
+      var msg = st === 'assinado'
+        ? 'Criar um aditivo? Você edita os dados e os dois assinam de novo. Até a nova versão ser assinada, esta continua valendo.'
+        : 'Criar uma nova versão para corrigir? Quando você enviar a nova, esta deixa de valer.';
+      if (!confirm(msg)) return;
+      C.novaVersao(atual.id).then(carregar).catch(function (x) { toast(x.message); });
+    };
+    var bx = document.getElementById('coCancelar');
+    if (bx) bx.onclick = function () {
+      var m = prompt('Motivo do cancelamento (opcional):', '');
+      if (m === null) return;
+      C.cancelar(atual.id, m).then(carregar).catch(function (x) { toast(x.message); });
+    };
+    var bp = document.getElementById('coPdf');
+    if (bp) bp.onclick = baixarPdf;
+  }
+
+  /* PDF: o arquivado, se houver; senão gera, arquiva (para a página Verificar
+     reconhecer o arquivo exato) e baixa */
+  function baixarPdf() {
+    var b = document.getElementById('coPdf'); b.disabled = true; b.textContent = 'Preparando PDF…';
+    var nome = 'contrato-obra-' + atual.numero + '-v' + atual.versao + '.pdf';
+    function salvarArquivo(blob) {
+      var url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    }
+    var p = atual.pdf_path
+      ? C.baixarPdfArquivado(atual.pdf_path)
+      : C.getById(atual.id).then(function (c) {
+          return C.gerarPdf(c, c.obra_contrato_assinaturas || []).then(function (blob) {
+            return FieldoContratoPdf.sha256Blob(blob).then(function (hx) {
+              return C.arquivarPdf(c, blob, hx).then(function () { return blob; }, function () { return blob; });
+            });
+          });
+        });
+    p.then(function (blob) { salvarArquivo(blob); b.disabled = false; b.textContent = 'Baixar PDF assinado'; })
+     .catch(function (x) { b.disabled = false; b.textContent = 'Baixar PDF assinado'; toast(x.message || 'Não foi possível gerar o PDF'); });
+  }
+
+  carregar();
+})();
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#f5f2ec"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Fiel · Fieldo</title>
+  <!-- Painel do profissional — exige sessão, mesmo padrão de painel.html. -->
+  <meta name="robots" content="noindex,follow"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-title" content="Fieldo"/>
+  <style>
+    /* Fase C — tela de chat do assistente de IA nativo (ver
+       Assistente-fieldo-auditoria.md). Página de AÇÃO, com barra fixa
+       no rodapé — mesma família de orcamento.html/servico.html, por
+       isso NÃO monta FIELDO.NavInf (ver comentário grande no script
+       lá embaixo: a nav inferior e uma barra fixa própria colidem no
+       mesmo z-index/posição — já é um bug conhecido e evitado nessas
+       duas telas, e vale aqui do mesmo jeito). */
+    .chat-page-gutter { padding-bottom: 7.5rem; }
+
+    /* v-jarvis-menu · cabeçalho: texto à esquerda, botão de três
+       pontinhos à direita (ver comentário grande no HTML, logo no
+       início do <main>). align-items:flex-start pra o botão ficar
+       alinhado com a primeira linha (o "eyebrow"), não esticado até
+       a altura do bloco de texto inteiro. */
+    .assist-head {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: .75rem; margin-bottom: 1rem;
+    }
+    .assist-head-txt { min-width: 0; }
+    .assist-head-txt .page-sub { margin-bottom: 0; }
+    .assist-head-acts { flex-shrink: 0; margin-top: .15rem; }
+    /* v-jarvis-menu · antes (.voice-toggle.is-off) o texto do botão
+       ficava acinzentado quando "desligado" — mantém essa pista
+       visual agora que os toggles são itens de menu (.rm-item). */
+    .rm-item.is-off { color: var(--muted); }
+    .rm-item.is-off .rm-ico { opacity: .65; }
+
+    .chat-list {
+      display: flex; flex-direction: column; gap: .65rem;
+      margin-top: 1rem;
+    }
+    .chat-msg {
+      max-width: 84%; padding: .68rem .95rem;
+      border-radius: var(--r-l); font-size: .87rem; line-height: 1.55;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .chat-msg.user {
+      align-self: flex-end; background: var(--gold); color: var(--on-gold);
+      border-bottom-right-radius: 4px;
+    }
+    .chat-msg.assistant {
+      align-self: flex-start; background: var(--paper2);
+      border: 1px solid var(--border); color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+    .chat-msg.error {
+      align-self: flex-start; background: var(--red-bg);
+      border: 1px solid var(--red-bd); color: var(--red);
+    }
+    .chat-msg.error .btn { margin-top: .55rem; }
+
+    .chat-typing {
+      display: flex; align-items: center; gap: 5px;
+      padding: .8rem 1rem; background: var(--paper2);
+      border: 1px solid var(--border); border-radius: var(--r-l);
+      border-bottom-left-radius: 4px;
+    }
+    /* v10.34 · era a estrela antiga reaproveitada como "carregando" — a
+       marca nova não pode virar ícone funcional, então o indicador de
+       digitando passa a ser neutro (3 pontos), sem nenhum símbolo da marca. */
+    .chat-typing .dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
+      animation: pulse 1.1s infinite;
+    }
+    .chat-typing .dot:nth-child(2) { animation-delay: .15s; }
+    .chat-typing .dot:nth-child(3) { animation-delay: .3s; }
+
+    /* v-fiel — avatar do assistente (estrela branca num círculo escuro),
+       reaproveitando --topbar-bg (já usado no topo do site, sempre
+       escuro nos dois temas) em vez de criar uma cor nova. Fica ao
+       lado de cada bolha de resposta e do indicador de "digitando". */
+    .fiel-avatar {
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      background: var(--topbar-bg); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .fiel-avatar svg { width: 14px; height: 14px; }
+    .chat-row {
+      display: flex; align-items: flex-end; gap: .5rem;
+      align-self: flex-start; max-width: 92%;
+    }
+    .chat-row .chat-msg.assistant,
+    .chat-row .chat-typing {
+      align-self: auto; flex: 1 1 auto; min-width: 0; max-width: 100%;
+    }
+
+    .chat-suggest { margin-top: 1rem; }
+    .chat-suggest .pill { min-height: 40px; }
+
+    /* v-fase-f — quando o assistente cria um orçamento, mostra logo
+       abaixo da bolha os mesmos 3 botões que já existem na tela
+       "Novo orçamento" (Visualizar / Enviar por WhatsApp / Baixar
+       PDF), pra não precisar sair do chat pra fazer nada disso. */
+    .chat-actions {
+      display: flex; flex-wrap: wrap; gap: .4rem;
+      align-self: flex-start; max-width: 84%; margin-top: -.2rem;
+    }
+
+    .chat-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+      background: var(--veu); backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border2);
+      padding: .65rem .9rem calc(.65rem + env(safe-area-inset-bottom));
+      display: flex; gap: .6rem; align-items: flex-end;
+    }
+    /* Botão de microfone (falar → texto). Também some por padrão —
+       só aparece se o navegador tiver SpeechRecognition (hoje, na
+       prática: Chrome no Android e no computador; não existe no
+       Safari do iPhone — limitação do próprio navegador, não dá pra
+       contornar do lado do site). */
+    .chat-mic {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--paper2); border: 1px solid var(--border2);
+      color: var(--muted); display: none; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: var(--t); -webkit-tap-highlight-color: transparent;
+    }
+    .chat-mic:hover { border-color: var(--gold-bd); color: var(--gold-d); }
+    .chat-mic:disabled { opacity: .5; cursor: default; }
+    .chat-mic.is-listening {
+      background: var(--red-bg); border-color: var(--red-bd); color: var(--red);
+      animation: pulse 1.1s infinite;
+    }
+    .chat-input {
+      flex: 1; background: var(--paper2); border: 1px solid var(--border2);
+      border-radius: var(--r-l); padding: .7rem .9rem;
+      font-size: .88rem; color: var(--text); resize: none;
+      max-height: 110px; line-height: 1.5; outline: none;
+      transition: border-color var(--t), background var(--t), box-shadow var(--t);
+    }
+    .chat-input:focus {
+      border-color: var(--gold-bd); background: var(--paper);
+      box-shadow: 0 0 0 3px var(--gold-bg);
+    }
+    .chat-input:disabled { opacity: .6; }
+    .chat-send {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--gold); color: var(--on-gold);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: var(--t);
+    }
+    .chat-send:hover { background: var(--gold-d); }
+    .chat-send:disabled { opacity: .5; cursor: default; }
+  </style>
+</head>
+<body>
+
+<a href="#main-content" class="sr-only">Pular para o conteúdo principal</a>
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="painel.html" class="topbar-logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      <span class="topbar-brand">Field<em>o</em></span>
+    </a>
+    <button class="hbg-btn" id="menuBtn" onclick="HBG.toggle()" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="menuDrawer">
+      <span class="hbg-line"></span><span class="hbg-line"></span><span class="hbg-line"></span>
+    </button>
+  </div>
+</header>
+
+<!-- Overlay + Drawer -->
+<div class="menu-overlay" aria-hidden="true" id="menuOverlay" onclick="HBG.close()"></div>
+<div class="menu-drawer" id="menuDrawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Menu de navegação">
+  <div class="menu-drawer-head">
+    <div class="menu-drawer-brand">
+      <div class="logo-icon" style="width:22px;height:22px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      Field<em>o</em>
+    </div>
+    <button class="menu-drawer-close" onclick="HBG.close()" aria-label="Fechar menu">✕</button>
+  </div>
+  <div class="menu-section-lbl">Navegação</div>
+  <nav class="menu-nav" aria-label="Navegação principal">
+    <!-- v12.8 · MESMO menu em todas as páginas logadas. Antes só o
+         painel tinha Configurações, Suporte e Sair: de dentro do
+         orçamento ou do Novo Serviço não havia como sair da conta. -->
+    <a href="/painel.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>Painel</span></a>
+    <a href="/servico.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span>Novo serviço</span></a>
+    <a href="/obra.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></span><span>Obras</span></a>
+    <a href="/orcamento.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span>Novo orçamento</span></a>
+    <a href="/assistente.html" class="menu-nav-item active" aria-current="page"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><span>Assistente Fiel</span></a>
+    <div class="menu-divider"></div>
+    <a href="/meu-perfil.html#editar" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Editar perfil</span></a>
+    <a href="/perfil.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Ver meu perfil público</span></a>
+    <a href="/configuracoes.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span>Configurações</span></a>
+    <a href="/suporte.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><span>Suporte</span></a>
+    <button type="button" class="menu-nav-item" onclick="FIELDO.Nav.confirmLogout()"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span>Sair</span></button>
+  </nav>
+  <div class="menu-drawer-foot">Fieldo · <span id="fieldoVerFoot">v11.0</span></div>
+</div>
+
+<main id="main-content" class="page page--narrow chat-page-gutter">
+  <!-- v-jarvis-menu · antes disso, "Respostas faladas", "Modo mãos
+       livres" e "Começar conversa nova" eram três controles soltos,
+       empilhados aqui em cima, um embaixo do outro — ficou poluído,
+       principalmente depois que "Modo mãos livres" entrou (relato:
+       "muitos botões espalhados"). Agora é só um botão de três
+       pontinhos — o MESMO padrão já usado nos cartões do dashboard
+       (ver "AÇÕES DO CARTÃO" em fieldo.css: .card-acts/.rm-btn/
+       .rm-menu/.rm-item) — que abre um menu com as três opções
+       juntas. Nenhuma lógica mudou, só onde as coisas aparecem: os
+       mesmos ids (voiceToggle, handsFreeToggle, chatReset) continuam
+       sendo usados pelo script lá embaixo, exatamente como antes. -->
+  <div class="assist-head">
+    <div class="assist-head-txt">
+      <div class="page-eyebrow">Assistente de IA</div>
+      <h1 class="page-title" style="margin-bottom:.3rem; display:flex; align-items:center; gap:.5rem">
+        <span class="fiel-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 L15 4 A5 5 0 0 1 20 9 L20 15 A5 5 0 0 1 15 20 L9 20 A5 5 0 0 1 4 15 L4 9 A5 5 0 0 1 9 4 L8 4"/></svg></span>
+        Fale com o <em>Fiel</em>
+      </h1>
+      <p class="page-sub">
+        Peça e ele faz: orçamento, serviço, obra, contrato com empreiteiro,
+        marcar como pago, responder avaliação. Fale como numa conversa normal.
+      </p>
+    </div>
+    <div class="card-acts assist-head-acts">
+      <button type="button" class="rm-btn" id="assistMenuBtn" aria-haspopup="true" aria-expanded="false" aria-label="Configurações da conversa">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+      </button>
+      <div class="rm-menu" id="assistMenu" role="menu" aria-label="Configurações da conversa" hidden>
+        <!-- Leitura das respostas em voz alta — ligado/desligado.
+             Escondido (display:none inline) até o JS confirmar
+             suporte do navegador — ver configurarLeituraVoz(). -->
+        <button type="button" class="rm-item" id="voiceToggle" style="display:none" role="menuitemcheckbox" aria-checked="true">
+          <span class="rm-ico" id="voiceToggleIcon"></span>
+          <span id="voiceToggleLabel">Respostas faladas: ligado</span>
+        </button>
+        <!-- v-jarvis · Modo mãos livres: o que você fala é enviado
+             sozinho (sem precisar apertar "enviar") e o microfone
+             liga de novo automaticamente depois de cada resposta —
+             pensado pra quando as mãos estão ocupadas no serviço.
+             Escondido até o JS confirmar que o navegador tem
+             reconhecimento de voz (mesma checagem do microfone, ver
+             configurarMicrofone). Desligado por padrão pra todo
+             mundo — quem ligar, fica salvo só naquele aparelho. -->
+        <button type="button" class="rm-item" id="handsFreeToggle" style="display:none" role="menuitemcheckbox" aria-checked="false">
+          <span class="rm-ico" id="handsFreeIcon"></span>
+          <span id="handsFreeLabel">Modo mãos livres: desligado</span>
+        </button>
+        <!-- Fase C.3 — só aparece quando existe conversa salva pra
+             apagar (ver atualizarBotaoReset() no script). -->
+        <button type="button" class="rm-item" id="chatReset" style="display:none" role="menuitem">
+          <span class="rm-ico">↺</span> Começar conversa nova
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cota de mensagens do mês — só aparece depois da 1ª resposta,
+       porque é a própria resposta que traz o número (não existe hoje
+       um jeito de consultar a cota sem gastar uma mensagem). -->
+  <div class="quota-banner" id="quotaBanner" style="display:none">
+    <div class="quota-row">
+      <span class="quota-label">Mensagens este mês</span>
+      <span class="quota-count" id="quotaCount">—</span>
+    </div>
+    <div class="quota-track"><div class="quota-fill" id="quotaFill" style="width:0%"></div></div>
+    <p class="quota-msg" id="quotaMsg" style="display:none"></p>
+  </div>
+
+  <div class="chat-suggest" id="chatSuggest">
+    <div class="card-title">Sugestões pra começar</div>
+    <!-- v12.22 · o assistente agora faz: contrato, obra, pagamento,
+         avaliação, material. As sugestões mostram isso — quem não sabe
+         que ele lança a quinzena nunca vai pedir. -->
+    <div class="pill-group">
+      <button type="button" class="pill" data-msg="Quero criar um orçamento novo. Vá me perguntando uma coisa de cada vez, começando pelo nome do cliente.">Criar um orçamento</button>
+      <button type="button" class="pill" data-msg="Quero registrar um serviço que acabei de terminar. Vá me perguntando uma coisa de cada vez, começando pelo nome do cliente.">Registrar um serviço</button>
+      <button type="button" class="pill" data-msg="Quero lançar a quinzena de um contrato com empreiteiro. Vá me perguntando uma coisa de cada vez.">Lançar quinzena de contrato</button>
+      <button type="button" class="pill" data-msg="Quanto eu tenho a receber? Me dá o resumo do mês.">Quanto tenho a receber</button>
+      <button type="button" class="pill" data-msg="Quais serviços ainda estão pendentes de pagamento? Me diz que eu falo quais já foram pagos.">Marcar serviço como pago</button>
+      <button type="button" class="pill" data-msg="Tem avaliação de cliente sem resposta? Escreve uma resposta curta e educada para cada uma e já publica.">Responder avaliações</button>
+      <button type="button" class="pill" data-msg="Como estão minhas obras em andamento?">Minhas obras</button>
+      <button type="button" class="pill" data-msg="Mostra meu perfil">Ver meu perfil</button>
+    </div>
+  </div>
+
+  <div class="chat-list" id="chatList"></div>
+</main>
+
+<!-- Barra de entrada — fixa, mesma família da .cta-bar (não usamos a
+     classe .cta-bar direto porque o input precisa poder crescer em
+     altura; ver .chat-bar no <style>). -->
+<div class="chat-bar">
+  <button type="button" class="chat-mic" id="chatMic" aria-label="Falar mensagem por voz">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+  </button>
+  <textarea
+    id="chatInput"
+    class="chat-input"
+    rows="1"
+    maxlength="2000"
+    enterkeyhint="send"
+    placeholder="Escreva sua mensagem..."
+    aria-label="Mensagem para o assistente"
+  ></textarea>
+  <button type="button" class="chat-send" id="chatSend" aria-label="Enviar mensagem">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+  </button>
+</div>
+
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="db.js" onerror="document.documentElement.innerHTML='&lt;div style=\'font-family:system-ui;padding:2rem;text-align:center\'&gt;&lt;h2 style=\'font-weight:500\'&gt;Falha ao carregar&lt;/h2&gt;&lt;p style=\'color:#666;line-height:1.6\'&gt;Verifique a conexão. Seus dados continuam salvos.&lt;/p&gt;&lt;button onclick=\'location.reload(true)\' style=\'padding:.8rem 1.5rem;border:0;border-radius:8px;background:#9a7218;color:#fff;font-size:.9rem\'&gt;Recarregar&lt;/button&gt;&lt;/div&gt;'"></script>
+<script>
+'use strict';
+if (!FIELDO.Auth.isLoggedIn()) window.location.href = 'entrar.html';
+
+/* v-fase-c · A NAVEGAÇÃO INFERIOR NÃO ENTRA AQUI — mesmo motivo já
+   documentado em orcamento.html: esta tela tem barra fixa própria no
+   rodapé (.chat-bar), e FIELDO.NavInf também é `position:fixed;
+   bottom:0`. As duas colidiriam no mesmo espaço e a nav ganharia,
+   cobrindo o campo de mensagem — exatamente o bug que orcamento.html
+   já teve e resolveu removendo a nav, não a barra da própria tela. */
+
+var ASSISTANT_URL = 'https://jrsctnncoljdcvdofxsg.supabase.co/functions/v1/assistant';
+
+/* apiHistory é o array `history` que a Edge Function devolve a cada
+   resposta e espera receber de volta no próximo pedido — a function é
+   sem estado (ver Fase D na auditoria pra persistir isso no servidor).
+   Contém blocos internos (tool_use/tool_result) que este código NUNCA
+   renderiza na tela — só re-envia. O que aparece pro profissional é
+   sempre texto puro, montado por addBolha(). */
+var apiHistory = [];
+var enviando = false;
+
+/* v-fase-c.3 · o Rikelme reclamou que a conversa some toda vez que ele
+   sai da tela e volta. apiHistory (acima) não basta pra isso: ele tem
+   blocos internos (tool_use/tool_result) que crescem rápido e não fazem
+   sentido guardar pra sempre. Por isso a conversa visível na tela vive
+   num array separado — visibleMessages, só {role, texto}, exatamente o
+   que addBolha() mostra — e é ele (mais o apiHistory já resumido) que
+   fica salvo no localStorage do aparelho (ver salvarConversa/
+   carregarConversa mais abaixo). Importante: isso é por aparelho/
+   navegador — se o Rikelme trocar de celular ou limpar os dados do
+   navegador, a conversa não vai junto. Sincronizar entre aparelhos
+   exigiria guardar no servidor (Fase D, ainda não construída — ver
+   auditoria). "Começar conversa nova" (botão) apaga tudo isso de
+   propósito, sem afetar nenhum orçamento/relatório já criado. */
+var CONVERSA_KEY = 'fieldo_assistente_conversa';
+var visibleMessages = [];
+var ultimoUsage = null;
+
+var elList      = document.getElementById('chatList');
+var elSuggest   = document.getElementById('chatSuggest');
+var elInput     = document.getElementById('chatInput');
+var elSend      = document.getElementById('chatSend');
+var elQuota     = document.getElementById('quotaBanner');
+var elQuotaCnt  = document.getElementById('quotaCount');
+var elQuotaFill = document.getElementById('quotaFill');
+var elQuotaMsg  = document.getElementById('quotaMsg');
+var elMic       = document.getElementById('chatMic');
+var elReset     = document.getElementById('chatReset');
+var elAssistBtn  = document.getElementById('assistMenuBtn');
+var elAssistMenu = document.getElementById('assistMenu');
+var elVoiceToggle      = document.getElementById('voiceToggle');
+var elVoiceToggleIcon  = document.getElementById('voiceToggleIcon');
+var elVoiceToggleLabel = document.getElementById('voiceToggleLabel');
+var elHandsFree        = document.getElementById('handsFreeToggle');
+var elHandsFreeIcon    = document.getElementById('handsFreeIcon');
+var elHandsFreeLabel   = document.getElementById('handsFreeLabel');
+
+/* v-jarvis-menu · abre/fecha o menu de três pontinhos do cabeçalho
+   (voz, mãos livres, conversa nova). Mesmo mecanismo já usado nos
+   menus de linha do dashboard (toggleRowMenu/fecharTodosRowMenus em
+   painel.html): um véu transparente em tela cheia que fecha o menu
+   ao ser clicado — e que precisa nascer DENTRO de #main-content, não
+   em document.body, senão fica visualmente por cima do próprio menu
+   (main tem position:relative + z-index:1 em fieldo.css, o que cria
+   um "cofre" de empilhamento — um bug real já visto e corrigido no
+   dashboard; ver comentário lá). Ao contrário do menu de linha, os
+   itens de voz e mãos livres NÃO fecham o menu ao serem tocados — dá
+   pra ligar/desligar os dois sem reabrir; só "Começar conversa nova"
+   fecha (ver o click dele mais abaixo), por disparar uma ação. */
+function fecharMenuAssist() {
+  if (!elAssistMenu || elAssistMenu.hidden) return;
+  elAssistMenu.hidden = true;
+  if (elAssistBtn) elAssistBtn.setAttribute('aria-expanded', 'false');
+  var veu = document.getElementById('assistMenuBackdrop');
+  if (veu) veu.remove();
+}
+function abrirMenuAssist() {
+  if (!elAssistMenu || !elAssistMenu.hidden) return;
+  elAssistMenu.hidden = false;
+  if (elAssistBtn) elAssistBtn.setAttribute('aria-expanded', 'true');
+  var veu = document.createElement('div');
+  veu.id = 'assistMenuBackdrop';
+  veu.style.cssText = 'position:fixed;inset:0;z-index:400;background:transparent';
+  veu.addEventListener('click', fecharMenuAssist);
+  var raiz = document.getElementById('main-content') || document.body;
+  raiz.appendChild(veu);
+}
+if (elAssistBtn) {
+  elAssistBtn.addEventListener('click', function () {
+    if (elAssistMenu && elAssistMenu.hidden) abrirMenuAssist();
+    else fecharMenuAssist();
+  });
+}
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Escape') fecharMenuAssist();
+});
+
+/* ══════════════════════════════════════════════════════════════
+   FASE C.1 — VOZ (pedido do Rikelme: "conversar naturalmente",
+   pra usar com as mãos ocupadas no serviço)
+   ──────────────────────────────────────────────────────────────
+   Duas coisas independentes, cada uma só aparece se o navegador do
+   profissional suportar — nenhuma das duas tem fallback "quebrado":
+
+   1) FALAR → TEXTO (botão de microfone): usa SpeechRecognition, a
+      API nativa do navegador. Na prática hoje só existe no Chrome
+      (Android e computador) — o Safari do iPhone não implementa
+      essa API, então lá o botão de microfone simplesmente não
+      aparece (ver "if (SpeechRecognitionCtor...)" abaixo). Não é
+      um bug — é uma limitação do navegador da Apple, não tem como
+      contornar de dentro do site.
+      Por decisão do Rikelme: falar SÓ preenche a caixa de texto —
+      NUNCA envia sozinho. Ele revê o que o celular entendeu e
+      aperta enviar, pra um erro de reconhecimento (comum com nomes
+      de cliente, valores, endereço) não entrar direto num
+      orçamento ou relatório sem ele perceber.
+
+   2) TEXTO → FALA (botão de áudio, no topo da página): usa
+      SpeechSynthesis, que tem suporte bem mais amplo (Android E
+      iPhone). Lê a resposta do assistente em voz alta assim que ela
+      chega. Vem ligado por padrão (pedido do Rikelme, pra quando as
+      mãos estão sujas/ocupadas), com botão pra desligar — a
+      preferência fica salva no aparelho.
+   ══════════════════════════════════════════════════════════════ */
+
+var VOZ_ICON_ON =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/><path d="M19.07 4.93a10 10 0 010 14.14"/></svg>';
+var VOZ_ICON_OFF =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';
+
+/* v-jarvis · mesmo par ligado/desligado do voice-toggle acima, só que
+   com um ícone de "conversa" (ondas) pra diferenciar visualmente do
+   ícone de "alto-falante" da leitura em voz alta. */
+var MAOSLIVRES_ICON_ON =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+var MAOSLIVRES_ICON_OFF =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v3.5"/><path d="M9 12.5V12a3 3 0 006 0V8"/><path d="M19 10v2a7 7 0 01-9.8 6.4"/><path d="M5 10v2a7 7 0 001.5 4.3"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+var VOZ_KEY = 'fieldo_assistente_voz_ativa';
+var vozAtiva = true;
+try {
+  var vozSalva = localStorage.getItem(VOZ_KEY);
+  if (vozSalva !== null) vozAtiva = vozSalva === '1';
+} catch (e) {}
+
+/* v-jarvis · Modo mãos livres — desligado por padrão pra todo mundo
+   (só quem ligar no próprio aparelho ativa). Duas mudanças de
+   comportamento quando está ligado, e SÓ quando está ligado:
+   1) reconhecimento.onresult manda a mensagem sozinho (enviar()),
+      em vez de só preencher a caixa de texto pra revisão.
+   2) depois que a resposta termina (de falar, se a voz estiver
+      ligada; ou na hora, se estiver desligada), o microfone liga de
+      novo sozinho — ver agendarProximaEscuta() mais abaixo.
+   Isso é uma troca real: sem a revisão manual, um nome de cliente ou
+   valor que o celular ouviu errado pode entrar direto num orçamento
+   ou serviço. Por isso mostra um aviso na hora de ligar (ver o click
+   do botão, abaixo) e por isso continua desligado por padrão. */
+var HANDSFREE_KEY = 'fieldo_assistente_maos_livres';
+var maosLivresAtiva = false;
+try {
+  var maosLivresSalvo = localStorage.getItem(HANDSFREE_KEY);
+  if (maosLivresSalvo !== null) maosLivresAtiva = maosLivresSalvo === '1';
+} catch (e) {}
+
+var reconhecimento = null;
+var ouvindo = false;
+
+function pararEscuta() {
+  if (reconhecimento && ouvindo) {
+    try { reconhecimento.stop(); } catch (e) {}
+  }
+}
+
+(function configurarMicrofone() {
+  var SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognitionCtor || !elMic) return;
+
+  elMic.style.display = 'flex';
+  reconhecimento = new SpeechRecognitionCtor();
+  reconhecimento.lang = 'pt-BR';
+  reconhecimento.continuous = false;
+  reconhecimento.interimResults = false;
+  reconhecimento.maxAlternatives = 1;
+
+  reconhecimento.onstart = function () {
+    ouvindo = true;
+    elMic.classList.add('is-listening');
+    elMic.setAttribute('aria-label', 'Ouvindo... toque para parar');
+  };
+  reconhecimento.onend = function () {
+    ouvindo = false;
+    elMic.classList.remove('is-listening');
+    elMic.setAttribute('aria-label', 'Falar mensagem por voz');
+  };
+  reconhecimento.onerror = function (e) {
+    ouvindo = false;
+    elMic.classList.remove('is-listening');
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      FIELDO.UI.toast('Autorize o microfone nas configurações do navegador pra falar com o assistente.', 4200);
+      /* v-jarvis · sem permissão de microfone o modo mãos livres não
+         funciona de jeito nenhum — desliga sozinho, em vez de ficar
+         tentando escutar pra sempre sem conseguir. */
+      if (maosLivresAtiva) { maosLivresAtiva = false; try { localStorage.setItem(HANDSFREE_KEY, '0'); } catch (e2) {} atualizarBotaoMaosLivres(); }
+    } else if (e.error === 'no-speech') {
+      /* v-jarvis · no modo mãos livres o microfone fica escutando à
+         toa entre uma pergunta e outra (é assim mesmo: o navegador
+         só entende "fale uma vez, pare, entrega o texto", nunca fica
+         escutando pra sempre de uma vez só). Depois de alguns
+         segundos de silêncio ele avisa "no-speech" sozinho — nesse
+         caso simplesmente liga de novo, sem incomodar com aviso. Fora
+         do modo mãos livres, é o profissional que tocou o microfone
+         de propósito, então o aviso continua fazendo sentido. */
+      if (maosLivresAtiva) { agendarProximaEscuta(); }
+      else { FIELDO.UI.toast('Não ouvi nada. Toque no microfone e tente de novo.'); }
+    } else {
+      FIELDO.UI.toast('Não consegui ouvir agora. Tente de novo ou digite.');
+    }
+  };
+  reconhecimento.onresult = function (e) {
+    var texto = e.results[0] && e.results[0][0] && e.results[0][0].transcript;
+    if (!texto) return;
+    /* v-jarvis · modo mãos livres: manda direto, sem passar pela
+       caixa de texto pra revisão (ver aviso no toggle, mais abaixo,
+       sobre o risco disso pra nome/valor mal-entendido). */
+    if (maosLivresAtiva) { enviar(texto); return; }
+    var atual = elInput.value;
+    elInput.value = atual ? (atual.replace(/\s+$/, '') + ' ' + texto) : texto;
+    autoResize();
+    elInput.focus();
+  };
+
+  elMic.addEventListener('click', function () {
+    if (ouvindo) { pararEscuta(); return; }
+    if (window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+    try { reconhecimento.start(); } catch (e) { /* já estava iniciando */ }
+  });
+
+  /* v-jarvis · o botão de mãos livres só aparece se o microfone
+     também é suportado (é a mesma checagem do bloco acima — sem
+     reconhecimento de voz não tem como mandar sozinho). */
+  if (elHandsFree) {
+    elHandsFree.style.display = 'flex';
+    atualizarBotaoMaosLivres();
+    elHandsFree.addEventListener('click', function () {
+      maosLivresAtiva = !maosLivresAtiva;
+      try { localStorage.setItem(HANDSFREE_KEY, maosLivresAtiva ? '1' : '0'); } catch (e) {}
+      atualizarBotaoMaosLivres();
+      if (maosLivresAtiva) {
+        /* liga também a leitura em voz alta — sem ela não dá pra
+           chamar de "mãos livres" de verdade (precisaria olhar pra
+           tela pra ler a resposta). O profissional pode desligar só
+           a voz de novo separadamente se preferir. */
+        if (!vozAtiva && window.speechSynthesis) {
+          vozAtiva = true;
+          try { localStorage.setItem(VOZ_KEY, '1'); } catch (e) {}
+          atualizarBotaoVoz();
+        }
+        /* v-jarvis · o toast do app é um "pill" de uma linha só, sem
+           quebra de linha (ver white-space:nowrap em #fieldo-toast,
+           fieldo.css) — em celular ele corta qualquer texto acima de
+           uns 45 caracteres (limite que já existe hoje em vários
+           toasts do app, não é algo novo desta tela — testado e
+           confirmado nesta mudança). Por isso o aviso precisou ficar
+           bem enxuto pra caber inteiro na tela. */
+        FIELDO.UI.toast('Mãos livres ligado: envia a fala sozinho.', 4200);
+        pararEscuta();
+        setTimeout(function () { try { reconhecimento.start(); } catch (e) {} }, 200);
+      } else {
+        pararEscuta();
+      }
+    });
+  }
+})();
+
+function atualizarBotaoMaosLivres() {
+  if (!elHandsFree) return;
+  elHandsFree.setAttribute('aria-pressed', maosLivresAtiva ? 'true' : 'false');
+  elHandsFree.setAttribute('aria-checked', maosLivresAtiva ? 'true' : 'false');
+  elHandsFreeIcon.innerHTML = maosLivresAtiva ? MAOSLIVRES_ICON_ON : MAOSLIVRES_ICON_OFF;
+  elHandsFreeLabel.textContent = maosLivresAtiva ? 'Modo mãos livres: ligado' : 'Modo mãos livres: desligado';
+  elHandsFree.classList.toggle('is-off', !maosLivresAtiva);
+}
+
+/* v-jarvis · chamada depois que uma resposta termina (de falar, se a
+   voz estiver ligada — ver aoTerminar em falarResposta; ou na hora,
+   se estiver desligada), só quando o modo mãos livres está ativo.
+   Liga o microfone de novo sozinho, fechando o ciclo pergunta→
+   resposta→pergunta sem precisar tocar em nada. Pequeno atraso pra
+   não pegar o final da própria fala do assistente como se fosse o
+   profissional falando. */
+function agendarProximaEscuta() {
+  if (!maosLivresAtiva || !reconhecimento || ouvindo) return;
+  setTimeout(function () {
+    if (!maosLivresAtiva || ouvindo) return;
+    if (elMic && elMic.disabled) return; /* ex.: cota do mês esgotada */
+    try { reconhecimento.start(); } catch (e) {}
+  }, 350);
+}
+
+/* v-fase-c.2 · o Rikelme achou a voz padrão lenta, cansativa e "muito
+   IA" — dois ajustes grátis, sem trocar de tecnologia: escolher, entre
+   as vozes pt que o aparelho oferece, a que tende a soar melhor (ver
+   pontuarVoz abaixo), e falar um pouco mais rápido que o padrão do
+   navegador (ver FALA_RATE em falarResposta — 1.0 é o padrão "de
+   robô de automação telefônica"; a maioria das pessoas acha 1.1-1.15
+   mais natural, parecido com o ritmo de alguém explicando algo rápido).
+   Isso tem teto: voz de navegador (SpeechSynthesis) nunca vai soar tão
+   natural quanto uma voz neural paga — se depois de testar isso ainda
+   incomodar, a próxima opção real é trocar de tecnologia (custo por
+   mensagem falada, ver conversa com o Rikelme). */
+var vozPtBr = null;
+
+/* Pontua cada voz disponível pra escolher a melhor entre as pt-* do
+   aparelho: prioriza pt-BR exato sobre outras variantes de português,
+   prioriza vozes de rede/nuvem (localService:false — geralmente as
+   "Google" no Android, que soam melhor que a voz local compacta) sobre
+   locais, e dá um empurrão extra pra vozes com "Google" no nome (é o
+   motor de melhor qualidade disponível no Chrome/Android hoje). Maior
+   pontuação vence. */
+function pontuarVoz(voz) {
+  var pontos = 0;
+  if (!voz.lang) return -1;
+  var lang = voz.lang.toLowerCase();
+  if (lang === 'pt-br') pontos += 3;
+  else if (lang.indexOf('pt') === 0) pontos += 1;
+  else return -1;
+  if (voz.localService === false) pontos += 2;
+  if (/google/i.test(voz.name || '')) pontos += 1;
+  return pontos;
+}
+
+function escolherVozPtBr() {
+  if (!window.speechSynthesis) return null;
+  var vozes = window.speechSynthesis.getVoices() || [];
+  var melhor = null;
+  var melhorPontos = -1;
+  for (var i = 0; i < vozes.length; i++) {
+    var pontos = pontuarVoz(vozes[i]);
+    if (pontos > melhorPontos) {
+      melhor = vozes[i];
+      melhorPontos = pontos;
+    }
+  }
+  return melhor;
+}
+
+function atualizarBotaoVoz() {
+  if (!elVoiceToggle) return;
+  elVoiceToggle.setAttribute('aria-pressed', vozAtiva ? 'true' : 'false');
+  elVoiceToggle.setAttribute('aria-checked', vozAtiva ? 'true' : 'false');
+  elVoiceToggleIcon.innerHTML = vozAtiva ? VOZ_ICON_ON : VOZ_ICON_OFF;
+  elVoiceToggleLabel.textContent = vozAtiva ? 'Respostas faladas: ligado' : 'Respostas faladas: desligado';
+  elVoiceToggle.classList.toggle('is-off', !vozAtiva);
+}
+
+/* v-fase-c.1 · o texto completo da resposta (com listas, links, análise
+   detalhada) é ótimo pra LER na tela, mas péssimo pra OUVIR — link em voz
+   alta soletra a URL inteira, e um parágrafo longo cheio de itens não
+   soa como uma pessoa falando. Por isso a leitura em voz alta usa só o
+   primeiro parágrafo da resposta (antes da primeira linha em branco) —
+   o SYSTEM_PROMPT do assistente (ver assistant/index.ts) instrui o
+   modelo a sempre abrir a resposta com 1-2 frases naturais que já fazem
+   sentido sozinhas, e só depois de uma linha em branco entrar em
+   detalhe. limparParaFala() é a segunda camada de proteção (o modelo
+   pode, ocasionalmente, não seguir a instrução à risca): tira qualquer
+   sobra de markdown e link antes de mandar pro sintetizador de voz. */
+function limparParaFala(texto) {
+  if (!texto) return '';
+  return texto
+    .replace(/https?:\/\/\S+/g, 'o link')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/[*_`#]/g, '')
+    .replace(/^[-•]\s+/gm, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+var MAX_FALA_CHARS = 420;
+function extrairResumoFalado(texto) {
+  if (!texto) return '';
+  var primeiroParagrafo = (texto.split(/\n\s*\n/)[0] || texto);
+  var resumo = limparParaFala(primeiroParagrafo);
+  if (resumo.length > MAX_FALA_CHARS) {
+    var corte = resumo.lastIndexOf('.', MAX_FALA_CHARS);
+    resumo = corte > 80 ? resumo.slice(0, corte + 1) : (resumo.slice(0, MAX_FALA_CHARS) + '…');
+  }
+  return resumo;
+}
+
+/* 1.15 = ritmo de alguém falando rápido e natural, sem virar
+   ininteligível — 1.0 é o "padrão de robô" que o Rikelme reclamou.
+   Testável só no aparelho real (o motor de voz roda no navegador, não
+   dá pra ouvir daqui); se ainda ficar devagar, é fácil subir mais. */
+var FALA_RATE = 1.15;
+
+/* v-jarvis · aoTerminar (opcional) é chamado quando a fala acaba —
+   usado só pelo modo mãos livres, pra ligar o microfone de novo
+   assim que o assistente termina de responder (ver
+   agendarProximaEscuta). Se a voz estiver desligada, ou não tiver
+   nada pra falar, chama aoTerminar na hora — o modo mãos livres não
+   pode ficar esperando uma fala que nunca vai acontecer. */
+function falarResposta(texto, aoTerminar) {
+  var resumo = extrairResumoFalado(texto);
+  if (!vozAtiva || !window.speechSynthesis || !resumo) {
+    if (aoTerminar) aoTerminar();
+    return;
+  }
+  try {
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(resumo);
+    u.lang = 'pt-BR';
+    u.rate = FALA_RATE;
+    var voz = vozPtBr || escolherVozPtBr();
+    if (voz) u.voice = voz;
+    if (aoTerminar) { u.onend = aoTerminar; u.onerror = aoTerminar; }
+    window.speechSynthesis.speak(u);
+  } catch (e) {
+    if (aoTerminar) aoTerminar();
+  }
+}
+
+(function configurarLeituraVoz() {
+  if (!window.speechSynthesis || !elVoiceToggle) return;
+  elVoiceToggle.style.display = 'flex';
+  atualizarBotaoVoz();
+  vozPtBr = escolherVozPtBr();
+  if ('onvoiceschanged' in window.speechSynthesis) {
+    window.speechSynthesis.onvoiceschanged = function () { vozPtBr = escolherVozPtBr(); };
+  }
+  elVoiceToggle.addEventListener('click', function () {
+    vozAtiva = !vozAtiva;
+    try { localStorage.setItem(VOZ_KEY, vozAtiva ? '1' : '0'); } catch (e) {}
+    if (!vozAtiva) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+    atualizarBotaoVoz();
+  });
+})();
+
+/* v-fase-c.3 · limites de segurança pra não deixar o localStorage (que
+   tem espaço limitado no navegador) crescer sem parar numa conversa
+   longa. Dois cortes independentes:
+
+   - apiHistory: NÃO pode cortar no meio de uma "rodada" (um bloco
+     tool_use precisa sempre vir acompanhado do tool_result dele, senão
+     a próxima chamada à Anthropic quebra). Por isso aparaHistory()
+     primeiro acha onde cada rodada começa (pontosDeVirada — sempre uma
+     mensagem do usuário com texto puro, nunca um tool_result) e só
+     corta exatamente num desses pontos.
+   - visibleMessages: é só o que aparece na tela, sem essa restrição —
+     corte simples pelas últimas N mensagens. */
+var MAX_HISTORY_MSGS = 40;
+var MAX_VISIVEIS = 60;
+
+function pontosDeVirada(history) {
+  var pontos = [];
+  for (var i = 0; i < history.length; i++) {
+    var msg = history[i];
+    if (msg && msg.role === 'user' && typeof msg.content === 'string') pontos.push(i);
+  }
+  return pontos;
+}
+
+function aparaHistory(history) {
+  if (history.length <= MAX_HISTORY_MSGS) return history;
+  var pontos = pontosDeVirada(history);
+  for (var i = 0; i < pontos.length; i++) {
+    if (history.length - pontos[i] <= MAX_HISTORY_MSGS) return history.slice(pontos[i]);
+  }
+  return history;
+}
+
+function apararVisiveis() {
+  if (visibleMessages.length > MAX_VISIVEIS) {
+    visibleMessages = visibleMessages.slice(visibleMessages.length - MAX_VISIVEIS);
+  }
+}
+
+function salvarConversa() {
+  try {
+    apiHistory = aparaHistory(apiHistory);
+    apararVisiveis();
+    localStorage.setItem(CONVERSA_KEY, JSON.stringify({
+      apiHistory: apiHistory,
+      visibleMessages: visibleMessages,
+      usage: ultimoUsage,
+    }));
+  } catch (e) {}
+}
+
+function atualizarBotaoReset() {
+  if (!elReset) return;
+  elReset.style.display = visibleMessages.length > 0 ? 'flex' : 'none';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FASE F — ORÇAMENTO EM PDF, DIRETO NO CHAT (pedido do Rikelme)
+   ──────────────────────────────────────────────────────────────
+   Até aqui, quando o assistente criava um orçamento, a resposta só
+   tinha o texto com o link público — pra ver, mandar por WhatsApp ou
+   baixar em PDF, o profissional precisava sair do chat e ir em
+   orcamento.html/relatorio.html. Agora, sempre que uma mensagem
+   resulta na criação de um orçamento (create_budget), aparecem logo
+   abaixo da bolha os mesmos 3 botões da tela "Novo orçamento":
+   Visualizar, Enviar por WhatsApp e Baixar PDF — sem sair do chat.
+
+   v-fase-f.1 · a primeira versão deste PDF montava um arquivo do
+   zero (biblioteca jsPDF) com texto puro, sem a identidade visual do
+   Fieldo — o Rikelme mandou um orçamento de verdade (o que
+   orcamento.html já gera) mostrando que faltava exatamente isso: o
+   cabeçalho escuro com o nome/profissão do profissional, as cores
+   douradas, o rodapé. Corrigido: agora montarHtmlOrcamento() é uma
+   cópia fiel de buildOrcamentoHTML() (a mesma função que
+   orcamento.html já usa pra gerar esse PDF-referência), só que lendo
+   os dados de um orçamento já salvo (orc/prof, buscados no banco) em
+   vez de ler os campos do formulário — é o MESMO HTML, moldado pra
+   vir do chat também. baixarPdfOrcamento() reaproveita exatamente o
+   mesmo mecanismo que orcamento.html já usa pra virar PDF de
+   verdade: abre uma aba nova com esse HTML e dispara o "Salvar como
+   PDF" nativo do navegador — abre uma aba a mais, sim, mas é
+   exatamente o processo que o resto do Fieldo já usa (com texto
+   selecionável e cores fiéis), em vez de uma versão simplificada
+   numa tecnologia à parte. v-fiel · o QR Code e o link público
+   (relatorio.html?orc=...) que existiam aqui foram removidos — mesmo
+   corte já feito em orcamento.html: não fazia sentido escanear um QR
+   Code com o mesmo celular que já está mostrando a tela. "Visualizar"
+   agora abre uma pré-visualização local (blob), igual orcamento.html. */
+
+/* Cópia de buildOrcamentoHTML() (orcamento.html) — mesmo HTML/CSS,
+   pra o orçamento gerado pelo chat sair IDÊNTICO ao que o Fieldo já
+   gera em qualquer outro lugar. Se um dia o visual de lá mudar, essa
+   cópia precisa ser atualizada junto (é código duplicado de
+   propósito: orcamento.html não é importável aqui). */
+function montarHtmlOrcamento(orc, prof) {
+  var esc = FIELDO.UI.esc;
+  var numero  = orc.number || '';
+  var titulo  = orc.titulo || 'Proposta de serviço';
+  var cliente = orc.client_name || '';
+  var wppCli  = orc.client_phone || '';
+  var local   = orc.local || '';
+  var descSrv = orc.descricao || '';
+  var prazo   = orc.prazo || '';
+  var valid   = orc.validade || '';
+  var pgto    = orc.pagamento || '';
+  var garant  = orc.garantia || '';
+  var obs     = orc.observacoes || '';
+  var emissao = orc.emissao || new Date().toISOString().slice(0, 10);
+  var totais  = { subtotal: orc.subtotal, desconto: orc.desconto, total: orc.total };
+
+  var profLogo = prof && prof.logo_url
+    ? '<img src="' + esc(prof.logo_url) + '" style="width:100%;height:100%;object-fit:cover"/>'
+    : '<span style="font-family:Georgia,serif;font-size:1.5rem;font-style:italic;color:#fff">' + esc(((prof && prof.name) || 'F').charAt(0)) + '</span>';
+
+  var rawProfWpp = String((prof && (prof.whatsapp || prof.phone)) || '').replace(/\D/g, '');
+  var waProf = rawProfWpp.length >= 10 ? (rawProfWpp.length <= 11 ? '55' + rawProfWpp : rawProfWpp) : '';
+
+  var itens = Array.isArray(orc.items) ? orc.items : [];
+  var itensRows = itens.map(function (it) {
+    var descricao = String((it && (it.descricao || it.desc)) || '').trim();
+    var valor = it && typeof it.valor !== 'undefined' ? parseFloat(it.valor) || 0 : (it && typeof it.val !== 'undefined' ? parseFloat(it.val) || 0 : 0);
+    return '<tr>' +
+      '<td class="it-desc">' + esc(descricao) + '</td>' +
+      '<td class="it-val">' + FIELDO.UI.brl(valor) + '</td>' +
+    '</tr>';
+  }).join('');
+
+  var pixBlock = prof && prof.pix_key
+    ? '<div class="pix">' +
+        '<div class="pix-lbl">Pagamento via Pix' + (prof.pix_tipo ? ' · ' + esc(prof.pix_tipo) : '') + '</div>' +
+        '<div class="pix-key">' + esc(prof.pix_key) + '</div>' +
+      '</div>'
+    : '';
+
+  var condRows = [
+    prazo  ? { l: 'Prazo de execução', v: prazo } : null,
+    valid  ? { l: 'Validade da proposta', v: valid } : null,
+    pgto   ? { l: 'Forma de pagamento', v: pgto } : null,
+    garant ? { l: 'Garantia', v: garant } : null,
+  ].filter(Boolean).map(function (r) {
+    return '<div class="cond-row"><div class="cond-l">' + esc(r.l) + '</div><div class="cond-v">' + esc(r.v) + '</div></div>';
+  }).join('');
+
+  var dataFmt = '';
+  try { dataFmt = new Date(emissao + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }); }
+  catch (e) { dataFmt = emissao; }
+
+  return '<!DOCTYPE html><html lang="pt-BR"><head>' +
+    '<meta charset="UTF-8"/>' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1.0"/>' +
+    '<title>Orçamento · ' + esc(cliente) + ' · Fieldo</title>' +
+    '<style>' +
+      '*{box-sizing:border-box;margin:0;padding:0}' +
+      'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f5f2ec;color:#2a2a36;padding:1.5rem 1rem 4rem;line-height:1.55;-webkit-font-smoothing:antialiased}' +
+      '.page{max-width:680px;margin:0 auto;background:#fff;border:1px solid rgba(14,14,20,.1);border-radius:18px;overflow:hidden;box-shadow:0 8px 40px rgba(14,14,20,.08)}' +
+      '.head{background:#0e0e14;color:#fff;padding:1.4rem 1.75rem;display:flex;align-items:flex-start;gap:1rem;position:relative;overflow:hidden}' +
+      '.head::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 100% 0%,rgba(196,154,48,.18) 0%,transparent 60%);pointer-events:none}' +
+      '.head .av{width:52px;height:52px;border-radius:11px;background:#9a7218;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative}' +
+      '.head .who{flex:1;min-width:0;position:relative}' +
+      '.head .eye{font-family:"DM Mono",monospace;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:#c49a30;margin-bottom:.25rem}' +
+      '.head .who h1{font-family:Georgia,serif;font-size:1.3rem;font-weight:300;color:#fff;line-height:1.2;letter-spacing:-.01em}' +
+      '.head .who h1 em{font-style:italic;color:#c49a30}' +
+      '.head .sub{font-size:.72rem;color:rgba(255,255,255,.6);margin-top:.2rem}' +
+      '.head .num{position:relative;text-align:right;flex-shrink:0;font-family:"DM Mono",monospace}' +
+      '.head .num-lbl{font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.15rem}' +
+      '.head .num-v{font-size:.78rem;color:#c49a30;letter-spacing:.05em}' +
+      '.head .data{font-size:.62rem;color:rgba(255,255,255,.5);margin-top:.35rem}' +
+      '.body{padding:1.6rem 1.75rem 1.25rem}' +
+      '.lbl{font-family:"DM Mono",monospace;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:#7a7570;margin-bottom:.2rem}' +
+      '.val{font-size:.92rem;color:#1a1a24}' +
+      '.bigval{font-family:Georgia,serif;font-size:1.25rem;font-weight:300;color:#0e0e14;line-height:1.3}' +
+      '.client{display:grid;grid-template-columns:1fr;gap:.65rem;padding:1rem 1.1rem;background:rgba(154,114,24,.05);border:1px solid rgba(154,114,24,.15);border-radius:12px;margin-bottom:1.25rem}' +
+      '.client-row{display:flex;justify-content:space-between;gap:1rem;align-items:baseline}' +
+      '.client-row .lbl{margin-bottom:0;flex-shrink:0;min-width:84px}' +
+      '.section{margin-bottom:1.25rem}' +
+      '.desc-box{padding:.9rem 1.05rem;background:rgba(14,14,20,.025);border-left:3px solid rgba(154,114,24,.4);border-radius:0 8px 8px 0;font-size:.86rem;line-height:1.65;color:#3a3a48;white-space:pre-wrap}' +
+      '.itens-wrap{margin-bottom:1.25rem}' +
+      'table.itens{width:100%;border-collapse:collapse}' +
+      'table.itens th{font-family:"DM Mono",monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:#7a7570;text-align:left;padding:.55rem .4rem;border-bottom:1.5px solid #ddd;font-weight:600}' +
+      'table.itens th.r{text-align:right}' +
+      'table.itens td{padding:.65rem .4rem;border-bottom:1px solid #eee;font-size:.88rem;color:#1a1a24}' +
+      'table.itens td.it-desc{color:#1a1a24}' +
+      'table.itens td.it-val{text-align:right;font-family:"DM Mono",monospace;color:#7a5a10;font-weight:500;white-space:nowrap}' +
+      '.totals{background:rgba(154,114,24,.06);border:1px solid rgba(154,114,24,.2);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}' +
+      '.tot-row{display:flex;justify-content:space-between;align-items:baseline;padding:.32rem 0;font-size:.86rem;color:#4a4855}' +
+      '.tot-row .v{font-family:"DM Mono",monospace}' +
+      '.tot-row.disc .v{color:#2d7a4f}' +
+      '.tot-row.big{font-family:Georgia,serif;font-size:1.35rem;font-weight:400;border-top:1px solid rgba(154,114,24,.25);margin-top:.5rem;padding-top:.7rem;color:#7a5a10}' +
+      '.tot-row.big .v{font-family:"DM Mono",monospace;font-size:1.25rem;font-weight:500}' +
+      '.cond-wrap{padding:1rem 1.15rem;background:#fafaf7;border:1px solid #eee;border-radius:12px;margin-bottom:1.25rem}' +
+      '.cond-row{display:flex;justify-content:space-between;gap:1rem;align-items:baseline;padding:.35rem 0;border-bottom:1px dashed #e8e6e0}' +
+      '.cond-row:last-child{border-bottom:none}' +
+      '.cond-l{font-family:"DM Mono",monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:#7a7570;flex-shrink:0}' +
+      '.cond-v{font-size:.85rem;color:#1a1a24;text-align:right}' +
+      '.obs-box{padding:.9rem 1.1rem;background:#fcfcf8;border:1px solid #ece9df;border-radius:10px;margin-bottom:1.25rem;font-size:.82rem;line-height:1.6;color:#5a5a68;white-space:pre-wrap}' +
+      '.pix{background:rgba(154,114,24,.08);border:1px solid rgba(154,114,24,.22);border-radius:10px;padding:.85rem 1.1rem;margin-bottom:1.25rem}' +
+      '.pix-lbl{font-family:"DM Mono",monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#7a5a10;margin-bottom:.2rem}' +
+      '.pix-key{font-family:"DM Mono",monospace;font-size:.86rem;color:#7a5a10;word-break:break-all}' +
+      '.foot{padding:1rem 1.75rem 1.25rem;background:rgba(14,14,20,.025);border-top:1px solid #ece9df;font-family:"DM Mono",monospace;font-size:.62rem;color:#7a7570;display:flex;justify-content:space-between;align-items:center;letter-spacing:.04em;flex-wrap:wrap;gap:.5rem}' +
+      '.foot .brand{color:#7a5a10}' +
+      '.foot .contato{color:#5a5a68}' +
+      '.bar{position:fixed;bottom:0;left:0;right:0;background:rgba(245,242,236,.97);backdrop-filter:blur(20px);border-top:1px solid #ddd;padding:.75rem 1rem;display:flex;gap:.5rem;justify-content:center;z-index:50}' +
+      '.bar .btn{padding:.7rem 1.1rem;border-radius:9px;font-size:.85rem;font-weight:500;text-decoration:none;border:none;cursor:pointer;font-family:inherit}' +
+      '.bar .btn-p{background:#9a7218;color:#fff}' +
+      '.bar .btn-p:hover{background:#7a5a10}' +
+      '.bar .btn-w{background:#1d7a46;color:#fff}' +
+      '.bar .btn-w:hover{background:#17663a}' +
+      'body{padding-bottom:5rem}' +
+      '@page{size:A4;margin:14mm}' +
+      '@media print{' +
+        'body{background:#fff !important;padding:0 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.page{box-shadow:none !important;border-radius:0 !important;border:none !important;max-width:none !important}' +
+        '.bar{display:none !important}' +
+        '.head{-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.head .av{-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.totals,.client,.pix,.cond-wrap,.obs-box{page-break-inside:avoid}' +
+        'table.itens{page-break-inside:auto}' +
+        'tr{page-break-inside:avoid;page-break-after:auto}' +
+      '}' +
+    '</style></head><body>' +
+    '<div class="page">' +
+      '<div class="head">' +
+        '<div class="av">' + profLogo + '</div>' +
+        '<div class="who">' +
+          '<div class="eye">Orçamento · Fieldo</div>' +
+          '<h1><em>' + esc((prof && prof.name) || 'Profissional') + '</em></h1>' +
+          '<div class="sub">' + esc(FIELDO.UI.subtitulo(prof || {})) + '</div>' +
+        '</div>' +
+        (numero ? '<div class="num"><div class="num-lbl">Nº</div><div class="num-v">' + esc(numero) + '</div><div class="data">' + esc(dataFmt) + '</div></div>' : '') +
+      '</div>' +
+      '<div class="body">' +
+        '<div class="client">' +
+          '<div class="client-row"><div class="lbl">Cliente</div><div class="val">' + esc(cliente) + '</div></div>' +
+          (wppCli ? '<div class="client-row"><div class="lbl">WhatsApp</div><div class="val">' + esc(wppCli) + '</div></div>' : '') +
+          (local ? '<div class="client-row"><div class="lbl">Local</div><div class="val">' + esc(local) + '</div></div>' : '') +
+        '</div>' +
+        '<div class="section">' +
+          '<div class="lbl">Proposta</div>' +
+          '<div class="bigval">' + esc(titulo) + '</div>' +
+        '</div>' +
+        (descSrv
+          ? '<div class="section">' +
+              '<div class="lbl" style="margin-bottom:.4rem">Descrição do serviço</div>' +
+              '<div class="desc-box">' + esc(descSrv) + '</div>' +
+            '</div>'
+          : '') +
+        (itens.length
+          ? '<div class="itens-wrap">' +
+              '<div class="lbl" style="margin-bottom:.5rem">Itens do orçamento</div>' +
+              '<table class="itens">' +
+                '<thead><tr><th>Descrição</th><th class="r">Valor</th></tr></thead>' +
+                '<tbody>' + itensRows + '</tbody>' +
+              '</table>' +
+            '</div>'
+          : '') +
+        '<div class="totals">' +
+          '<div class="tot-row"><span>Subtotal</span><span class="v">' + FIELDO.UI.brl(totais.subtotal) + '</span></div>' +
+          (totais.desconto > 0 ? '<div class="tot-row disc"><span>Desconto</span><span class="v">− ' + FIELDO.UI.brl(totais.desconto) + '</span></div>' : '') +
+          '<div class="tot-row big"><span>Total</span><span class="v">' + FIELDO.UI.brl(totais.total) + '</span></div>' +
+        '</div>' +
+        (condRows
+          ? '<div class="cond-wrap">' +
+              '<div class="lbl" style="margin-bottom:.5rem">Condições</div>' +
+              condRows +
+            '</div>'
+          : '') +
+        (obs
+          ? '<div class="section">' +
+              '<div class="lbl" style="margin-bottom:.4rem">Observações</div>' +
+              '<div class="obs-box">' + esc(obs) + '</div>' +
+            '</div>'
+          : '') +
+        pixBlock +
+      '</div>' +
+      '<div class="foot">' +
+        '<div class="brand">Gerado por Fieldo · fieldo-zelo.com.br</div>' +
+        '<div class="contato">' +
+          ((prof && prof.name) ? esc(prof.name) : '') +
+          (waProf ? ' · WhatsApp ' + esc(waProf.slice(2)) : '') +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="bar">' +
+      '<button class="btn btn-p" onclick="window.print()">Baixar PDF / Imprimir</button>' +
+      (waProf ? '<a class="btn btn-w" href="https://wa.me/' + waProf + '" target="_blank" rel="noopener">WhatsApp</a>' : '') +
+    '</div>' +
+    '</body></html>';
+}
+
+/* Cópia de baixarPDF() (orcamento.html) — mesmo mecanismo "zero
+   dependência": abre uma aba nova com o HTML acima e dispara o
+   diálogo de impressão do navegador, onde o profissional escolhe
+   "Salvar como PDF". Precisa ser chamada DIRETO no clique do botão
+   (sem await antes) — abrir a janela depois de uma espera assíncrona
+   é o que os navegadores bloqueiam como pop-up indesejado; aqui os
+   dados (orc/prof) já foram buscados antes do botão ficar clicável,
+   então não falta nada pra montar o HTML na hora. */
+function baixarPdfOrcamento(orc, prof) {
+  var html = montarHtmlOrcamento(orc, prof);
+  var autoPrintScript = '<' + 'script>window.addEventListener("load",function(){setTimeout(function(){try{window.print();}catch(e){}},650);});<\/script>';
+  var patched = html.replace('</body></html>', autoPrintScript + '</body></html>');
+
+  var w = window.open('', '_blank');
+  if (!w) {
+    FIELDO.UI.toast('Permita pop-ups para gerar o PDF, ou toque em "Visualizar" e imprima pelo navegador.');
+    return;
+  }
+  w.document.open();
+  w.document.write(patched);
+  w.document.close();
+}
+
+/* v-fiel: igual abrirHTML() (orcamento.html) — abre o mesmo HTML do
+   orçamento numa aba nova via blob local, sem depender de nenhum link
+   público (relatorio.html) nem de servidor. É só uma pré-visualização;
+   quem quiser mandar pro cliente usa o botão de WhatsApp ou o PDF. */
+function abrirHtmlOrcamento(orc, prof) {
+  var html = montarHtmlOrcamento(orc, prof);
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+}
+
+/* Procura, nas mensagens NOVAS de uma resposta (o trecho de apiHistory
+   que essa troca acabou de acrescentar), se o assistente chamou
+   create_budget com sucesso — e devolve o budget_id, se achar. Só olha
+   pra criação (não pra consulta de um orçamento já existente), porque
+   é só nesse momento que faz sentido oferecer os botões de novo. */
+function extrairOrcamentoCriado(mensagensNovas) {
+  var budgetId = null;
+  for (var i = 0; i < mensagensNovas.length; i++) {
+    var msg = mensagensNovas[i];
+    if (!msg || msg.role !== 'assistant' || !Array.isArray(msg.content)) continue;
+    for (var j = 0; j < msg.content.length; j++) {
+      var bloco = msg.content[j];
+      if (!bloco || bloco.type !== 'tool_use' || bloco.name !== 'create_budget') continue;
+      var proxima = mensagensNovas[i + 1];
+      if (!proxima || !Array.isArray(proxima.content)) continue;
+      for (var k = 0; k < proxima.content.length; k++) {
+        var resultado = proxima.content[k];
+        if (!resultado || resultado.type !== 'tool_result' || resultado.tool_use_id !== bloco.id) continue;
+        try {
+          var dados = JSON.parse(resultado.content);
+          if (dados && dados.budget_id && !dados.erro) budgetId = dados.budget_id;
+        } catch (e) { /* tool_result não era o JSON esperado — ignora */ }
+      }
+    }
+  }
+  return budgetId ? { tipo: 'orcamento_criado', budget_id: budgetId } : null;
+}
+
+/* v-fase1-agentfirst · mesma técnica de extrairOrcamentoCriado, só que
+   pra fechar o elo que faltava no funil (ver análise "Agent First",
+   item G): serviço → avaliação. Olha tanto create_service_report
+   (acabou de registrar) quanto get_service_report (o profissional
+   pediu pra consultar um serviço antigo) — os dois já devolvem
+   rating_token agora (fix desta fase). Se o relatório já foi avaliado,
+   o próprio backend manda rating_token: null — por isso não precisa
+   checar rating_used aqui, só checar se o token chegou. */
+function extrairServicoParaAvaliar(mensagensNovas) {
+  var acao = null;
+  for (var i = 0; i < mensagensNovas.length; i++) {
+    var msg = mensagensNovas[i];
+    if (!msg || msg.role !== 'assistant' || !Array.isArray(msg.content)) continue;
+    for (var j = 0; j < msg.content.length; j++) {
+      var bloco = msg.content[j];
+      if (!bloco || bloco.type !== 'tool_use') continue;
+      if (bloco.name !== 'create_service_report' && bloco.name !== 'get_service_report') continue;
+      var proxima = mensagensNovas[i + 1];
+      if (!proxima || !Array.isArray(proxima.content)) continue;
+      for (var k = 0; k < proxima.content.length; k++) {
+        var resultado = proxima.content[k];
+        if (!resultado || resultado.type !== 'tool_result' || resultado.tool_use_id !== bloco.id) continue;
+        try {
+          var dados = JSON.parse(resultado.content);
+          var reportId = dados && (dados.report_id || dados.id);
+          if (dados && reportId && dados.rating_token && !dados.erro) {
+            acao = { tipo: 'servico_registrado', report_id: reportId, client_name: dados.client_name || '', rating_token: dados.rating_token };
+          }
+        } catch (e) { /* tool_result não era o JSON esperado — ignora */ }
+      }
+    }
+  }
+  return acao;
+}
+
+/* Desenha os 3 botões (começam desabilitados até os dados chegarem) e
+   busca o orçamento + o profissional (mesmas fontes que
+   relatorio.html já usa) pra ligar cada um. Se o orçamento não for
+   encontrado (ex.: foi excluído logo depois), os botões somem — em
+   vez de ficar um botão morto na tela. */
+function adicionarAcoesOrcamento(budgetId) {
+  var container = document.createElement('div');
+  container.className = 'chat-actions';
+
+  var elVer = document.createElement('button');
+  elVer.type = 'button';
+  elVer.className = 'btn btn--ghost btn--sm';
+  elVer.textContent = '👁️ Visualizar';
+  elVer.disabled = true;
+
+  var elWa = document.createElement('button');
+  elWa.type = 'button';
+  elWa.className = 'btn btn--ghost btn--sm';
+  elWa.textContent = '💬 Enviar por WhatsApp';
+  elWa.disabled = true;
+
+  var elPdf = document.createElement('button');
+  elPdf.type = 'button';
+  elPdf.className = 'btn btn--ghost btn--sm';
+  elPdf.textContent = '📄 Baixar PDF';
+  elPdf.disabled = true;
+
+  container.appendChild(elVer);
+  container.appendChild(elWa);
+  container.appendChild(elPdf);
+  elList.appendChild(container);
+  scrollFim();
+
+  FIELDO.Budgets.getById(budgetId).then(function (orc) {
+    if (!orc) { container.remove(); return null; }
+    /* v10.32 · era getById(orc.professional_id), que dependia do GRANT
+       público de pix_key/pix_tipo (removido por segurança — ver db.js).
+       Desnecessário aqui: o orçamento é sempre do profissional logado,
+       então .me() já traz tudo (inclusive o próprio Pix, via sessão
+       autenticada, sem depender de nenhum GRANT de `anon`). */
+    return FIELDO.Professionals.me().then(function (prof) {
+      elVer.disabled = false;
+      elVer.addEventListener('click', function () { abrirHtmlOrcamento(orc, prof); });
+
+      elWa.disabled = false;
+      elWa.addEventListener('click', function () {
+        /* Mesmo texto/tom que orcamento.html já manda pelo WhatsApp
+           (enviarWA) — pra não inventar um segundo jeito de escrever
+           essa mensagem. */
+        var msg = '📋 *Orçamento Fieldo*\n\n' +
+          'Olá, ' + (orc.client_name || '') + '!\n\n' +
+          '📌 *' + (orc.titulo || 'Proposta de serviço') + '*\n' +
+          '💰 Total: ' + FIELDO.UI.brl(orc.total) + '\n' +
+          (orc.prazo ? '⏱ Prazo: ' + orc.prazo + '\n' : '') +
+          (orc.validade ? '⏳ Válido por: ' + orc.validade + '\n' : '') +
+          '\nQualquer dúvida estou à disposição!';
+        var url = FIELDO.UI.waLink(orc.client_phone, msg) || FIELDO.UI.waPicker(msg);
+        window.open(url, '_blank');
+      });
+
+      elPdf.disabled = false;
+      elPdf.addEventListener('click', function () {
+        try {
+          baixarPdfOrcamento(orc, prof);
+        } catch (e) {
+          FIELDO.UI.toast('Não consegui gerar o PDF agora. Tente de novo.');
+        }
+      });
+    });
+  }).catch(function () {
+    container.remove();
+  });
+}
+
+/* v-fase1-agentfirst · botão único "Pedir avaliação" — mesmo texto e
+   mesmo mecanismo (wa.me sem número, o profissional escolhe o contato)
+   que solicitarAvaliacao() (servico.html) e reenviarRelatorio()
+   (painel.html) já usam. Não busca nada em segundo plano porque
+   report_id/client_name/rating_token já vêm prontos no tool_result —
+   diferente do orçamento, que precisa buscar o registro completo pra
+   montar o PDF. */
+function adicionarAcaoAvaliacao(acao) {
+  var container = document.createElement('div');
+  container.className = 'chat-actions';
+
+  var elAval = document.createElement('button');
+  elAval.type = 'button';
+  elAval.className = 'btn btn--ghost btn--sm';
+  elAval.textContent = '📩 Pedir avaliação';
+  container.appendChild(elAval);
+  elList.appendChild(container);
+  scrollFim();
+
+  elAval.addEventListener('click', function () {
+    var base = FIELDO.publicUrl('').replace(/\/$/, '');
+    var url = base + '/avaliar.html?token=' + encodeURIComponent(acao.rating_token);
+    var msg = '⭐ *Avalie meu serviço*\n\nLeva 10 segundos:\n\n🔗 ' + url;
+    window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+  });
+}
+
+function scrollFim() {
+  window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+}
+
+function esconderSugestoes() {
+  if (elSuggest) elSuggest.style.display = 'none';
+}
+
+/* textContent (não innerHTML) de propósito: a resposta do assistente é
+   texto gerado por IA — nunca deve ser interpretado como HTML.
+   renderBolha() só desenha na tela — usado tanto pra mensagem nova
+   quanto pra reconstruir a conversa salva ao voltar pra tela
+   (carregarConversa, mais abaixo). addBolha() é o caminho normal:
+   desenha E registra/salva a conversa. */
+function fielAvatarEl() {
+  var av = document.createElement('div');
+  av.className = 'fiel-avatar';
+  av.setAttribute('aria-hidden', 'true');
+  av.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 L15 4 A5 5 0 0 1 20 9 L20 15 A5 5 0 0 1 15 20 L9 20 A5 5 0 0 1 4 15 L4 9 A5 5 0 0 1 9 4 L8 4"/></svg>';
+  return av;
+}
+
+function renderBolha(role, texto, acao) {
+  esconderSugestoes();
+  var div = document.createElement('div');
+  div.className = 'chat-msg ' + role;
+  div.textContent = texto;
+  /* v-fiel: bolhas do Fiel (assistant) ganham o avatar (símbolo da
+     marca em círculo) ao lado, dentro de um .chat-row. Bolhas do
+     usuário e de erro continuam exatamente como antes — vão direto
+     pro elList. */
+  if (role === 'assistant') {
+    var row = document.createElement('div');
+    row.className = 'chat-row';
+    row.appendChild(fielAvatarEl());
+    row.appendChild(div);
+    elList.appendChild(row);
+  } else {
+    elList.appendChild(div);
+  }
+  /* v-fase-f: se essa mensagem do assistente veio de criar um
+     orçamento, desenha os botões de Visualizar/WhatsApp/PDF logo
+     abaixo dela (ver adicionarAcoesOrcamento). */
+  if (role === 'assistant' && acao && acao.tipo === 'orcamento_criado' && acao.budget_id) {
+    adicionarAcoesOrcamento(acao.budget_id);
+  } else if (role === 'assistant' && acao && acao.tipo === 'servico_registrado' && acao.rating_token) {
+    adicionarAcaoAvaliacao(acao);
+  }
+  scrollFim();
+  return div;
+}
+
+function addBolha(role, texto, acao) {
+  var div = renderBolha(role, texto, acao);
+  visibleMessages.push({ role: role, texto: texto, acao: acao || null });
+  salvarConversa();
+  atualizarBotaoReset();
+  return div;
+}
+
+function addDigitando() {
+  esconderSugestoes();
+  var div = document.createElement('div');
+  div.className = 'chat-typing';
+  div.setAttribute('aria-label', 'Fiel está respondendo');
+  div.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+  var row = document.createElement('div');
+  row.className = 'chat-row';
+  row.appendChild(fielAvatarEl());
+  row.appendChild(div);
+  elList.appendChild(row);
+  scrollFim();
+  return row;
+}
+
+function addErro(msg, textoOriginal, permitirRetry) {
+  var div = document.createElement('div');
+  div.className = 'chat-msg error';
+  var p = document.createElement('div');
+  p.textContent = msg;
+  div.appendChild(p);
+  if (permitirRetry) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn btn--ghost btn--sm';
+    btn.textContent = 'Tentar de novo';
+    btn.onclick = function () { div.remove(); enviar(textoOriginal); };
+    div.appendChild(btn);
+  }
+  elList.appendChild(div);
+  scrollFim();
+}
+
+function atualizarQuota(usage) {
+  if (!usage || typeof usage.limite !== 'number') return;
+  ultimoUsage = usage;
+  var usadas = Math.max(0, usage.limite - usage.mensagens_restantes);
+  elQuota.style.display = 'block';
+  elQuotaCnt.textContent = usadas + ' de ' + usage.limite;
+  var pct = usage.limite > 0 ? Math.min(100, (usadas / usage.limite) * 100) : 0;
+  elQuotaFill.style.width = pct + '%';
+  if (usage.mensagens_restantes <= 0) {
+    elQuota.classList.add('is-blocked');
+    elQuotaMsg.style.display = 'block';
+    elQuotaMsg.textContent = 'Limite deste mês atingido. Volta a liberar no mês que vem.';
+  } else {
+    elQuota.classList.remove('is-blocked');
+    elQuotaMsg.style.display = 'none';
+  }
+  salvarConversa();
+}
+
+function bloquearEnvio(bloqueado) {
+  elInput.disabled = bloqueado;
+  elSend.disabled = bloqueado;
+  if (elMic) elMic.disabled = bloqueado;
+}
+
+function autoResize() {
+  elInput.style.height = 'auto';
+  elInput.style.height = Math.min(elInput.scrollHeight, 110) + 'px';
+}
+elInput.addEventListener('input', autoResize);
+elInput.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    enviar();
+  }
+});
+elSend.addEventListener('click', function () { enviar(); });
+
+var pills = elSuggest ? elSuggest.querySelectorAll('.pill') : [];
+for (var i = 0; i < pills.length; i++) {
+  (function (p) {
+    p.addEventListener('click', function () { enviar(p.getAttribute('data-msg')); });
+  })(pills[i]);
+}
+
+if (elReset) {
+  elReset.addEventListener('click', function () {
+    fecharMenuAssist(); /* v-jarvis-menu · esse item dispara uma ação — fecha o menu, diferente dos toggles de voz/mãos livres */
+    /* v-fiel: antes tinha um window.confirm() aqui — a caixinha nativa
+       do navegador (com a URL do site escrita nela) destoa do resto do
+       app. Removida por pedido explícito. Como a ação só apaga a
+       conversa em tela (orçamentos e relatórios já criados continuam
+       intactos — a própria mensagem removida dizia isso), tirar a
+       confirmação não é arriscado. */
+    apiHistory = [];
+    visibleMessages = [];
+    ultimoUsage = null;
+    try { localStorage.removeItem(CONVERSA_KEY); } catch (e) {}
+    elList.innerHTML = '';
+    if (elSuggest) elSuggest.style.display = '';
+    atualizarBotaoReset();
+  });
+}
+
+function enviar(textoForcado) {
+  if (enviando) return;
+  var texto = (textoForcado != null ? textoForcado : elInput.value).trim();
+  if (!texto) return;
+
+  pararEscuta();
+  if (window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+
+  enviando = true;
+  bloquearEnvio(true);
+  if (textoForcado == null) { elInput.value = ''; autoResize(); }
+
+  addBolha('user', texto);
+  var digitando = addDigitando();
+  var historicoAntes = apiHistory.length; /* v-fase-f: pra saber o que é NOVO na resposta */
+
+  FIELDO.Auth.Session.getAccessToken().then(function (token) {
+    if (!token) {
+      digitando.remove();
+      window.location.href = 'entrar.html';
+      return null;
+    }
+    return fetch(ASSISTANT_URL, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: texto, history: apiHistory }),
+    }).then(function (res) {
+      return res.json().catch(function () { return null; }).then(function (body) {
+        digitando.remove();
+
+        if (!res.ok) {
+          if (res.status === 401) { window.location.href = 'entrar.html'; return; }
+          var msgErro = (body && body.erro) || ('Não consegui completar (HTTP ' + res.status + ').');
+          if (res.status === 429) {
+            elQuota.style.display = 'block';
+            elQuota.classList.add('is-blocked');
+            elQuotaFill.style.width = '100%';
+            elQuotaCnt.textContent = 'limite atingido';
+            elQuotaMsg.style.display = 'block';
+            elQuotaMsg.textContent = msgErro;
+            addErro(msgErro, texto, false);
+          } else {
+            addErro(msgErro, texto, true);
+          }
+          return;
+        }
+
+        var mensagensNovas = Array.isArray(body.history) ? body.history.slice(historicoAntes) : [];
+        apiHistory = Array.isArray(body.history) ? body.history : apiHistory;
+        var respostaTexto = body.reply || 'Feito.';
+        var acao = extrairOrcamentoCriado(mensagensNovas) || extrairServicoParaAvaliar(mensagensNovas);
+        addBolha('assistant', respostaTexto, acao);
+        falarResposta(respostaTexto, agendarProximaEscuta);
+        if (body.usage) atualizarQuota(body.usage);
+      });
+    });
+  }).catch(function () {
+    digitando.remove();
+    addErro('Não consegui falar com o assistente agora — confira sua internet e tente de novo.', texto, true);
+  }).then(function () {
+    enviando = false;
+    if (!elQuota.classList.contains('is-blocked')) bloquearEnvio(false);
+    elInput.focus();
+  });
+}
+
+/* v-fase-c.3 · reconstrói a conversa salva assim que a página abre —
+   só desenha (renderBolha), nunca chama a Anthropic de novo. Se não
+   tiver nada salvo (primeira vez, ou depois de "Começar conversa
+   nova"), não faz nada e as sugestões continuam aparecendo normal. */
+(function carregarConversa() {
+  try {
+    var salvo = localStorage.getItem(CONVERSA_KEY);
+    if (!salvo) return;
+    var dados = JSON.parse(salvo);
+    if (!dados || !Array.isArray(dados.visibleMessages) || !dados.visibleMessages.length) return;
+
+    apiHistory = Array.isArray(dados.apiHistory) ? dados.apiHistory : [];
+    visibleMessages = dados.visibleMessages;
+    ultimoUsage = dados.usage || null;
+
+    for (var i = 0; i < visibleMessages.length; i++) {
+      renderBolha(visibleMessages[i].role, visibleMessages[i].texto, visibleMessages[i].acao);
+    }
+    if (ultimoUsage) atualizarQuota(ultimoUsage);
+    atualizarBotaoReset();
+  } catch (e) {}
+})();
+
+/* v-fase1-agentfirst · deep link vindo da home/painel (?sugestao=...).
+   Mesma ideia dos .pill de "Sugestões pra começar" acima — só que a
+   sugestão chega pronta de outra tela em vez de nascer aqui dentro.
+   Se já existe conversa salva, NÃO manda nada sozinho (evita enfiar
+   uma mensagem numa conversa que a pessoa já estava tendo) — só
+   preenche a caixa, do jeito que o microfone já faz. Se a conversa
+   está vazia, manda direto, igual a clicar num .pill. De qualquer
+   forma o parâmetro sai da URL depois de lido, pra não repetir se a
+   página for recarregada ou o profissional voltar com o botão do
+   navegador. */
+(function aplicarSugestaoDaUrl() {
+  var SUGESTOES = {
+    orcamento:  'Quero fazer um orçamento novo.',
+    servico:    'Quero registrar um serviço que acabei de terminar.',
+    orcamentos: 'Quais orçamentos estão aguardando resposta?',
+    /* v12.40 · Central de Crescimento (card do painel) */
+    desempenho: 'Quantas pessoas viram meu perfil no último mês e de onde vieram?',
+    perfil_seo: 'Quero melhorar meu perfil para aparecer mais no Google. O que falta?'
+  };
+  var params;
+  try { params = new URLSearchParams(window.location.search); } catch (e) { return; }
+  var chave = params.get('sugestao');
+  var texto = chave && SUGESTOES[chave];
+  if (!texto) return;
+
+  try {
+    var url = new URL(window.location.href);
+    url.searchParams.delete('sugestao');
+    window.history.replaceState({}, '', url.pathname + (url.search || '') + url.hash);
+  } catch (e) {}
+
+  if (visibleMessages.length === 0) {
+    enviar(texto);
+  } else {
+    elInput.value = texto;
+    autoResize();
+    elInput.focus();
+  }
+})();
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

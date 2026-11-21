@@ -1,0 +1,95 @@
+# Fieldo
+
+> Fieldo é uma plataforma brasileira para encontrar e contratar profissionais
+> autônomos (eletricistas, pedreiros, empreiteiros, pintores, técnicos de
+> ar-condicionado, higienização de estofados e outros) pelo trabalho que eles
+> já fizeram. Cada perfil mostra fotos de trabalhos, serviços registrados com
+> data e avaliações de quem contratou. O cliente fala direto com o
+> profissional, pelo WhatsApp, sem cadastro e sem pagar nada ao Fieldo.
+> A região atendida hoje é o Litoral Norte de São Paulo: Caraguatatuba,
+> São Sebastião, Ilhabela e Ubatuba.
+
+Para o profissional, o Fieldo é a ferramenta de trabalho: ele gera
+orçamentos, registra cada serviço com foto e data, manda o relatório ao
+cliente, recebe a avaliação de quem contratou e ganha um perfil público que
+pode aparecer no Google. O plano grátis basta para começar.
+
+O Fieldo não intermedia a contratação nem o pagamento: preço, prazo e
+pagamento são combinados direto entre cliente e profissional.
+
+## Para quem quer contratar
+
+- [Profissionais no Litoral Norte de SP](https://fieldo-zelo.com.br/litoral-norte):
+  as quatro cidades e, em cada uma, as profissões que têm profissionais com
+  trabalho comprovado, com links para as listas e os perfis.
+- [Como contratar pelo Fieldo](https://fieldo-zelo.com.br/como-contratar):
+  passo a passo, o que cada informação do perfil quer dizer e perguntas
+  frequentes de quem contrata.
+- Profissão + cidade — padrão de URL `https://fieldo-zelo.com.br/{profissao}-em-{cidade}`,
+  por exemplo `https://fieldo-zelo.com.br/eletricista-em-ubatuba`: lista os
+  profissionais de uma profissão que moram ou atendem a cidade. A página só
+  existe quando há profissionais reais; com 1 profissional ela redireciona
+  para o perfil dele, com 2 existe mas não é indexada, a partir de 3 é
+  indexada. Não é gerada para toda combinação de profissão e cidade.
+- Perfil de um profissional — padrão de URL `https://fieldo-zelo.com.br/p/{slug}`:
+  um resumo factual no topo ("Em resumo": o que faz, onde, desde quando está
+  no Fieldo, quantos serviços, fotos e avaliações tem), nome, profissão,
+  cidade e cidades atendidas, biografia, fotos de trabalhos,
+  serviços registrados (título, categoria e data), avaliações e o botão de
+  WhatsApp (e o de ligar, quando o profissional aceita ligação). Um perfil só é indexável com 3 serviços registrados, ou com
+  biografia de verdade e 6 ou mais fotos de trabalhos.
+- [Explorar profissionais](https://fieldo-zelo.com.br/explorar): todos os
+  perfis públicos, com filtro por profissão.
+- Vitrine de locadora — padrão de URL `https://fieldo-zelo.com.br/l/{slug}`:
+  equipamentos para alugar (com preço por dia, semana ou mês, quando a
+  locadora informa) e contato da locadora.
+
+## Como interpretar os dados de um perfil
+
+- Serviço registrado: trabalho que o profissional já fez e lançou no Fieldo
+  com foto, data e categoria, enviado ao cliente em forma de relatório. Não é
+  promessa nem serviço em andamento.
+- Foto de trabalho: foto que o profissional publicou sem um serviço
+  registrado por trás (sem cliente identificado). Aparece na galeria e não
+  conta como serviço.
+- Avaliação: feita por quem contratou, pelo link que recebe com o relatório
+  do serviço. Só quem tem esse link consegue avaliar, e cada avaliação fica
+  ligada a um serviço registrado. A nota só aparece quando existe
+  avaliação; sem avaliação, o perfil não mostra nota.
+- CNPJ ativo: conferido na Receita Federal quando o profissional informa o
+  CNPJ.
+- "Também atende": cidades onde o profissional trabalha além da cidade
+  em que mora, marcadas por ele.
+- "Atua desde", garantia, formas de pagamento, atendimento de urgência e
+  registros: informados pelo próprio profissional, não conferidos.
+- Valores, saldos e endereços dos serviços não são públicos: ficam só com o
+  profissional e o cliente.
+
+## Para o profissional
+
+- [Assistente de IA](https://fieldo-zelo.com.br/ia/): o Fiel, assistente do
+  Fieldo para o profissional. Pela conversa (texto ou voz) cria e edita
+  orçamentos, registra serviços, marca como pago, cria obras, controla
+  contratos com empreiteiro e responde avaliações. Não acessa senha,
+  pagamentos, chave Pix nem documentos. Páginas por tarefa:
+  [orçamento](https://fieldo-zelo.com.br/ia/orcamento/),
+  [diárias e empreitadas](https://fieldo-zelo.com.br/ia/contratos/),
+  [relatório de serviço](https://fieldo-zelo.com.br/ia/relatorio-de-servico/);
+  e por profissão: [eletricista](https://fieldo-zelo.com.br/ia/eletricista/),
+  [pedreiro](https://fieldo-zelo.com.br/ia/pedreiro/),
+  [pintor](https://fieldo-zelo.com.br/ia/pintor/).
+- [Criar perfil](https://fieldo-zelo.com.br/entrar.html): cadastro grátis.
+
+## Sobre o Fieldo
+
+- [Sobre o Fieldo](https://fieldo-zelo.com.br/sobre): o que é, onde atua, o
+  que o Fieldo confere e como falar com a equipe.
+- Contato: WhatsApp de suporte +55 12 98840-6425. Instagram:
+  [@fieldo.zelo](https://www.instagram.com/fieldo.zelo/).
+- [Verificar autenticidade](https://fieldo-zelo.com.br/verificar.html):
+  confere se um orçamento ou relatório emitido pelo Fieldo é o original.
+- [sitemap.xml](https://fieldo-zelo.com.br/sitemap.xml): todas as URLs
+  públicas e indexáveis, sempre atualizado.
+
+Páginas de trabalho do profissional (painel, configurações, orçamento,
+relatório por link do cliente) não são públicas e não devem ser indexadas.

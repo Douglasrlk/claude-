@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#f0ece3"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Explorar profissionais · Fieldo</title>
+  <meta name="description" content="Profissionais do Litoral Norte de SP com fotos de trabalhos, serviços registrados e avaliações de quem contratou. Contato direto pelo WhatsApp."/>
+  <!-- v10.1 · indexável de propósito: é a página que distribui link
+       para os perfis. A lista é montada no servidor pela edge function
+       explorar-seo (v12.31: cartões, linhas, profissões e contagem). -->
+  <meta name="robots" content="index,follow"/>
+  <!-- v10.11 · canonical na URL limpa (todo link interno usa /explorar) -->
+  <link rel="canonical" href="https://fieldo-zelo.com.br/explorar"/>
+  <!-- v12.33 · sem og:image o WhatsApp mostrava o ícone de 180 px esticado -->
+  <meta property="og:type" content="website"/>
+  <meta property="og:site_name" content="Fieldo"/>
+  <meta property="og:locale" content="pt_BR"/>
+  <meta property="og:url" content="https://fieldo-zelo.com.br/explorar"/>
+  <meta property="og:title" content="Explorar profissionais · Fieldo"/>
+  <meta property="og:description" content="Profissionais do Litoral Norte de SP com fotos de trabalhos, serviços registrados e avaliações de quem contratou. Contato direto pelo WhatsApp."/>
+<!-- @@OG -->
+<meta property="og:image" content="https://fieldo-zelo.com.br/og-contratar.jpg"/>
+<meta property="og:image:type" content="image/jpeg"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:image:alt" content="Fieldo: veja o trabalho antes de chamar. Profissionais com fotos, serviços registrados e avaliações de clientes em Caraguatatuba, São Sebastião, Ilhabela e Ubatuba."/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://fieldo-zelo.com.br/og-contratar.jpg"/>
+<!-- /@@OG -->
+  <!-- @@FONTES -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/fieldo.css"/>
+<link rel="stylesheet" href="/publico.css"/>
+<!-- /@@FONTES -->
+  <link rel="manifest" href="/manifest.json"/>
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-title" content="Fieldo"/>
+  <!-- ══════════════════════════════════════════════════════════════
+       v12.31 · AUDITORIA DE UX/UI (04/11)
+       Antes: 23 controles antes do primeiro profissional (busca, 6
+       profissões, 5 botões de ordenação em três fileiras, a faixa
+       "É profissional?", os links por cidade) e o primeiro cartão a
+       689 px do topo no celular. Os cartões eram escuros, em itálico e
+       letra de máquina, com o plano (FREE/PRO) à mostra e "0 avals.
+       0 serviços" em 12 dos 18. O topo tinha o menu do app (Dashboard,
+       Novo serviço…) para quem nem tem conta.
+       Agora: topo das páginas públicas, busca, uma fileira de
+       profissões, "Ordenar" num seletor, o mesmo cartão das páginas
+       por cidade para quem tem trabalho comprovado, uma linha curta
+       para os demais, e o convite ao profissional no fim.
+  ════════════════════════════════════════════════════════════════ -->
+  <style>
+    .ex-cab { margin-bottom: 1.25rem; }
+    .ex-busca { position: relative; margin: 0 0 .7rem; max-width: 40rem; }
+    .ex-busca svg { position: absolute; left: .95rem; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+    .ex-busca input { width: 100%; min-height: 48px; background: var(--paper); border: 1px solid var(--border2); border-radius: var(--rad-md);
+      padding: 0 1rem 0 2.75rem; font-family: var(--sans); font-size: 1rem; color: var(--text); outline: none; -webkit-appearance: none; appearance: none; }
+    .ex-busca input::placeholder { color: var(--muted); }
+    .ex-busca input:focus { border-color: var(--gold-bd); box-shadow: 0 0 0 3px var(--gold-bg); }
+    .ex-chips-wrap { position: relative; margin: 0 -1.25rem; }
+    .ex-chips-wrap::after { content: ''; position: absolute; top: 0; right: 0; bottom: .4rem; width: 28px; background: linear-gradient(to right, rgba(240,236,227,0), var(--bg) 80%); pointer-events: none; }
+    .ex-chips { display: flex; gap: .4rem; overflow-x: auto; padding: 0 1.25rem .4rem; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .ex-chips::-webkit-scrollbar { display: none; }
+    .ex-chip { display: inline-flex; align-items: center; gap: .45rem; min-height: 40px; padding: 0 .95rem; border-radius: 999px; border: 1px solid var(--border2);
+      background: var(--paper); color: var(--text2); font-family: var(--sans); font-size: .86rem; white-space: nowrap; flex-shrink: 0; cursor: pointer; }
+    .ex-chip small { font-family: var(--mono); font-size: .62rem; color: var(--muted); }
+    .ex-chip:hover { border-color: var(--gold-bd); }
+    .ex-chip[aria-pressed="true"] { background: var(--gold-bg); border-color: var(--gold-bd); color: var(--gold-text); }
+    .ex-chip[aria-pressed="true"] small { color: var(--gold-text); }
+    .ex-barra { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin: .8rem 0 1.1rem; padding-top: .8rem; border-top: 1px solid var(--border); }
+    .ex-conta { margin: 0; font-family: var(--mono); font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+    .ex-ordem { position: relative; display: inline-flex; align-items: center; gap: .45rem; font-size: .84rem; color: var(--muted); }
+    .ex-ordem select { min-height: 40px; border: 1px solid var(--border2); border-radius: 999px; background-color: var(--paper); color: var(--ink);
+      padding: 0 2rem 0 .9rem; font-family: var(--sans); font-size: .88rem; -webkit-appearance: none; appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23856310' stroke-width='2.4' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right .75rem center; }
+    .ex-grupo { margin-bottom: 2.2rem; }
+    .ex-grupo[hidden] { display: none; }
+    .ex-grupo-cab { display: flex; align-items: baseline; justify-content: space-between; gap: .8rem; margin: 0 0 .7rem; }
+    .ex-grupo-cab .pub-rotulo { margin: 0; }
+    .ex-grupo-sub { margin: -.35rem 0 .8rem; font-size: .88rem; color: var(--muted); }
+    .ex-vazio { text-align: center; padding: 2.5rem 1rem; color: var(--text2); border: 1px dashed var(--border3); border-radius: var(--r-l); margin-bottom: 2rem; }
+    .ex-vazio[hidden] { display: none; }
+    .ex-vazio p { margin: 0 0 1rem; line-height: 1.55; }
+    .ex-vazio strong { display: block; color: var(--ink); font-weight: 500; }
+    .ex-carregando[hidden] { display: none; }
+    .ex-carregando i { display: block; height: 60px; border-radius: var(--r-l); margin-bottom: .5rem; background: linear-gradient(90deg, var(--paper2), var(--paper3), var(--paper2)); background-size: 200% 100%; animation: exPisca 1.4s ease-in-out infinite; }
+    @keyframes exPisca { to { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) { .ex-carregando i { animation: none; } }
+    @media (min-width: 760px) { .ex-chips-wrap { margin: 0; } .ex-chips { padding: 0 0 .4rem; flex-wrap: wrap; overflow: visible; } .ex-chips-wrap::after { display: none; } }
+  </style>
+</head>
+<body class="pub">
+<a class="pub-skip" href="#exLista">Pular para a lista</a>
+<!-- @@TOPO -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="topbar-logo" aria-label="Fieldo, início"><div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div><span class="topbar-brand">Field<em>o</em></span></a>
+    <nav class="pub-links" aria-label="Principal"><a href="/explorar" aria-current="page">Profissionais</a><a href="/litoral-norte" class="so-pc">Litoral Norte</a><a href="/como-contratar" class="so-pc">Como contratar</a><a class="pub-entrar" href="/entrar.html?entrar=1" data-pub-entrar>Entrar</a></nav>
+  </div>
+</header>
+<!-- /@@TOPO -->
+
+<main class="pub-wrap" id="conteudo">
+  <nav class="pub-trilha" aria-label="Você está em">
+    <ol>
+      <li><a href="/">Fieldo</a></li>
+      <li aria-current="page">Profissionais</li>
+    </ol>
+  </nav>
+  <header class="pub-cab ex-cab">
+    <h1 class="pub-h1">Explorar <em>profissionais</em></h1>
+    <p class="pub-lead">Fotos de trabalhos, serviços registrados e avaliações de quem contratou. O contato é direto com o profissional, pelo WhatsApp, sem cadastro.</p>
+  </header>
+
+  <!-- v12.40 · Área do Cliente v1: salvos e vistos recentemente, só
+       neste aparelho (favoritos.js). Escondido no HTML do servidor —
+       crawler não vê, e quem nunca salvou nada também não. -->
+  <section class="cf-box" id="clienteSalvos" aria-label="Seus salvos" hidden></section>
+
+  <div class="ex-busca" role="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <label class="lp2-sr" for="exBusca" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Buscar por nome, profissão ou cidade</label>
+    <input id="exBusca" type="search" enterkeyhint="search" autocomplete="off" placeholder="Nome, profissão ou cidade"/>
+  </div>
+  <div class="ex-chips-wrap"><div class="ex-chips" id="exChips" role="group" aria-label="Filtrar por profissão"></div></div>
+  <div class="ex-barra">
+    <p class="ex-conta" id="exConta" aria-live="polite">Carregando…</p>
+    <label class="ex-ordem"><span>Ordenar</span>
+      <select id="exOrdem">
+        <option value="rec">Recomendados</option>
+        <option value="nota">Melhor nota</option>
+        <option value="avals">Mais avaliados</option>
+        <option value="servicos">Mais serviços</option>
+        <option value="recentes">Recentes</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="ex-carregando" id="exCarregando" aria-hidden="true"><i></i><i></i><i></i></div>
+
+  <section class="ex-grupo" id="exBons" aria-labelledby="exBonsT" hidden>
+    <div class="ex-grupo-cab"><h2 class="pub-rotulo" id="exBonsT">Com trabalho comprovado</h2></div>
+    <ul class="ll-lista" id="exLista"></ul>
+  </section>
+
+  <section class="ex-grupo" id="exOutros" aria-labelledby="exOutrosT" hidden>
+    <div class="ex-grupo-cab"><h2 class="pub-rotulo" id="exOutrosT">Também no Fieldo</h2></div>
+    <p class="ex-grupo-sub">Perfis que ainda estão juntando serviços, fotos e avaliações.</p>
+    <ul class="ex-linhas" id="exLinhas"></ul>
+  </section>
+
+  <div class="ex-vazio" id="exVazio" hidden>
+    <p><strong>Ninguém com esse filtro.</strong> Tente outra profissão ou limpe a busca.</p>
+    <button type="button" class="pub-btn pub-btn--claro" id="exLimpar">Limpar filtros</button>
+  </div>
+
+  <section class="pub-sec pub-sec--larga" aria-labelledby="exCidadesT">
+    <h2 class="pub-h2" id="exCidadesT">Por <em>cidade</em></h2>
+    <ul class="ll-rel" id="exCidades"></ul>
+  </section>
+
+  <aside class="ll-pro" id="exPro">
+    <p>É profissional? Crie seu perfil grátis, registre seus serviços e apareça aqui.</p>
+    <a href="/entrar.html?criar=1&amp;de=explorar">Criar meu perfil</a>
+  </aside>
+</main>
+
+<!-- @@RODAPE -->
+<footer class="pub-pe">
+  <div class="pub-pe-in">
+    <a href="/" class="pub-pe-marca" aria-label="Fieldo, início"><div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div><span class="topbar-brand">Field<em>o</em></span></a>
+    <nav aria-label="Rodapé">
+      <a href="/explorar">Profissionais</a>
+      <a href="/litoral-norte">Litoral Norte</a>
+      <a href="/como-contratar">Como contratar</a>
+      <a href="/sobre">Sobre o Fieldo</a>
+      <a href="/verificar.html">Verificar um documento</a>
+      <a href="https://www.instagram.com/fieldo.zelo/" target="_blank" rel="noopener me">Instagram</a>
+      <a href="/entrar.html?criar=1">Sou profissional</a>
+      <a href="/termos">Termos de Uso</a>
+      <a href="/privacidade">Privacidade</a>
+    </nav>
+    <small>Contato direto com o profissional, sem intermediação.</small>
+    <div class="pub-pe-legal" data-legal="rodape"></div>
+  </div>
+</footer>
+<!-- /@@RODAPE -->
+
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+<!-- v10.8 · se o db.js não chegar, a lista que o servidor montou continua
+     na tela (data-ssr) e funciona: os filtros abaixo não dependem dele. -->
+<script>window.__fieldoDbFalhou = function () {};</script>
+<script src="/db.js" onerror="__fieldoDbFalhou()"></script>
+<script>
+'use strict';
+/* ══════════════════════════════════════════════════════════════════
+   v12.31 · o servidor (explorar-seo.ts) entrega a lista pronta; aqui só
+   se filtra e se reordena o que já está na página, pelos data-* de cada
+   item. Sem nova busca, sem piscar esqueleto, sem duas versões do
+   mesmo cartão (a de antes, escrita aqui e lá, já tinha divergido).
+   Só quando a lista NÃO veio do servidor (a function demorou) o
+   navegador busca e monta linhas curtas.
+   ══════════════════════════════════════════════════════════════════ */
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var busca = $('exBusca'), chips = $('exChips'), ordem = $('exOrdem'), conta = $('exConta');
+  var listaBons = $('exLista'), listaOutros = $('exLinhas');
+  /* as mesmas chaves da ORDEM de explorar-seo.ts; 1 = do maior para o menor */
+  var ORDENS = {
+    rec:      [['contato', 1], ['sv', 1], ['fotos', 1], ['nota', 1], ['i', 0]],
+    nota:     [['nota', 1], ['sv', 1], ['i', 0]],
+    avals:    [['avals', 1], ['sv', 1], ['i', 0]],
+    servicos: [['sv', 1], ['fotos', 1], ['i', 0]],
+    recentes: [['criado', 1], ['i', 0]]
+  };
+  var ORDEM_PADRAO = 'tem_whatsapp.desc,total_servicos_confirmados.desc,total_fotos_trabalho.desc,media_geral.desc.nullslast';
+  function normal(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+  function itens() { return [].slice.call(document.querySelectorAll('#exLista > li, #exLinhas > li')); }
+  function num(el, k) { var v = el.getAttribute('data-' + k); return v === '' || v == null ? -1 : Number(v); }
+
+  var logado = !!(window.FIELDO && FIELDO.Auth && FIELDO.Auth.isLoggedIn());
+  if (logado) {
+    var pro = $('exPro'); if (pro) pro.hidden = true;
+    try { FIELDO.NavInf.montar('explorar'); } catch (e) {}
+  }
+
+  function catAtual() { var b = chips.querySelector('[aria-pressed="true"]'); return b ? b.getAttribute('data-cat') : ''; }
+  function aplicar() {
+    var q = normal(busca.value).split(' ').filter(Boolean), cat = catAtual(), n = 0, total = itens().length;
+    itens().forEach(function (el) {
+      var cats = ' ' + (el.getAttribute('data-cats') || '') + ' ', txt = el.getAttribute('data-busca') || '';
+      var ok = (!cat || cats.indexOf(' ' + cat + ' ') !== -1) && q.every(function (w) { return txt.indexOf(w) !== -1; });
+      el.hidden = !ok; if (ok) n++;
+    });
+    [['exBons', listaBons], ['exOutros', listaOutros]].forEach(function (g) {
+      var vis = [].some.call(g[1].children, function (li) { return !li.hidden; });
+      $(g[0]).hidden = !vis;
+    });
+    $('exVazio').hidden = n > 0 || !total;
+    conta.textContent = (n === total ? n : n + ' de ' + total) + ' ' + (total === 1 ? 'profissional' : 'profissionais');
+    try {
+      var u = new URL(location.href);
+      if (cat) u.searchParams.set('p', cat); else u.searchParams.delete('p');
+      if (busca.value.trim()) u.searchParams.set('q', busca.value.trim()); else u.searchParams.delete('q');
+      if (ordem.value !== 'rec') u.searchParams.set('ordem', ordem.value); else u.searchParams.delete('ordem');
+      history.replaceState(null, '', u.pathname + u.search);
+    } catch (e) {}
+  }
+  function ordenar() {
+    var regra = ORDENS[ordem.value] || ORDENS.rec;
+    [listaBons, listaOutros].forEach(function (ul) {
+      var els = [].slice.call(ul.children);
+      els.sort(function (a, b) {
+        for (var i = 0; i < regra.length; i++) {
+          var k = regra[i][0], d = num(b, k) - num(a, k);
+          if (d) return regra[i][1] ? d : -d;
+        }
+        return 0;
+      });
+      els.forEach(function (el) { ul.appendChild(el); });
+    });
+  }
+  function marcar(btn) {
+    [].forEach.call(chips.querySelectorAll('.ex-chip'), function (c) { c.setAttribute('aria-pressed', c === btn ? 'true' : 'false'); });
+  }
+  chips.addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('.ex-chip') : null;
+    if (!b) return;
+    marcar(b); aplicar();
+  });
+  var t = null;
+  busca.addEventListener('input', function () { clearTimeout(t); t = setTimeout(aplicar, 120); });
+  ordem.addEventListener('change', function () { ordenar(); aplicar(); });
+  $('exLimpar').addEventListener('click', function () {
+    busca.value = ''; marcar(chips.querySelector('.ex-chip[data-cat=""]')); aplicar(); busca.focus();
+  });
+
+  /* clique no WhatsApp dos cartões: contado como no perfil e nas listas por cidade */
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[data-wa]') : null;
+    if (!a || !window.FIELDO) return;
+    try {
+      fetch(FIELDO.config.REST_URL + '/rpc/log_impact_event', { method: 'POST', keepalive: true,
+        headers: { apikey: FIELDO.config.ANON_KEY, Authorization: 'Bearer ' + FIELDO.config.ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_professional_id: a.getAttribute('data-wa'), p_event_type: 'whatsapp_click', p_source: 'explorar' }) });
+    } catch (err) {}
+  });
+
+  /* filtros vindos do endereço (?p=eletrica&q=…&ordem=…) */
+  function lerEndereco() {
+    try {
+      var u = new URL(location.href), p = u.searchParams.get('p'), q = u.searchParams.get('q'), o = u.searchParams.get('ordem');
+      if (q) busca.value = q;
+      if (o && ORDENS[o]) { ordem.value = o; ordenar(); }
+      if (p) { var b = chips.querySelector('.ex-chip[data-cat="' + p.replace(/[^a-z0-9-]/g, '') + '"]'); if (b) marcar(b); }
+    } catch (e) {}
+  }
+
+  if (itens().length) { lerEndereco(); aplicar(); return; }
+
+  /* ── reserva: o servidor não montou a lista ── */
+  if (!window.FIELDO || !FIELDO.Marketplace) { conta.textContent = ''; $('exCarregando').hidden = true; return; }
+  function esc(s) { return FIELDO.UI.esc(s); }
+  FIELDO.Marketplace.list(ORDEM_PADRAO, 60).then(function (rows) {
+    rows = Array.isArray(rows) ? rows : [];
+    var cont = {};
+    listaOutros.innerHTML = rows.map(function (p, i) {
+      var cats = [p.niche].concat((p.outras_profissoes || []).map(function (o) { return o && o.nicho; })).filter(function (k, j, a) { return k && k !== 'outro' && a.indexOf(k) === j; });
+      cats.forEach(function (k) { cont[k] = (cont[k] || 0) + 1; });
+      var nome = p.name || 'Profissional', sv = p.total_servicos_confirmados || 0, ft = p.total_fotos_trabalho || 0;
+      var href = p.slug ? '/p/' + encodeURIComponent(p.slug) : '/perfil.html?id=' + encodeURIComponent(p.id);
+      var av = /^https:\/\//.test(p.logo_url || '') ? '<img src="' + esc(p.logo_url) + '" alt="" loading="lazy" width="40" height="40"/>' : esc((nome.trim()[0] || 'F').toUpperCase());
+      var fato = sv > 0 ? sv + (sv === 1 ? ' serviço' : ' serviços') : ft > 0 ? ft + (ft === 1 ? ' foto' : ' fotos') : 'Novo no Fieldo';
+      var nota = parseFloat(p.media_geral) || 0;
+      return '<li class="ex-linha" data-i="' + i + '" data-cats="' + esc(cats.join(' ')) + '" data-busca="' + esc(normal([p.name, p.profissao].concat((p.outras_profissoes || []).map(function (o) { return o && o.rotulo; }), [p.city]).filter(Boolean).join(' '))) +
+        '" data-contato="' + (p.tem_whatsapp ? 1 : 0) + '" data-sv="' + sv + '" data-fotos="' + ft + '" data-nota="' + (nota ? nota.toFixed(2) : '') +
+        '" data-avals="' + (p.total_geral || 0) + '" data-criado="' + (Date.parse(p.created_at || '') || 0) + '"><a href="' + href + '">' +
+        '<span class="ex-av">' + av + '</span><span class="ex-txt"><span class="ex-nome">' + esc(nome) + '</span><span class="ex-sub">' +
+        esc([p.profissao, p.city].filter(Boolean).join(' · ')) + '</span></span><span class="ex-fato">' + esc(fato) + '</span></a></li>';
+    }).join('');
+    $('exOutrosT').textContent = 'Profissionais';
+    chips.innerHTML = '<button type="button" class="ex-chip" data-cat="" aria-pressed="true">Todos<small>' + rows.length + '</small></button>' +
+      Object.keys(cont).sort(function (a, b) { return cont[b] - cont[a]; }).map(function (k) {
+        return '<button type="button" class="ex-chip" data-cat="' + esc(k) + '" aria-pressed="false">' + esc(FIELDO.Profissoes.rotulo(k)) + '<small>' + cont[k] + '</small></button>';
+      }).join('');
+    $('exCarregando').hidden = true;
+    lerEndereco(); aplicar();
+  }).catch(function () {
+    $('exCarregando').hidden = true;
+    conta.textContent = '';
+    $('exVazio').hidden = false;
+    $('exVazio').querySelector('p').innerHTML = '<strong>Não foi possível carregar a lista agora.</strong> Veja os profissionais por cidade, logo abaixo, ou tente de novo em instantes.';
+  });
+})();
+</script>
+<!-- @@ENTRAR -->
+<script>
+(function () {
+  try {
+    var a = JSON.parse(localStorage.getItem('fieldo_auth') || 'null');
+    if (!a || !a.access_token) return;
+    var el = document.querySelector('[data-pub-entrar]');
+    if (el) { el.textContent = 'Meu painel'; el.setAttribute('href', '/painel.html'); }
+  } catch (e) {}
+})();
+</script>
+<!-- /@@ENTRAR -->
+<script src="/favoritos.js" defer></script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

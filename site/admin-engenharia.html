@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Engenharia · Admin · Fieldo</title>
+<meta name="robots" content="noindex,nofollow"/>
+<!--
+  Fieldo · admin-engenharia.html — v12.18
+  A tela que faltava para o Fieldo Engenharia. A função admin-engenharia
+  existia desde 19/09, mas nunca houve página: os 33 incidentes que o
+  Integrity Agent abriu ficaram sem ninguém ler (auditoria de 29/10).
+
+  Mesmo portão do admin-cadastros: a página é pública como arquivo, mas sem
+  a FIELDO_ADMIN_KEY não mostra nada — quem decide é a Edge Function, que
+  confere a chave em tempo constante. A chave fica só nesta aba.
+
+  A única escrita possível daqui é "marcar como lido". Nada aqui aprova
+  mudança nem publica coisa alguma.
+-->
+<link rel="stylesheet" href="/fieldo.css"/>
+<style>
+  body { background: var(--paper, #f5f2ec); color: var(--text, #1a1a24); font-family: var(--sans, system-ui, sans-serif); margin: 0; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  h1 { font-family: var(--serif, Georgia, serif); font-weight: 400; font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 0 0 .4rem; }
+  h2 { font-family: var(--serif, Georgia, serif); font-weight: 400; font-size: 1.3rem; margin: 2rem 0 .7rem; }
+  .sub { color: var(--muted, #625d57); font-size: .92rem; line-height: 1.55; margin: 0 0 1.25rem; max-width: 42rem; }
+  input[type=password] { width: 100%; box-sizing: border-box; min-height: 46px; padding: .7rem .9rem; font-size: 1rem;
+    border: 1px solid var(--border2, rgba(14,14,20,.16)); border-radius: 10px; background: #fff; font-family: inherit; }
+  .btn { min-height: 44px; padding: .55rem 1rem; border-radius: 10px; border: 1px solid var(--border2, rgba(14,14,20,.16));
+    background: #fff; color: inherit; font: 500 .88rem var(--sans, system-ui, sans-serif); cursor: pointer; }
+  .btn--ouro { background: var(--gold, #856310); border-color: var(--gold, #856310); color: #fff; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .err { color: #a12a1c; font-size: .88rem; margin-top: .6rem; min-height: 1.2em; }
+  #gate { max-width: 420px; }
+  #gate .linha { display: flex; gap: .5rem; margin-top: .5rem; }
+  #app { display: none; }
+
+  .saude { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .6rem; }
+  .card { background: #fff; border: 1px solid var(--border, rgba(14,14,20,.09)); border-radius: 12px; padding: .9rem 1rem; }
+  .card-tit { font-size: .82rem; color: var(--muted, #625d57); }
+  .card-val { font-size: 1.05rem; font-weight: 600; margin-top: .25rem; display: flex; align-items: center; gap: .45rem; }
+  .card-det { font-size: .8rem; color: var(--text2, #4a4855); margin-top: .3rem; line-height: 1.45; }
+  .pt { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .pt--ok { background: #2d7d46; } .pt--at { background: #b8880d; } .pt--mal { background: #a12a1c; }
+
+  .grupo { background: #fff; border: 1px solid var(--border, rgba(14,14,20,.09)); border-radius: 12px; padding: .85rem 1rem; margin-bottom: .5rem; }
+  .grupo-top { display: flex; gap: .75rem; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+  .grupo-url { font-weight: 600; font-size: .92rem; overflow-wrap: anywhere; }
+  .grupo-mot { font-size: .86rem; color: var(--text2, #4a4855); margin-top: .2rem; line-height: 1.45; }
+  .grupo-meta { font-size: .78rem; color: var(--muted, #625d57); margin-top: .35rem; }
+  .parecer { margin-top: .6rem; padding: .6rem .75rem; background: var(--paper2, #ede9df); border-radius: 8px; font-size: .84rem; line-height: 1.5; }
+  .parecer b { text-transform: capitalize; }
+  .sev-grave { color: #a12a1c; font-weight: 600; } .sev-atencao { color: #8a5e0a; font-weight: 600; }
+  .vazio { padding: 1rem; background: #fff; border: 1px dashed var(--border2, rgba(14,14,20,.16)); border-radius: 12px; color: var(--text2, #4a4855); font-size: .9rem; }
+  .barra { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-bottom: .6rem; }
+  .barra .cont { font-size: .85rem; color: var(--muted, #625d57); flex: 1; }
+  table { width: 100%; border-collapse: collapse; font-size: .84rem; background: #fff; border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--border, rgba(14,14,20,.09)); vertical-align: top; }
+  th { font-weight: 600; color: var(--text2, #4a4855); background: var(--paper2, #ede9df); }
+  td.url { overflow-wrap: anywhere; }
+  .tab-wrap { overflow-x: auto; }
+  .ok { color: #2d7d46; } .mal { color: #a12a1c; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="gate">
+    <h1>Engenharia</h1>
+    <p class="sub">Use a mesma chave do painel de estatísticas (FIELDO_ADMIN_KEY).</p>
+    <div class="linha">
+      <input type="password" id="chave" placeholder="Chave de administrador" autocomplete="off"/>
+      <button class="btn btn--ouro" id="btnEntrar">Entrar</button>
+    </div>
+    <div class="err" id="gateErr" role="alert"></div>
+  </div>
+
+  <div id="app">
+    <h1>Engenharia</h1>
+    <p class="sub" id="geradoEm"></p>
+
+    <section aria-labelledby="tSaude">
+      <h2 id="tSaude">Saúde dos agentes</h2>
+      <div class="saude" id="saude"></div>
+    </section>
+
+    <section aria-labelledby="tInc">
+      <h2 id="tInc">Incidentes abertos</h2>
+      <div class="barra">
+        <span class="cont" id="incCont"></span>
+        <button type="button" class="btn" id="btnTodos">Marcar todos como lidos</button>
+      </div>
+      <div id="incidentes"></div>
+    </section>
+
+    <section aria-labelledby="tPag">
+      <h2 id="tPag">Páginas monitoradas</h2>
+      <div class="tab-wrap"><table id="paginas"></table></div>
+    </section>
+
+    <section aria-labelledby="tMud">
+      <h2 id="tMud">Livro de mudanças</h2>
+      <div id="mudancas"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+'use strict';
+var EDGE_URL = 'https://jrsctnncoljdcvdofxsg.supabase.co/functions/v1/admin-engenharia';
+var _chave = '';
+try { _chave = sessionStorage.getItem('_fieldo_admin_key') || ''; } catch (e) {}
+var _dados = null;
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+function quando(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+function horasAtras(iso) { return iso ? (Date.now() - new Date(iso).getTime()) / 36e5 : Infinity; }
+function curtaUrl(u) { return String(u || '').replace(/^https?:\/\/(www\.)?fieldo-zelo\.com\.br/, '') || '/'; }
+
+function chamar(metodo, corpo) {
+  return fetch(EDGE_URL, {
+    method: metodo,
+    headers: Object.assign({ 'x-admin-key': _chave }, corpo ? { 'Content-Type': 'application/json' } : {}),
+    body: corpo ? JSON.stringify(corpo) : undefined,
+  }).then(function (r) {
+    if (r.status === 403) throw { proibido: true };
+    return r.json().then(function (j) { if (!r.ok) throw j; return j; });
+  });
+}
+
+/* ── Saúde: um cartão por agente, com a cor dizendo se está bem ── */
+function saude(d) {
+  var f1 = d.fase1, f2 = d.fase2, f3 = d.fase3;
+  var ultIntegrity = f1.ultima_verificacao;
+  var integrityOk = horasAtras(ultIntegrity) < 4;
+  /* A consulta mais recente diz se o Council funciona AGORA (a lista vem
+     da função em ordem decrescente de data). */
+  var consultas = f3.consultas.filter(function (c) { return !c.is_escalation; });
+  var ultima = consultas[0] || null;
+  var falhando = !!(ultima && ultima.status === 'falhou');
+  var chaveRuim = falhando && /invalid x-api-key|authentication|n\u00e3o configurada/i.test(ultima.error || '');
+  var ultMud = f2.mudancas.length ? f2.mudancas.map(function (m) { return m.opened_at; }).sort().pop() : null;
+  var mudVelha = horasAtras(ultMud) > 24 * 14;
+
+  var cartoes = [
+    ['Integrity Agent', integrityOk ? 'ok' : 'mal', integrityOk ? 'Funcionando' : 'Parado',
+      'Última conferência ' + quando(ultIntegrity) + ' · ' + f1.paginas_monitoradas + ' páginas'],
+    ['Council de IA', chaveRuim ? 'mal' : (falhando ? 'at' : 'ok'),
+      chaveRuim ? 'Chave da Anthropic inválida' : (falhando ? 'Falhando' : 'Funcionando'),
+      'Cota do mês: ' + f3.orcamento.usadas + ' de ' + f3.orcamento.teto + ' usadas' +
+      (chaveRuim ? ' · Troque ANTHROPIC_API_KEY no Supabase (também derruba o Assistente Fiel)' : '')],
+    ['Incidentes', f1.incidentes_abertos ? 'at' : 'ok',
+      f1.incidentes_abertos ? f1.incidentes_abertos + ' sem leitura' : 'Nenhum aberto', 'Lidos aparecem só no histórico'],
+    ['Livro de mudanças', mudVelha ? 'at' : 'ok', mudVelha ? 'Parado' : 'Em dia',
+      'Último registro ' + quando(ultMud) + ' · ' + f2.mudancas.length + (f2.mudancas.length === 1 ? ' registro' : ' registros')],
+  ];
+  document.getElementById('saude').innerHTML = cartoes.map(function (c) {
+    return '<div class="card"><div class="card-tit">' + esc(c[0]) + '</div>' +
+      '<div class="card-val"><span class="pt pt--' + c[1] + '" aria-hidden="true"></span>' + esc(c[2]) + '</div>' +
+      '<div class="card-det">' + esc(c[3]) + '</div></div>';
+  }).join('');
+}
+
+/* ── Incidentes: agrupados por página + motivo, o mais recente em cima ── */
+function incidentes(d) {
+  var abertos = d.fase1.incidentes.filter(function (i) { return !i.reviewed; });
+  var grupos = {};
+  abertos.forEach(function (i) {
+    var motivo = String(i.summary || '').replace(/^Regressão detectada em \S+:\s*/, '');
+    var k = i.url + '|' + motivo;
+    (grupos[k] = grupos[k] || { url: i.url, motivo: motivo, ids: [], primeiro: i.opened_at, ultimo: i.opened_at }).ids.push(i.id);
+    if (i.opened_at < grupos[k].primeiro) grupos[k].primeiro = i.opened_at;
+    if (i.opened_at > grupos[k].ultimo) grupos[k].ultimo = i.opened_at;
+  });
+  var lista = Object.keys(grupos).map(function (k) { return grupos[k]; })
+    .sort(function (a, b) { return b.ultimo.localeCompare(a.ultimo); });
+  var pareceres = {};
+  d.fase3.consultas.forEach(function (c) {
+    if (c.incident_id && c.pareceres && c.pareceres.length) pareceres[c.incident_id] = c.pareceres;
+  });
+
+  document.getElementById('incCont').textContent = abertos.length
+    ? abertos.length + (abertos.length === 1 ? ' incidente' : ' incidentes') + ' em ' + lista.length + (lista.length === 1 ? ' problema' : ' problemas')
+    : '';
+  document.getElementById('btnTodos').style.display = abertos.length ? '' : 'none';
+  document.getElementById('incidentes').innerHTML = lista.length ? lista.map(function (g, n) {
+    var par = null;
+    g.ids.some(function (id) { if (pareceres[id]) { par = pareceres[id]; return true; } return false; });
+    return '<div class="grupo">' +
+      '<div class="grupo-top"><div style="flex:1;min-width:0">' +
+        '<div class="grupo-url">' + esc(curtaUrl(g.url)) + '</div>' +
+        '<div class="grupo-mot">' + esc(g.motivo) + '</div>' +
+        '<div class="grupo-meta">' + g.ids.length + (g.ids.length === 1 ? ' vez' : ' vezes') + ' · ' +
+          (g.ids.length > 1 ? 'de ' + quando(g.primeiro) + ' a ' : '') + quando(g.ultimo) + '</div>' +
+      '</div><button type="button" class="btn" data-g="' + n + '">Marcar como lido</button></div>' +
+      (par ? '<div class="parecer">' + par.map(function (o) {
+        return '<div><b>' + esc(o.specialist) + '</b> · <span class="sev-' + esc(o.severity) + '">' + esc(o.severity) + '</span>: ' +
+          esc(o.summary) + (o.recommended_action ? ' <em>' + esc(o.recommended_action) + '</em>' : '') + '</div>';
+      }).join('') + '</div>' : '') +
+    '</div>';
+  }).join('') : '<div class="vazio">Nenhum incidente aberto. O Integrity Agent continua conferindo as páginas a cada 3 horas.</div>';
+  incidentes._grupos = lista;
+}
+
+function paginas(d) {
+  var linhas = d.fase1.paginas.map(function (p) {
+    var ok = p.run_ok && p.http_status >= 200 && p.http_status < 300 && !p.is_regression;
+    return '<tr><td class="url">' + esc(curtaUrl(p.url)) + '</td>' +
+      '<td class="' + (ok ? 'ok' : 'mal') + '">' + esc(p.http_status || p.error || '—') + '</td>' +
+      '<td>' + (p.canonical ? '<span class="ok">sim</span>' : '<span class="mal">não</span>') + '</td>' +
+      '<td>' + (p.html_bytes ? Math.round(p.html_bytes / 1024) + ' KB' : '—') + '</td>' +
+      '<td>' + esc(quando(p.checked_at)) + '</td></tr>';
+  }).join('');
+  document.getElementById('paginas').innerHTML =
+    '<thead><tr><th>Página</th><th>Status</th><th>Canonical</th><th>Tamanho</th><th>Conferida</th></tr></thead><tbody>' + linhas + '</tbody>';
+}
+
+function mudancas(d) {
+  var m = d.fase2.mudancas;
+  document.getElementById('mudancas').innerHTML = m.length
+    ? '<div class="tab-wrap"><table><thead><tr><th>Registro</th><th>Situação</th><th>Data</th><th>Motivo</th></tr></thead><tbody>' +
+      m.map(function (x) {
+        return '<tr><td>' + esc(x.change_id) + '</td><td>' + esc(x.status) + '</td><td>' + esc(quando(x.opened_at)) + '</td><td>' + esc(String(x.reason || '').slice(0, 140)) + '</td></tr>';
+      }).join('') + '</tbody></table></div>'
+    : '<div class="vazio">Nenhuma mudança registrada.</div>';
+}
+
+function desenhar(d) {
+  _dados = d;
+  document.getElementById('geradoEm').textContent = 'Atualizado ' + quando(d.gerado_em) + '.';
+  saude(d); incidentes(d); paginas(d); mudancas(d);
+}
+
+function carregar() {
+  return chamar('GET').then(function (d) {
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    desenhar(d);
+  });
+}
+
+function marcar(ids, botao) {
+  if (botao) { botao.disabled = true; botao.textContent = 'Salvando…'; }
+  return chamar('POST', { acao: 'marcar_lido', ids: ids }).then(carregar).catch(function (e) {
+    if (botao) { botao.disabled = false; botao.textContent = 'Tente de novo'; }
+    if (e && e.proibido) sair();
+  });
+}
+
+function sair() {
+  try { sessionStorage.removeItem('_fieldo_admin_key'); } catch (e) {}
+  _chave = '';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('gate').style.display = '';
+  document.getElementById('gateErr').textContent = 'Chave recusada. Digite de novo.';
+}
+
+document.getElementById('btnEntrar').addEventListener('click', function () {
+  var v = document.getElementById('chave').value.trim();
+  var err = document.getElementById('gateErr');
+  if (!v) { err.textContent = 'Digite a chave.'; return; }
+  _chave = v; err.textContent = '';
+  this.disabled = true; var b = this;
+  carregar().then(function () {
+    try { sessionStorage.setItem('_fieldo_admin_key', _chave); } catch (e) {}
+  }).catch(function (e) {
+    err.textContent = (e && e.proibido) ? 'Chave recusada.' :
+      (navigator.onLine === false ? 'Sem conexão com a internet.' : 'O servidor não respondeu. Tente de novo em instantes.');
+  }).then(function () { b.disabled = false; });
+});
+document.getElementById('chave').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('btnEntrar').click(); });
+
+document.getElementById('incidentes').addEventListener('click', function (e) {
+  var b = e.target.closest('button[data-g]'); if (!b) return;
+  var g = (incidentes._grupos || [])[+b.dataset.g]; if (g) marcar(g.ids, b);
+});
+document.getElementById('btnTodos').addEventListener('click', function () {
+  if (!_dados) return;
+  var ids = _dados.fase1.incidentes.filter(function (i) { return !i.reviewed; }).map(function (i) { return i.id; });
+  var b = this;
+  if (b.dataset.confirma !== '1') { b.dataset.confirma = '1'; b.textContent = 'Tocar de novo: marcar ' + ids.length + ' como lidos'; return; }
+  b.dataset.confirma = ''; b.textContent = 'Marcar todos como lidos';
+  marcar(ids, b);
+});
+
+if (_chave) carregar().catch(function () { sair(); document.getElementById('gateErr').textContent = ''; });
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

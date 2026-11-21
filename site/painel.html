@@ -1,0 +1,2609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#0e0e14"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Fieldo · Dashboard</title>
+  <!-- v6.9 · Fora do índice. Painel do profissional — exige sessão.
+       Rastreio NÃO é bloqueado no robots.txt de propósito: o robô
+       precisa poder ler esta linha para respeitá-la. -->
+  <meta name="robots" content="noindex,follow"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-title" content="Fieldo"/>
+  <style>
+    /* ═══════════════════════════════════════
+       HERO — Dark ink header
+    ═══════════════════════════════════════ */
+    .dash-hero {
+      background: var(--topbar-bg);
+      padding: 1.5rem 1.25rem 0;
+      position: relative; overflow: hidden;
+    }
+    .dash-hero::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse at 85% 0%, rgba(154,114,24,.13) 0%, transparent 55%),
+        radial-gradient(ellipse at 10% 100%, rgba(154,114,24,.06) 0%, transparent 50%);
+    }
+    .dash-hero-inner { max-width: 1200px; margin: 0 auto; }
+
+    /* Profile row */
+    /* v9.14 · ALVOS DE TOQUE
+       Medido no Chromium a 390px, os controles reais da tela estavam
+       assim: menu 36×36, fechar-menu 30×30, abas 39 de altura,
+       "Arquivados" 30. A recomendação é 44. Aumentei o que dava sem
+       mexer no layout — o menu é o alvo mais usado da tela inteira.
+       (O link "Pular para o conteúdo" tem 1×1 de propósito: só existe
+       para leitor de tela e aparece no foco.) */
+    .hbg-btn { min-width: 44px; min-height: 44px; }
+    .menu-drawer-close { min-width: 44px; min-height: 44px; }
+    .dash-tab { min-height: 44px; }
+    .sec-toggle, .sec-action { min-height: 40px; }
+
+    .dash-profile {
+      display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+    }
+    .dash-avatar {
+      width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-d) 100%);
+      border: 2px solid rgba(154,114,24,.35);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif); font-size: 1.25rem; font-style: italic;
+      color: var(--on-gold); overflow: hidden; cursor: pointer;
+      transition: border-color var(--t);
+    }
+    .dash-avatar:hover { border-color: rgba(154,114,24,.65); }
+    .dash-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .dash-id { flex: 1; min-width: 0; }
+    .dash-name {
+      font-family: var(--serif); font-size: 1.15rem; font-weight: 300;
+      font-style: italic; color: rgba(255,255,255,.9);
+      /* v9.14: era nowrap + reticências. "Marcelo Ferreira Rodrigues"
+         era cortado já em 360px — o nome da pessoa, na tela dela. Duas
+         linhas resolvem sem quebrar o layout; acima disso, aí sim
+         reticências. Testado com 48 caracteres em 320px. */
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; line-height: 1.22; word-break: break-word;
+    }
+    /* v9.14b · CONTRASTE. Medido, não estimado: .35 dava 3.18:1 sobre
+       o herói escuro — reprova AA (mín. 4.5). Quem usa este app lê a
+       tela no sol, na rua, num celular barato. Cinza discreto ali não
+       é elegância, é texto que some. */
+    .dash-spec {
+      font-family: var(--mono); font-size: .62rem; color: rgba(255,255,255,.46);
+      margin-top: .18rem; line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; word-break: break-word;
+    }
+
+    .dash-plan-badge {
+      flex-shrink: 0; display: flex; align-items: center; gap: .35rem;
+      background: var(--gold-bg); border: 1px solid var(--gold-bd);
+      border-radius: 2rem; padding: .28rem .7rem;
+      font-family: var(--mono); font-size: .55rem;
+      letter-spacing: .1em; text-transform: uppercase; color: var(--gold-l);
+    }
+    .dash-plan-dot {
+      width: 5px; height: 5px; border-radius: 50%; background: var(--gold-l);
+      animation: pulse 2.2s infinite;
+    }
+
+    /* Score section */
+    .dash-score-row {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      gap: 1rem; padding-bottom: 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .dash-score-main {}
+    .dash-score-lbl {
+      font-family: var(--mono); font-size: .52rem; letter-spacing: .2em;
+      text-transform: uppercase; color: rgba(255,255,255,.28); margin-bottom: .2rem;
+    }
+    .dash-score-val {
+      font-family: var(--serif); font-size: 3.2rem; font-weight: 300;
+      line-height: .95; color: rgba(255,255,255,.92); letter-spacing: -.03em;
+    }
+    .dash-score-val em { font-style: italic; color: var(--gold-l); }
+    .dash-score-stars {
+      color: var(--gold-l); font-size: .9rem; letter-spacing: -.04em; margin-top: .25rem;
+    }
+    .dash-score-sub {
+      font-family: var(--mono); font-size: .6rem;
+      color: rgba(255,255,255,.28); margin-top: .15rem;
+    }
+
+    .dash-qs-row { display: flex; gap: 1.5rem; }
+    .dash-qs {}
+    .dash-qs-val {
+      font-family: var(--mono); font-size: 1rem; font-weight: 500;
+      color: rgba(255,255,255,.75); line-height: 1;
+    }
+    .dash-qs-lbl {
+      font-family: var(--mono); font-size: .52rem; letter-spacing: .12em;
+      text-transform: uppercase; color: rgba(255,255,255,.28); margin-top: .18rem;
+    }
+
+    /* Tabs */
+    /* ── v9.6 · A FAIXA DE IDENTIDADE PÚBLICA ──────────────────
+       O produto inteiro é "seu perfil público com prova de trabalho".
+       No dashboard, o único link pro próprio perfil estava dentro da
+       TERCEIRA aba, como um "Ver perfil →" pequeno. Três toques de
+       distância da coisa que o app É.
+       Aqui ela vira a primeira linha de ação depois do nome. */
+    /* v9.12 · a linha única que substituiu o score gigante + 3 tiles */
+    /* v9.13 · a única ação da tela inicial */
+    /* v10.0 · mesma classe do meu-perfil.html. Um componente, não dois. */
+    .mp-passo { background: var(--paper); border: 1px solid var(--gold-bd);
+      border-left: 3px solid var(--gold); border-radius: var(--rad-md);
+      padding: var(--s3); margin-bottom: var(--s3); }
+    .mp-passo-lbl { font-family: var(--mono); font-size: var(--t-micro);
+      letter-spacing: .16em; text-transform: uppercase; color: var(--gold-text);
+      margin-bottom: var(--s1); }
+    .mp-passo-tit { font-family: var(--serif); font-size: var(--t-h2);
+      color: var(--text); margin-bottom: 6px; }
+    .mp-passo-txt { font-size: var(--t-sm); line-height: var(--lh-base);
+      color: var(--muted); margin-bottom: var(--s2); }
+    /* v-fase1-agentfirst · o assistente já existia, mas só dentro do
+       menu-hambúrguer, no mesmo nível de "Configurações" — três toques
+       de distância de uma coisa que já sabe criar orçamento, registrar
+       serviço e consultar o que já foi feito. Mesma família visual do
+       .mp-passo (borda dourada à esquerda), pra não inventar um
+       segundo estilo de card só pra isto. Fica DEPOIS da ação única
+       (Registrar novo serviço) — é um atalho a mais pra quem prefere
+       falar, não uma segunda ação principal disputando espaço com ela. */
+    .mp-agente { background: var(--paper); border: 1px solid var(--gold-bd);
+      border-left: 3px solid var(--gold); border-radius: var(--rad-md);
+      padding: var(--s3); margin-bottom: 1.6rem; }
+    .mp-agente-lbl { font-family: var(--mono); font-size: var(--t-micro);
+      letter-spacing: .16em; text-transform: uppercase; color: var(--gold-text);
+      margin-bottom: var(--s1); }
+    .mp-agente-tit { font-family: var(--serif); font-size: var(--t-h2);
+      color: var(--text); margin-bottom: .75rem; }
+    .mp-agente-pills { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .mp-agente-pill { font-family: inherit; font-size: .78rem; font-weight: 500;
+      min-height: 40px; padding: .5rem .85rem; display: inline-flex; align-items: center;
+      border-radius: 9px; border: 1px solid var(--gold-bd); background: var(--gold-bg);
+      color: var(--gold-text); text-decoration: none; white-space: nowrap; }
+    .acao-primaria{display:flex;align-items:center;justify-content:center;gap:.55rem;
+      background:var(--gold);color:var(--on-gold);text-decoration:none;font-size:.95rem;font-weight:500;
+      padding:1rem;border-radius:12px;margin-bottom:1.6rem;
+      box-shadow:0 2px 10px rgba(154,114,24,.22)}
+    .acao-primaria svg{flex-shrink:0}
+    /* v10.16 · a MESMA ação, sem disputar o olho.
+       O dourado é o que diz "é isto aqui". Quando o cartão de próximo
+       passo está na tela, ele é o "isto aqui" — tem o motivo junto, que
+       um botão solto não tem. Este vira contorno: mesma posição, mesma
+       largura, mesmo alvo de toque de 1rem. Só para de gritar. */
+    .acao-primaria--calma{background:transparent;color:var(--gold-text);
+      border:1px solid var(--gold-bd);box-shadow:none}
+    /* v9.14 · a reputação era a informação mais fraca da tela: mono
+       .66rem em cinza. É o ativo do produto — merece peso. Serif para
+       a nota (é número, e número em serif lê como valor, não como
+       código), mono para o resto. */
+    .dash-linha{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;
+      margin-top:.5rem;font-family:var(--mono);font-size:.68rem;
+      color:rgba(255,255,255,.46)}   /* v9.14b: .42 dava 4.09:1 */
+    .dash-nota{font-family:var(--serif);font-style:italic;font-size:1.35rem;
+      line-height:1;color:var(--gold-l);letter-spacing:-.02em}
+    .dash-estrelas{color:var(--gold-l);font-size:.72rem;letter-spacing:.06em}
+        /* v9.14b: .16 dava 1.57:1 — um separador que ninguém enxerga não
+       separa nada. Não é texto (WCAG não exige 4.5 aqui), mas estava
+       falhando na própria função. */
+    .dash-linha .sep{color:rgba(255,255,255,.32)}
+    .dash-linha b{color:rgba(255,255,255,.72);font-weight:500}
+    /* v9.14 · o estado do perfil vira RÓTULO + ESTADO numa linha, com
+       as ações embaixo. Antes era uma frase de duas linhas seguida dos
+       botões — muito respiro pra pouca informação, e os botões
+       encostavam nas abas. */
+        /* v9.14b · UMA linha quando cabe, DUAS quando não cabe.
+       align-items:center é obrigatório e explícito: foi o stretch
+       implícito que esticou o botão até 145px na v9.14. O wrap resolve
+       o caso do texto longo sem precisar de media query. */
+    .perfil-bar{border-top:1px solid rgba(255,255,255,.08);
+      padding-top:.85rem;margin-top:.9rem;margin-bottom:1.15rem;
+      align-items:center;gap:.6rem .75rem;flex-wrap:wrap}
+    /* baseline, não center: com o estado ocupando duas linhas, o
+       'center' punha o rótulo no vão ENTRE elas. */
+    .perfil-bar-top{display:flex;align-items:baseline;gap:.55rem;
+      flex-wrap:wrap;flex:1 1 200px;min-width:0}
+    .perfil-bar-lbl{font-family:var(--mono);font-size:.56rem;letter-spacing:.08em;
+      text-transform:uppercase;color:rgba(255,255,255,.46);flex-shrink:0}
+    .perfil-bar-est{flex:1;min-width:140px;
+      font-size:.74rem;color:rgba(255,255,255,.66);line-height:1.35}
+    .perfil-bar-est .ponto{display:inline-block;width:6px;height:6px;border-radius:50%;
+      background:var(--green-l,#2d7a4f);margin-right:.4rem;vertical-align:middle}
+    .perfil-bar-est b{color:var(--gold);font-weight:600}
+    .perfil-bar-acoes{display:flex;gap:.45rem;flex-shrink:0}
+    /* v9.14b · min-height 44. Estavam com 38px de altura — e são as
+       DUAS ações do perfil público, o que a tela existe pra entregar. */
+    .perfil-bar-btn{font-family:inherit;font-size:.74rem;font-weight:500;
+      min-height:44px;justify-content:center;
+      padding:.5rem .9rem;border-radius:9px;border:1px solid rgba(255,255,255,.16);
+      background:transparent;color:rgba(255,255,255,.85);cursor:pointer;
+      text-decoration:none;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap}
+    .perfil-bar-btn--forte{background:var(--gold);border-color:var(--gold);color:var(--on-gold)}
+    .perfil-bar-btn svg{width:13px;height:13px;flex-shrink:0}
+    .dash-tabs {
+      display: flex; gap: 0; margin: 0 -1.25rem;
+    }
+    .dash-tab {
+      flex: 1; padding: .8rem .5rem; text-align: center;
+      font-family: var(--mono); font-size: .62rem; letter-spacing: .1em;
+      /* v9.14b: .3 dava 2.65:1 — o pior da tela, e num rótulo que é
+         BOTÃO. Aba que não se lê é aba que não se toca. */
+      text-transform: uppercase; color: rgba(255,255,255,.52);
+      border: none; background: transparent; cursor: pointer;
+      border-top: 2px solid transparent; transition: color .2s, border-color .2s;
+    }
+    .dash-tab.active { color: var(--gold-l); border-top-color: var(--gold); }
+    .dash-tab:hover:not(.active) { color: rgba(255,255,255,.55); }
+
+    /* ═══════════════════════════════════════
+       QUICK ACTIONS
+    ═══════════════════════════════════════ */
+    /* ═══════════════════════════════════════
+       SECTION HEADERS
+    ═══════════════════════════════════════ */
+    .sec-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: .85rem;
+    }
+    .sec-title {
+      font-family: var(--mono); font-size: .58rem; font-weight: 500;
+      letter-spacing: .18em; text-transform: uppercase; color: var(--muted);
+      display: flex; align-items: center; gap: .45rem;
+    }
+    .sec-title::before {
+      content: ''; display: inline-block; width: 10px; height: 1px; background: var(--gold);
+    }
+    .sec-action {
+      font-family: var(--mono); font-size: .65rem; color: var(--gold-d);
+      background: none; border: none; cursor: pointer; display: flex;
+      align-items: center; gap: .2rem; transition: color var(--t);
+      /* v9.14: era padding 0 — alvo de toque de ~14px de altura, muito
+         abaixo dos 44px recomendados. O padding negativo na margem
+         mantém o alinhamento visual com o título. */
+      padding: .7rem .3rem; margin: -.7rem -.3rem;   /* v9.14b: 44px */
+    }
+    .sec-action:hover { color: var(--gold); }
+    .sec-toggle {
+      font-family: var(--mono); font-size: .65rem; color: var(--muted);
+      background: none; border: none; cursor: pointer;
+      transition: color var(--t);
+      /* v9.14b · min-height explícito. Padding calculado "na mão" me
+          deu 40px e eu contei como resolvido — só a medição no browser
+          mostrou. Altura declarada não depende de line-height. */
+      padding: .7rem .3rem; margin: -.7rem -.3rem;
+      min-height: 44px; display: inline-flex; align-items: center;
+    }
+    .sec-toggle:hover { color: var(--ink); }
+    .sec-toggle[aria-pressed="true"] { color: var(--gold-d); font-weight: 600; }
+
+    /* ═══════════════════════════════════════
+       MÉTRICAS EDITORIAIS
+    ═══════════════════════════════════════ */
+    .doc-metrics {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 1px; background: var(--border2);
+      border-radius: var(--r-l); overflow: hidden; margin-bottom: 1.25rem;
+    }
+    .doc-metric {
+      background: var(--paper2); padding: 1rem 1.1rem; transition: background var(--t);
+    }
+    .doc-metric:hover { background: var(--paper3); }
+    .doc-metric-val {
+      /* v9.14: era 1.6rem, MAIOR que o nome do usuário (1.15rem). Um
+         número secundário não pode pesar mais que a identidade. */
+      font-family: var(--serif); font-size: 1.35rem; font-weight: 300;
+      line-height: 1; color: var(--ink); margin-bottom: .18rem;
+    }
+    .doc-metric-val em { font-style: italic; color: var(--gold-d); }
+    .doc-metric-lbl {
+      font-family: var(--mono); font-size: .54rem; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .doc-metric-sub { font-size: .68rem; color:var(--muted); margin-top: .08rem; }
+
+    /* ═══════════════════════════════════════
+       PLAN CALLOUT
+    ═══════════════════════════════════════ */
+    .plan-bar {
+      background: var(--paper2); border: 1px solid var(--border);
+      border-left: 3px solid var(--gold); border-radius: 0 var(--r) var(--r) 0;
+      padding: .85rem 1rem; display: flex; align-items: center; gap: .85rem;
+      margin-bottom: 1.25rem;
+    }
+    .plan-bar-body { flex: 1; min-width: 0; }
+    .plan-bar-title { font-size: .82rem; font-weight: 500; color: var(--text); }
+    .plan-bar-sub {
+      font-family: var(--mono); font-size: .62rem; color: var(--muted); margin-top: .08rem;
+    }
+    .plan-bar-cta {
+      font-family: var(--mono); font-size: .62rem; color: var(--gold-d);
+      background: var(--gold-bg); border: 1px solid var(--gold-bd);
+      border-radius: var(--r); padding: .38rem .85rem; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0; transition: var(--t);
+      /* v9.14b: tinha 31px de altura. É o único caminho pro Pro nesta
+         tela — o botão que fatura não pode ser o mais difícil de acertar. */
+      text-decoration: none; display: inline-flex;
+      align-items: center; justify-content: center; min-height: 44px;
+    }
+    .plan-bar-cta:hover { background: rgba(154,114,24,.13); }
+
+    /* ═══════════════════════════════════════
+       TAB CONTENT
+    ═══════════════════════════════════════ */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn .2s ease; }
+
+    /* ═══════════════════════════════════════
+       PROFILE MODAL AVATAR INLINE
+    ═══════════════════════════════════════ */
+    #planCallout { transition: opacity .3s; }
+
+    /* ── v12.8 · auditoria de UX/UI do painel ──────────────────────
+       1. "A receber / Recebido" tinha 2 caixas num grid de 3: a regra
+          .doc-metrics deste arquivo vem depois do fieldo.css e anulava o
+          modificador --2, sobrando um quadrado cinza vazio à direita. */
+    .doc-metrics.doc-metrics--2 { grid-template-columns: repeat(2, 1fr); }
+    /* 2. o número da versão no topo ("v10.0", e desatualizado) não é
+          informação para quem usa; continua no rodapé do menu. */
+    .topbar .topbar-badge { display: none; }
+    /* 3. o cartão do assistente era um bloco do tamanho do "próximo
+          passo"; vira uma faixa compacta, secundária. */
+    .mp-agente { padding: .9rem 1rem !important; }
+    .mp-agente-lbl { margin-bottom: .15rem !important; }
+    .mp-agente-tit { font-size: 1rem !important; margin-bottom: .6rem !important; }
+    /* 4. com nota, o valor do serviço pulava para uma segunda linha */
+    .service-card .service-meta { flex-wrap: wrap; row-gap: .1rem; }
+
+    @media(max-width:380px) {
+      .qa-grid { grid-template-columns: repeat(2,1fr); }
+      .doc-metrics { grid-template-columns: repeat(2,1fr); }
+      .dash-score-val { font-size: 2.6rem; }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       v-rebuild-5 · TELA GRANDE (computador)
+       ─────────────────────────────────────────────────────────────
+       Até aqui, tudo neste arquivo foi medido e pensado pra celular
+       (ver os comentários v9.14 acima, todos testados a 360/390/430px)
+       — computador nunca teve um layout próprio, só herdava o mesmo
+       de 1200px de largura da página, virando uma coluna só bem fina
+       e esticada no meio de uma tela enorme, com todo o resto vazio.
+       Aqui embaixo: um teto de largura mais enxuto (a leitura não
+       melhora com a linha de texto mais larga que isso) e as duas
+       listas (serviços, orçamentos) em duas colunas, pra usar o
+       espaço extra mostrando mais coisa, não esticando a mesma coisa.
+       Só CSS — nenhuma função, nenhum dado, nenhum comportamento
+       mudou. */
+    @media (min-width: 900px) {
+      .page { max-width: 900px; }
+      .dash-hero-inner { max-width: 900px; }
+
+      .service-list, #orcList {
+        display: grid; grid-template-columns: repeat(2, 1fr);
+        gap: .55rem;
+      }
+      /* .service-list já tinha display:flex + gap — a regra acima
+         sobrescreve pra grid só a partir daqui. */
+      .service-list .service-card, #orcList .service-card { margin: 0; }
+
+      /* estado vazio e aviso de erro não fazem sentido esticados em
+         duas colunas — voltam a ocupar a largura toda */
+      .service-list .empty-state, #orcList .empty-state,
+      .service-list > .skel, #orcList > .skel {
+        grid-column: 1 / -1;
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       v-fiel-splash · animação de abertura — pedido do Rikelme:
+       "abrir o app, escreve Fieldo, depois mantém só o símbolo".
+       Aparece UMA vez por sessão (sessionStorage), só aqui no painel
+       (é o ecrã inicial do app instalado — start_url do manifest.json).
+       Puramente decorativo: aria-hidden, nunca atrasa nem trava o
+       carregamento real da página, que continua rodando por baixo.
+       v10.34 · antes escrevia num itálico (identidade antiga) e
+       recolhia pra um "F" solto — um monograma de letra que nunca
+       foi o símbolo aprovado. Agora escreve no traço oficial (Fraunces
+       ereto 600, só o "o" final em dourado) e recolhe pro símbolo
+       oficial ("o lote aberto"), o mesmo tratamento de "sem espaço
+       pro wordmark, mostra só o símbolo" usado no resto do site. */
+    .app-splash {
+      position: fixed; inset: 0; z-index: 10000;
+      background: var(--topbar-bg);
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity .35s ease;
+    }
+    .app-splash.is-out { opacity: 0; pointer-events: none; }
+    .app-splash-word {
+      position: relative; display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif); font-style: normal; font-weight: 600;
+      font-size: clamp(2.2rem, 9vw, 3.4rem); color: #f5f2ec; letter-spacing: -.01em;
+    }
+    .app-splash-letters { display: flex; }
+    .app-splash-word .w-letter {
+      display: inline-block;
+      opacity: 0; transform: translateY(6px);
+      transition: opacity .3s ease, transform .3s ease;
+    }
+    .app-splash-word .w-letter.gold { color: var(--topbar-accent); }
+    .app-splash-word.is-writing .w-letter { opacity: 1; transform: translateY(0); }
+    /* escreve letra por letra */
+    .app-splash-word .w-letter:nth-child(1) { transition-delay: 0s; }
+    .app-splash-word .w-letter:nth-child(2) { transition-delay: .06s; }
+    .app-splash-word .w-letter:nth-child(3) { transition-delay: .12s; }
+    .app-splash-word .w-letter:nth-child(4) { transition-delay: .18s; }
+    .app-splash-word .w-letter:nth-child(5) { transition-delay: .24s; }
+    .app-splash-word .w-letter:nth-child(6) { transition-delay: .3s; }
+    .app-splash-word.is-collapsing .app-splash-letters {
+      opacity: 0; transform: translateY(-4px);
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .app-splash-mark {
+      position: absolute; width: 42px; height: 42px; color: var(--topbar-accent);
+      opacity: 0; transform: scale(.6);
+      transition: opacity .35s ease .05s, transform .45s cubic-bezier(.2,.8,.2,1) .05s;
+    }
+    .app-splash-mark svg { width: 100%; height: 100%; }
+    .app-splash-word.is-collapsing .app-splash-mark { opacity: 1; transform: scale(1); }
+    @media (prefers-reduced-motion: reduce) {
+      .app-splash { display: none; }
+    }
+    /* v12.16 · obras em andamento */
+    .pn-obras{list-style:none;margin:0;padding:0;display:grid;gap:.5rem}
+    .pn-obra{display:flex;align-items:stretch;border:1px solid var(--border2);border-radius:var(--r-l);background:var(--paper);overflow:hidden}
+    .pn-obra-link{flex:1;min-width:0;display:block;padding:.8rem .9rem;text-decoration:none;color:inherit}
+    .pn-obra-link:hover{background:var(--paper2)}
+    .pn-obra-top{display:block}
+    .pn-obra-nome{display:block;font-weight:600;font-size:.94rem;color:var(--ink);line-height:1.3;overflow-wrap:anywhere}
+    .pn-obra-resta{display:block;margin-top:.2rem;font-size:.9rem;font-weight:600;color:var(--ink)}
+    .pn-obra-resta small{font-weight:400;color:var(--muted);font-size:.74rem;margin-right:.2rem}
+    .pn-obra-sub{font-size:.76rem;color:var(--muted);margin-top:.1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pn-obra-barra{height:6px;background:var(--paper3);border-radius:999px;overflow:hidden;margin-top:.55rem}
+    .pn-obra-barra span{display:block;height:100%;background:var(--gold);border-radius:999px}
+    .pn-obra-barra--acima span{background:var(--amber)}
+    .pn-obra-add{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;min-width:76px;padding:0 .6rem;border-left:1px solid var(--border);color:var(--gold-text);text-decoration:none;font-size:.74rem;font-weight:600;text-align:center;background:var(--gold-bg)}
+    .pn-obra-add b{font-size:1.2rem;line-height:1}
+    .pn-obra-add:hover{background:var(--paper2)}
+    .pn-obras-convite{font-size:.86rem;color:var(--text2);line-height:1.5;padding:.75rem .9rem;border:1px dashed var(--border3);border-radius:var(--r-l);background:var(--paper)}
+    .pn-obras-convite a{color:var(--gold-text);font-weight:600}
+  </style>
+</head>
+<body data-pedir-aceite="painel_profissional">
+
+<div class="app-splash" id="appSplash" aria-hidden="true">
+  <div class="app-splash-word" id="appSplashWord">
+    <span class="app-splash-letters">
+      <span class="w-letter">F</span><span class="w-letter">i</span><span class="w-letter">e</span><span class="w-letter">l</span><span class="w-letter">d</span><span class="w-letter gold">o</span>
+    </span>
+    <span class="app-splash-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></span>
+  </div>
+</div>
+<script>
+/* v-fiel-splash · roda ANTES do resto da página, síncrono de propósito:
+   se já mostrou nesta aba (sessionStorage) ou o navegador pede menos
+   animação, esconde na hora — sem esperar nada, sem "piscar" a tela
+   preta à toa numa navegação normal dentro do app. */
+(function () {
+  'use strict';
+  var splash = document.getElementById('appSplash');
+  if (!splash) return;
+
+  var jaMostrou = false;
+  try { jaMostrou = sessionStorage.getItem('fieldo_splash_shown') === '1'; } catch (e) {}
+  var semAnimacao = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (jaMostrou || semAnimacao) {
+    splash.style.display = 'none';
+    return;
+  }
+
+  try { sessionStorage.setItem('fieldo_splash_shown', '1'); } catch (e) {}
+
+  var palavra = document.getElementById('appSplashWord');
+  requestAnimationFrame(function () {
+    palavra.classList.add('is-writing');           // escreve "Fieldo" letra por letra
+    setTimeout(function () {
+      palavra.classList.remove('is-writing');
+      palavra.classList.add('is-collapsing');       // some com as letras, fica só o símbolo
+    }, 900);
+    setTimeout(function () {
+      splash.classList.add('is-out');               // tela toda esmaece
+    }, 1250);
+    setTimeout(function () {
+      splash.style.display = 'none';                // sai do caminho de vez
+    }, 1650);
+  });
+})();
+</script>
+
+<a href="#main-content" class="sr-only">Pular para o conteúdo principal</a>
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="painel.html" class="topbar-logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      <span class="topbar-brand">Field<em>o</em></span>
+      <span class="topbar-badge" id="fieldoVer">v10.0</span>
+    </a>
+    <button class="hbg-btn" id="menuBtn" onclick="HBG.toggle()" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="menuDrawer">
+      <span class="hbg-line"></span><span class="hbg-line"></span><span class="hbg-line"></span>
+    </button>
+  </div>
+</header>
+
+<!-- Overlay + Drawer -->
+<div class="menu-overlay" aria-hidden="true" id="menuOverlay" onclick="HBG.close()"></div>
+<div class="menu-drawer" id="menuDrawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Menu de navegação">
+  <div class="menu-drawer-head">
+    <div class="menu-drawer-brand">
+      <div class="logo-icon" style="width:22px;height:22px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      Field<em>o</em>
+    </div>
+    <button class="menu-drawer-close" onclick="HBG.close()" aria-label="Fechar menu">✕</button>
+  </div>
+  <div class="menu-drawer-perfil" id="drawerPerfil"></div>
+  <div class="menu-section-lbl">Navegação</div>
+  <nav class="menu-nav" aria-label="Navegação principal">
+    <!-- v12.8 · MESMO menu em todas as páginas logadas. Antes só o
+         painel tinha Configurações, Suporte e Sair: de dentro do
+         orçamento ou do Novo Serviço não havia como sair da conta. -->
+    <a href="/painel.html" class="menu-nav-item active" aria-current="page"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>Painel</span></a>
+    <a href="/servico.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span>Novo serviço</span></a>
+    <a href="/obra.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></span><span>Obras</span></a>
+    <a href="/orcamento.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span>Novo orçamento</span></a>
+    <a href="/assistente.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><span>Assistente Fiel</span></a>
+    <div class="menu-divider"></div>
+    <button type="button" class="menu-nav-item" onclick="HBG.close();abrirPerfil()"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Editar perfil</span></button>
+    <a href="/perfil.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Ver meu perfil público</span></a>
+    <a href="/configuracoes.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span>Configurações</span></a>
+    <a href="/suporte.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><span>Suporte</span></a>
+    <button type="button" class="menu-nav-item" onclick="FIELDO.Nav.confirmLogout()"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span>Sair</span></button>
+  </nav>
+  <div class="menu-drawer-foot">Fieldo · <span id="fieldoVerFoot">v10.0</span><br/><a href="/configuracoes.html#seus-dados">Seus dados</a> · <a href="/termos">Termos</a> · <a href="/privacidade">Privacidade</a></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<div class="dash-hero">
+  <div class="dash-hero-inner">
+
+    <!-- v9.12 · HERÓI ENXUTO ────────────────────────────────────
+         Antes: 10 blocos antes do primeiro conteúdo real, e o número
+         de serviços repetido TRÊS vezes na mesma tela ("média de 15
+         serviços", "15 SERVIÇOS", "15 serviços públicos").
+
+         O dashboard responde "o que eu faço agora?". Quem eu sou é a
+         pergunta do PERFIL PÚBLICO, que é outra página e é a que o
+         cliente vê. Score gigante e grade de estatística viraram uma
+         linha só; o detalhe continua inteiro na aba Reputação. -->
+    <div class="dash-profile">
+      <div class="dash-avatar" id="dashAvatar" onclick="abrirPerfil()" aria-label="Abrir meu perfil">F</div>
+      <div class="dash-id">
+        <div class="dash-name" id="dashName">Carregando...</div>
+        <div class="dash-spec" id="dashSpec">—</div>
+        <div class="dash-linha" id="dashLinha"></div>
+      </div>
+      <div class="dash-plan-badge" id="dashPlanBadge">
+        <span class="dash-plan-dot"></span>
+        <span id="dashPlanLabel">Free</span>
+      </div>
+    </div>
+
+    <div class="perfil-bar" id="perfilBar" style="display:none">
+      <div class="perfil-bar-top">
+        <span class="perfil-bar-lbl">Perfil público</span>
+        <span class="perfil-bar-est" id="perfilBarEst">—</span>
+      </div>
+      <div class="perfil-bar-acoes" id="perfilBarAcoes"></div>
+    </div>
+
+    <!-- Escondidos: a aba Reputação usa estes ids. Ficam no DOM para
+         não quebrar quem os preenche, sem ocupar tela. -->
+    <div hidden>
+      <span id="dashScoreVal"></span><span id="dashStars"></span>
+      <span id="dashScoreSub"></span><span id="qsServicos"></span>
+      <span id="qsMes"></span><span id="qsHashes"></span>
+    </div>
+
+    <!-- v12.37 · As abas Atividade / Orçamentos / Reputação saíram do
+         Início. Cada assunto tem a área dele e a barra de baixo leva pra
+         lá: Serviços (servicos.html), Perfil com reputação e financeiro
+         (meu-perfil.html), Pesquisa com orçamentos (busca.html) e Obras
+         (obra.html). O Início fica só com o essencial. -->
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     CONTEÚDO
+══════════════════════════════════════════ -->
+<main id="main-content" class="page" style="padding-top:1.25rem">
+
+  <!-- Callout de plano (dinâmico: Free → Upgrade · Pro → Status) -->
+  <!-- v10.0 · O PRÓXIMO PASSO.
+       O brief: nenhuma tela importante pode terminar em "e agora?".
+       Isso não se resolve com layout — se resolve tendo uma função que
+       olha o estado real e responde. FIELDO.Perfil.proximoPasso é essa
+       função, e é a MESMA que o Meu Perfil usa: se as duas telas
+       calculassem por conta própria, divergiriam na primeira edição. -->
+  <section class="mp-passo" id="dashPasso" style="display:none">
+    <div class="mp-passo-lbl">Seu próximo passo</div>
+    <h2 class="mp-passo-tit" id="dashPassoTit"></h2>
+    <p class="mp-passo-txt" id="dashPassoTxt"></p>
+    <a class="ds-btn ds-btn--primary ds-btn--full" id="dashPassoCta" href="#"></a>
+  </section>
+
+  <div class="plan-bar" id="planCallout" style="display:none">
+    <span id="planIcon" style="font-size:1.2rem;flex-shrink:0">⬡</span>
+    <div class="plan-bar-body">
+      <div class="plan-bar-title" id="planTitle">Plano Grátis</div>
+      <div class="plan-bar-sub" id="planSub">Desbloqueie Contratos com Fieldo Pro</div>
+    </div>
+    <a href="ativar.html" class="plan-bar-cta" id="planCta">Ativar Pro →</a>
+  </div>
+
+  <!-- v9.13 · UM botão, não quatro.
+       Os quatro atalhos eram subconjunto EXATO do menu: servico,
+       orcamento, contratos e explorar estão todos lá. Repetir os
+       quatro na tela inicial não dava atalho a nada — dava quatro
+       coisas com o mesmo peso visual, o que é o mesmo que dizer que
+       nenhuma é a principal.
+
+       Novo Serviço fica, e sozinho, porque é A ação do produto:
+       enterrar a ação principal atrás de dois toques seria o erro
+       oposto. O resto continua a um toque do menu, que é onde uma
+       lista de destinos deve morar.
+
+       O que NÃO entrou aqui: perfis do explorar. O dashboard é do
+       profissional logado, e outros profissionais da mesma cidade são
+       a concorrência dele — não conteúdo. -->
+  <a href="servico.html" class="acao-primaria">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Registrar novo serviço
+  </a>
+
+  <!-- v-fase1-agentfirst · segunda porta de entrada: o mesmo assistente
+       de sempre (assistente.html), só que visível aqui em vez de só no
+       menu. Os 3 atalhos abrem o chat já com a mensagem pronta — sem
+       lógica nova nem fluxo paralelo, é o mesmo mecanismo dos "pill" de
+       dentro do próprio assistente (?sugestao= vira a msg inicial). -->
+  <section class="mp-agente">
+    <div class="mp-agente-lbl">Seu assistente Fieldo</div>
+    <div class="mp-agente-tit">Como posso ajudar?</div>
+    <div class="mp-agente-pills">
+      <a class="mp-agente-pill" href="assistente.html?sugestao=orcamento">Criar orçamento</a>
+      <!-- v12.8 · "Registrar serviço" saiu daqui: é o botão logo acima. -->
+      <a class="mp-agente-pill" href="assistente.html?sugestao=orcamentos">Ver meus orçamentos</a>
+    </div>
+  </section>
+
+  <!-- ── TAB: ATIVIDADE ── -->
+  <div class="tab-content active" id="tab-atividade" role="tabpanel" aria-label="Atividade">
+
+    <!-- v5.3: dinheiro primeiro. "Quanto tenho a receber?" é a pergunta
+         que o profissional faz ao abrir o app; "quantos serviços fiz"
+         não é. Some quando não há nada cobrado, para não poluir. -->
+    <!-- v12.16 · obras em andamento: serviço de vários dias, cada
+         relatório desconta do valor total. Vem antes do financeiro
+         porque é onde o profissional volta todo dia durante a obra. -->
+    <section style="margin-bottom:1.5rem;display:none" id="secObras" aria-labelledby="secObrasTit">
+      <div class="sec-head">
+        <h2 class="sec-title" id="secObrasTit" style="margin:0">Obras em andamento</h2>
+        <a class="sec-action" href="obra.html" id="obrasVerTodas">Ver todas</a>
+      </div>
+      <div id="obrasConteudo"></div>
+    </section>
+
+    <div style="margin-bottom:1.5rem;display:none" id="secFinanceiro">
+      <div class="sec-head">
+        <div class="sec-title">Financeiro</div>
+        <a class="sec-action" href="busca.html?receber=1" id="linkAReceber">Ver a receber →</a>
+      </div>
+      <div class="doc-metrics doc-metrics--2">
+        <div class="doc-metric doc-metric--alert" id="cardReceber">
+          <div class="doc-metric-val" id="mReceber">—</div>
+          <div class="doc-metric-lbl">A receber</div>
+          <div class="doc-metric-sub" id="mReceberSub">nenhum pendente</div>
+        </div>
+        <div class="doc-metric">
+          <div class="doc-metric-val" id="mRecebido">—</div>
+          <div class="doc-metric-lbl">Recebido</div>
+          <div class="doc-metric-sub" id="mRecebidoSub">este mês</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- v12.37 · "Serviços recentes" saiu do Início. A lista completa,
+         com os filtros de "a receber" e "com avaliação", está no Serviços
+         (servicos.html), que é um dos destinos da barra de baixo. -->
+
+  </div>
+
+  <!-- ── TAB: ORÇAMENTOS ── -->
+  <div class="tab-content" id="tab-orcamentos" role="tabpanel" aria-label="Orçamentos">
+    <div class="sec-head">
+      <div class="sec-title">Orçamentos recentes</div>
+      <div style="display:flex;gap:.75rem;align-items:center">
+        <button type="button" id="arqOrcToggle" class="sec-toggle" aria-pressed="false">Arquivados</button>
+        <a href="orcamento.html" class="sec-action">+ Novo</a>
+      </div>
+    </div>
+    <div id="orcList">
+      <div class="empty-state">
+        <div class="empty-state-glyph" aria-hidden="true">§</div>
+        <h3>Nenhum orçamento <em>ainda</em></h3>
+        <p>Crie propostas profissionais com Pix integrado.<br>O cliente aprova pelo WhatsApp em 1 clique.</p>
+        <a href="orcamento.html" class="btn btn--primary">Criar orçamento</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TAB: REPUTAÇÃO ── -->
+  <div class="tab-content" id="tab-reputacao" role="tabpanel" aria-label="Reputação">
+    <div style="margin-bottom:1.25rem">
+      <div class="sec-head">
+        <div class="sec-title">Seus números</div>
+      </div>
+      <div class="doc-metrics">
+        <div class="doc-metric">
+          <div class="doc-metric-val" id="mTotal">—</div>
+          <div class="doc-metric-lbl">Serviços</div>
+          <div class="doc-metric-sub">total registrado</div>
+        </div>
+        <div class="doc-metric">
+          <div class="doc-metric-val" id="mMes">—</div>
+          <div class="doc-metric-lbl">Este mês</div>
+          <div class="doc-metric-sub">últimos 30 dias</div>
+        </div>
+        <div class="doc-metric">
+          <div class="doc-metric-val" id="mNicho"><em>—</em></div>
+          <div class="doc-metric-lbl">Nicho</div>
+          <div class="doc-metric-sub">mais frequente</div>
+        </div>
+      </div>
+
+      <div class="sec-head" style="margin-top:1.5rem">
+        <div class="sec-title">Reputação verificada</div>
+        <a href="perfil.html" class="sec-action">Ver perfil →</a>
+      </div>
+      <div class="doc-metrics">
+        <div class="doc-metric">
+          <div class="doc-metric-val" id="rScore">—</div>
+          <div class="doc-metric-lbl">Nota média</div>
+          <div class="doc-metric-sub">qualidade</div>
+        </div>
+        <div class="doc-metric">
+          <div class="doc-metric-val" id="rAvals">—</div>
+          <div class="doc-metric-lbl">Avaliações</div>
+          <div class="doc-metric-sub">de clientes reais</div>
+        </div>
+        <div class="doc-metric">
+          <div class="doc-metric-val" id="rSelos">—</div>
+          <div class="doc-metric-lbl">Selos digitais</div>
+          <div class="doc-metric-sub">documentos selados</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Selo de Autenticidade Fieldo</div>
+      <p style="font-size:.82rem;color:var(--text);line-height:1.65">
+        Cada relatório que você gera recebe um selo digital com a data de criação. Se alguém mudar uma vírgula depois, o selo deixa de conferir — e qualquer pessoa pode checar em
+        <strong>fieldo-zelo.com.br/verificar</strong>.
+      </p>
+    </div>
+
+    <div style="margin-top:1.25rem">
+      <div class="sec-head">
+        <div class="sec-title">Selos recentes</div>
+        <a href="verificar.html" class="sec-action">Verificar →</a>
+      </div>
+      <div id="hashList">
+        <div class="empty-state" style="padding:1.5rem">
+          <div class="empty-state-glyph" aria-hidden="true" style="font-size:1.5rem">⬡</div>
+          <p style="margin-bottom:0;font-size:.78rem">Nenhum selo registrado ainda.<br>Gere seu primeiro relatório para criar o primeiro selo.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main><!-- /page -->
+
+<!-- Toast -->
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL DE PERFIL
+══════════════════════════════════════════ -->
+<div class="modal-backdrop" role="dialog" aria-modal="true" id="perfilModal" style="display:none" onclick="fecharPerfil(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div class="modal-eyebrow">Configuração</div>
+        <div class="modal-title">Seu <em>Perfil</em></div>
+      </div>
+      <button class="modal-close" onclick="fecharPerfil()" aria-label="Fechar perfil">✕</button>
+    </div>
+
+    <div class="avatar-section">
+      <div class="avatar-wrap">
+        <div class="avatar-img" id="modalAvatarImg" onclick="document.getElementById('avatarFile').click()" aria-label="Trocar foto do perfil">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" style="opacity:.3"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="avatar-badge" onclick="document.getElementById('avatarFile').click()" aria-label="Trocar foto do perfil">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <input type="file" id="avatarFile" accept="image/*" style="display:none" onchange="previewAvatar(this)"/>
+      </div>
+      <div>
+        <div class="avatar-name" id="modalAvatarName">Seu nome aqui</div>
+        <div class="avatar-hint">Foto aparece no relatório<br>enviado ao cliente</div>
+      </div>
+    </div>
+
+    <div class="modal-fields">
+      <div class="modal-section-label">Identidade</div>
+      <div class="field-group">
+        <label class="field-label">Nome completo <span class="required">*</span></label>
+        <input class="field-input" id="pNome" type="text" placeholder="Ex: João da Silva"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Especialidade</label>
+        <input class="field-input" id="pSpec" type="text" placeholder="Ex: Eletricista residencial"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="pNichoTxt">Profissão principal</label>
+        <div class="busca-prof">
+          <input class="field-input" id="pNichoTxt" type="text" placeholder="Ex.: Eletricista, Jardineiro"/>
+          <ul class="sug-lista" id="pNichoSug" aria-label="Sugestões de profissão"></ul>
+        </div>
+        <input type="hidden" id="pNicho"/>
+        <div class="field-hint">Digite ou escolha. É por ela que o cliente te acha no Explorar e no Google.</div>
+      </div>
+      <!-- v12.25 · outras profissões (até 3). Aparece na busca de cada uma. -->
+      <div class="field-group" id="pOutrasCampo" hidden>
+        <label class="field-label" for="pOutrasInput">Outras profissões</label>
+        <div id="pOutras"></div>
+        <div class="field-hint">Faz mais de um serviço? Adicione até 3. Você aparece na busca de cada uma.</div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Bio (opcional)</label>
+        <textarea class="field-textarea" id="pBio" placeholder="Breve apresentação profissional..." style="min-height:60px"></textarea>
+      </div>
+
+      <div class="modal-divider"></div>
+      <!-- v12.13 · credibilidade: CNPJ conferido na Receita + campos declarados -->
+      <div class="modal-section-label">Credibilidade</div>
+      <div class="field-hint" style="margin:-.2rem 0 .8rem">O que faz o cliente confiar antes de chamar. Tudo aparece no seu perfil público.</div>
+      <div id="credEditor" style="margin-bottom:1rem"></div>
+      <div class="modal-divider"></div>
+
+      <div class="modal-section-label">Contato</div>
+
+      <div class="fields-row-2">
+        <div class="field-group">
+          <label class="field-label">WhatsApp</label>
+          <input class="field-input" id="pWpp" type="tel" placeholder="(11) 99999-9999"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Cidade</label>
+          <input class="field-input" id="pCidade" type="text" placeholder="Campinas – SP"/>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Instagram (opcional)</label>
+        <input class="field-input" id="pInsta" type="text" placeholder="@seuusuario"/>
+      </div>
+
+      <div class="modal-divider"></div>
+      <div class="modal-section-label">Chave Pix</div>
+
+      <div class="fields-row-2">
+        <div class="field-group">
+          <label class="field-label">Tipo</label>
+          <select class="field-select" id="pPixTipo">
+            <option value="CPF">CPF</option>
+            <option value="CNPJ">CNPJ</option>
+            <option value="Telefone">Telefone</option>
+            <option value="E-mail">E-mail</option>
+            <option value="Aleatória">Aleatória</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Chave</label>
+          <input class="field-input" id="pPixChave" type="text" placeholder="Sua chave"/>
+        </div>
+      </div>
+      <div class="field-hint">Aparece no relatório — cliente paga na hora</div>
+
+      <!-- v6.0: consentimento de portfólio.
+           Padrão desligado. Um opt-in que já vem ligado não é consentimento. -->
+      <div class="modal-divider"></div>
+      <div class="modal-section-label">Portfólio público</div>
+
+      <label class="toggle-wrap" style="align-items:flex-start;gap:.7rem">
+        <input type="checkbox" id="pPortfolio"/>
+        <span>
+          <span class="toggle-label">Mostrar fotos dos meus serviços</span>
+          <span style="display:block;font-size:.75rem;color:var(--muted);line-height:1.55;margin-top:.3rem">
+            As fotos passam a aparecer no seu perfil e na busca de profissionais,
+            visíveis para qualquer pessoa.
+          </span>
+        </span>
+      </label>
+
+      <div class="callout" id="portfolioAviso" style="display:none;margin-top:.6rem">
+        <div class="callout-label">Sua responsabilidade</div>
+        <p style="font-size:.76rem;color:var(--muted);line-height:1.6;margin:.3rem 0 0">
+          As fotos podem mostrar a casa, o rosto ou o endereço do seu cliente.
+          Avise cada um antes de ativar. Você pode esconder um serviço específico
+          na lista, sem desligar tudo.
+        </p>
+      </div>
+
+
+      <!-- v5.4: código de recuperação.
+           Antes só aparecia no onboarding, uma única vez. Quem pulou
+           perdia a conta ao limpar o navegador — foi o que gerou 9
+           perfis órfãos durante os testes. -->
+      <div class="modal-divider"></div>
+      <div class="modal-section-label">Segurança da conta</div>
+
+      <div class="callout" style="margin-bottom:.75rem">
+        <div class="callout-label">Código de recuperação</div>
+        <div id="recCode" style="font-family:var(--mono);font-size:.95rem;letter-spacing:.12em;
+             color:var(--ink);word-break:break-all;margin:.5rem 0;font-weight:500">••••-••••-••••-••••</div>
+        <p style="font-size:.74rem;color:var(--muted);line-height:1.55;margin:0">
+          É a única forma de recuperar seus dados em outro celular. O Fieldo não guarda cópia.
+        </p>
+        <div style="display:flex;gap:.5rem;margin-top:.7rem">
+          <button type="button" class="btn btn--ghost btn--sm" style="flex:1" id="btnRecVer">Mostrar</button>
+          <button type="button" class="btn btn--ghost btn--sm" style="flex:1" id="btnRecBaixar">Baixar .txt</button>
+        </div>
+      </div>
+
+      <div class="field-hint" style="margin-top:.6rem">
+        <button type="button" class="btn btn--ghost btn--sm" id="btnPwaReset"
+                style="width:100%">Corrigir app travado</button>
+        <div style="margin-top:.4rem;line-height:1.5">
+          Se o app ficar preso numa versão antiga, isto limpa o cache e recarrega.
+          Seus dados não são apagados.
+        </div>
+      </div>
+
+      <!-- v4.3: Personalização (temas + nichos custom) -->
+      <div class="modal-divider"></div>
+      <div class="modal-section-label">Personalização</div>
+
+      <div class="field-group">
+        <label class="field-label" style="margin-bottom:.5rem">Tema da interface</label>
+        <div class="theme-picker" id="themePicker"></div>
+        <div class="field-hint" id="themeHint">Pergaminho é o tema padrão. Os demais são Pro.</div>
+      </div>
+
+      <!-- v12.9 · o editor de categorias personalizadas (emoji + nome,
+           só Pro, até 12) saiu de cena: agora qualquer profissional
+           digita a profissão que quiser no próprio campo. O bloco fica
+           oculto para não quebrar as funções que ainda o referenciam. -->
+      <div class="field-group" style="margin-top:.5rem;display:none" hidden>
+        <label class="field-label" style="margin-bottom:.5rem">Categorias de serviço</label>
+        <div class="niche-edit-list" id="nicheList"></div>
+        <div class="niche-add-row" id="nicheAddRow" style="display:none">
+          <input class="field-input niche-add-emoji" id="nicheEmoji" type="text" maxlength="4" placeholder="🔧"/>
+          <input class="field-input" id="nicheLabel" type="text" maxlength="22" placeholder="Nome da categoria"/>
+          <button type="button" class="niche-add-btn" onclick="adicionarNicho()">Add</button>
+        </div>
+        <button type="button" class="btn btn--ghost" id="nicheAddToggle" onclick="abrirAddNicho()" style="width:100%;margin-top:.4rem;font-size:.78rem">
+          + Adicionar categoria personalizada
+        </button>
+        <div class="niche-hint" id="nicheHint">Pro libera até 12 categorias personalizadas.</div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn--primary" onclick="salvarPerfil()">
+        Salvar perfil
+        <span class="btn__spin" id="spinSalvar"></span>
+      </button>
+      <button class="btn btn--ghost" onclick="fecharPerfil()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="db.js" onerror="document.documentElement.innerHTML='&lt;div style=\'font-family:system-ui;padding:2rem;text-align:center\'&gt;&lt;h2 style=\'font-weight:500\'&gt;Falha ao carregar&lt;/h2&gt;&lt;p style=\'color:#666;line-height:1.6\'&gt;Verifique a conexão. Seus dados continuam salvos.&lt;/p&gt;&lt;button onclick=\'location.reload(true)\' style=\'padding:.8rem 1.5rem;border:0;border-radius:8px;background:#9a7218;color:#fff;font-size:.9rem\'&gt;Recarregar&lt;/button&gt;&lt;/div&gt;'"></script>
+<script>
+'use strict';
+
+/* ── Guard: redireciona se não logado ── */
+if (!FIELDO.Auth.isLoggedIn()) {
+  window.location.href = 'entrar.html';
+}
+
+/* v12.37 · a barra de baixo estava DENTRO do guard acima, então só era
+   montada pra quem NÃO estava logado — e essa pessoa ia direto pro login.
+   Pra quem usa o painel (logado) ela nunca aparecia, enquanto Explorar,
+   Serviços e Perfil tinham. Agora monta aqui fora, igual às outras. */
+FIELDO.NavInf.montar('inicio');
+
+/* ══════════════════════════════════════════
+   TABS
+══════════════════════════════════════════ */
+function setTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  document.getElementById('tab-' + id).classList.add('active');
+  document.querySelectorAll('.dash-tab').forEach(function(b) {
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');   /* v9.14b */
+  });
+  btn.classList.add('active');
+  btn.setAttribute('aria-selected', 'true');
+  /* v12.8 · o botão grande acompanha a aba: na de Orçamentos, a ação
+     do momento é criar um orçamento (antes ficava "Registrar novo
+     serviço" ali, e o "+ Novo" do orçamento era um link miúdo). */
+  var solto = document.querySelector('.acao-primaria');
+  if (solto) {
+    var orc = id === 'orcamentos';
+    solto.setAttribute('href', orc ? 'orcamento.html' : 'servico.html');
+    var txt = solto.lastChild;
+    if (txt && txt.nodeType === 3) txt.nodeValue = orc ? ' Criar orçamento\n  ' : ' Registrar novo serviço\n  ';
+  }
+}
+
+/* ══════════════════════════════════════════
+   DASHBOARD — carrega dados
+══════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+  carregarDashboard();
+  ligarTogglesArquivo();
+  initRecoveryUI();
+  initPortfolioUI();
+  bindNichoBtns();
+  bindTemaBtns();
+  bindPwaReset();
+});
+
+function carregarDashboard() {
+  FIELDO.Professionals.me().then(function(prof) {
+    if (!prof) { window.location.href = 'entrar.html'; return; }
+    renderProfissional(prof);
+
+    /* Pro check em paralelo (não bloqueia rendering) */
+    FIELDO.Pro.check().then(renderPlanCallout).catch(function () {
+      renderPlanCallout(false);
+    });
+
+    /* v5.7.2: cada chamada com o próprio .catch.
+       Promise.all é tudo-ou-nada: bastava UMA rejeitar (Hashes.list não
+       tinha fallback) para NENHUM render rodar — e o painel ficava
+       vazio offline mesmo com o cache cheio. Era esta a causa de
+       "os dados somem ao atualizar".
+
+       Num painel, falha parcial deve degradar a seção, não a tela. */
+    function seguro(p, vazio) {
+      return p.catch(function (e) {
+        console.warn('[dashboard] seção falhou:', e && e.message);
+        return vazio;
+      });
+    }
+
+    /* v12.37 · o Início enxuto mostra só o resumo: a linha de nota no
+       topo, a barra de perfil público e o financeiro a receber. Serviços
+       recentes, selos, orçamentos e obras saíram da home e carregam cada
+       um na sua área, então pararam de ser buscados aqui. renderMetricas
+       preenche essas três coisas. */
+    return Promise.all([
+      seguro(FIELDO.Reports.stats(),   { total: 0, mes: 0 }),
+    ]);
+  }).then(function(results) {
+    if (!results) return;
+    var stats = results[0];
+    try { renderMetricas(stats); }
+    catch (e) { console.warn('[dashboard] render:', e && e.message); }
+  }).catch(function(e) {
+    console.warn('Dashboard:', e);
+    FIELDO.UI.toast('Erro ao carregar dados');
+  });
+}
+
+
+/* ── v5.4: código de recuperação no perfil ────────────────────
+   O código é gerado no dispositivo durante o onboarding e guardado
+   localmente. O servidor nunca o vê em texto claro — ele só conhece
+   o e-mail sintético derivado. Se o armazenamento local for perdido,
+   não há como reexibi-lo: por isso o aviso é explícito. */
+/* v6.0: o aviso de responsabilidade só aparece quando o toggle liga.
+   Texto permanente vira paisagem; texto que surge no momento da decisão
+   é lido. */
+function initPortfolioUI() {
+  var chk = document.getElementById('pPortfolio');
+  var aviso = document.getElementById('portfolioAviso');
+  if (!chk || !aviso) return;
+  function sync() { aviso.style.display = chk.checked ? '' : 'none'; }
+  chk.addEventListener('change', sync);
+  sync();
+}
+
+function initRecoveryUI() {
+  var elCode = document.getElementById('recCode');
+  var btnVer = document.getElementById('btnRecVer');
+  var btnDl  = document.getElementById('btnRecBaixar');
+  if (!elCode || !btnVer) return;
+
+  var code = null;
+  try { code = localStorage.getItem('fieldo_recovery_code'); } catch (e) {}
+
+  if (!code) {
+    elCode.textContent = 'indisponível neste aparelho';
+    elCode.style.fontSize = '.8rem';
+    elCode.style.letterSpacing = '0';
+    btnVer.disabled = true;
+    if (btnDl) btnDl.disabled = true;
+    return;
+  }
+
+  var fmt = (code.match(/.{1,4}/g) || [code]).join('-');
+  var visivel = false;
+
+  btnVer.addEventListener('click', function () {
+    visivel = !visivel;
+    elCode.textContent = visivel ? fmt : '••••-••••-••••-••••';
+    btnVer.textContent = visivel ? 'Ocultar' : 'Mostrar';
+  });
+
+  if (btnDl) btnDl.addEventListener('click', function () {
+    var txt = 'FIELDO — CÓDIGO DE RECUPERAÇÃO\n\n' + fmt +
+      '\n\nGuarde este arquivo. É a única forma de recuperar seus dados\n' +
+      'em outro aparelho. O Fieldo não mantém cópia deste código.\n\n' +
+      'Gerado em ' + new Date().toLocaleString('pt-BR') + '\n';
+    var blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'fieldo-codigo-recuperacao.txt';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+}
+
+/* Render dinâmico do callout de plano: Free vs Pro */
+function renderPlanCallout(isPro) {
+  var bar   = document.getElementById('planCallout');
+  var icon  = document.getElementById('planIcon');
+  var title = document.getElementById('planTitle');
+  var sub   = document.getElementById('planSub');
+  var cta   = document.getElementById('planCta');
+  if (!bar) return;
+
+  /* v9.12: para quem JÁ é Pro esta barra é ruído puro — o selo PRO no
+     topo já diz, e Contratos está no menu e nos atalhos. Ela é um
+     componente de upsell; upsell para quem já comprou é poluição.
+
+     Havia uma contradição aqui: renderProfissional escondia a barra
+     para pro/team e esta função a mostrava de novo, com texto de
+     "Pro ativo". Duas funções com intenções opostas sobre o mesmo
+     elemento — vencia a que rodasse por último. Agora só existe uma
+     regra, e é esta. */
+  if (isPro) {
+    bar.style.display = 'none';
+    return;
+  }
+  {
+    icon.textContent  = '⬡';
+    title.textContent = 'Plano Grátis';
+    sub.textContent   = 'Desbloqueie Contratos com Fieldo Pro';
+    cta.textContent   = 'Ativar Pro →';
+    cta.setAttribute('href', 'ativar.html');
+    bar.style.background  = '';
+    bar.style.borderColor = '';
+  }
+  bar.style.display = 'flex';
+}
+
+/* ── Profissional ── */
+var _profAtual = null, _totalServicos = null;
+
+/* v10.10 · quantas avaliações já chegaram.
+   Vem da mesma carga de métricas que alimenta _totalServicos. Existe
+   porque a faixa passou a tratar "recebeu a primeira avaliação" como
+   marco — ver o comentário longo em renderPerfilPublico(). */
+var _totalAvaliacoes = null;
+
+/* v9.6 · Quantos serviços o perfil precisa pra entrar na vitrine.
+   Mesmo número que a edge function perfil-seo usa pra liberar
+   index,follow — se divergir, o app promete uma coisa e o Google vê
+   outra. */
+var MIN_SERVICOS_PUBLICO = 3;
+
+function renderPerfilPublico() {
+  var prof = _profAtual;
+  if (!prof) return;
+  var bar = document.getElementById('perfilBar');
+  if (!bar) return;
+
+  var total = Number(_totalServicos) || 0;
+
+  /* ── v10.10 · O MARCO MUDOU DE CONTAGEM PARA PROVA ──────────────
+   *
+   * O produto anunciava "a partir de 3 serviços seu perfil entra na
+   * busca", e a faixa contava quantos faltavam. O banco mostra o que
+   * isso produziu: dos 14 profissionais com relatório, DEZ lançaram
+   * tudo num único dia — e quase todos pararam exatamente em três.
+   * Anderson 4 em 30/07, Francisco 4 em 01/08, Gabriel 3 em 23/08,
+   * José 3 em 23/08, Samuel 3 em 25/08, João costa 3 em 28/08.
+   *
+   * A pessoa entendeu o número como tarefa, cumpriu num dia lançando
+   * serviço antigo de memória, e considerou o trabalho feito. O
+   * limiar virou linha de chegada.
+   *
+   * O problema não é o limiar — ele está certo, é o mesmo piso que o
+   * perfil-seo usa pra liberar index,follow, e mexer nele faria o app
+   * prometer uma coisa e o Google entregar outra. O problema é ele
+   * ser a ÚNICA coisa que a tela celebra.
+   *
+   * Uma contagem de serviços é alcançável sozinho. Uma avaliação de
+   * cliente não: ela exige mandar o relatório para alguém de verdade
+   * — que é o comportamento que sustenta o negócio inteiro, e o único
+   * que nenhum concorrente consegue falsificar. 47% dos relatórios
+   * enviados já viraram avaliação, a melhor taxa do produto.
+   *
+   * Então a faixa passa a apontar para a avaliação enquanto ela não
+   * chega. A contagem continua existindo e continua verdadeira; ela
+   * só deixou de ser a manchete. */
+  var totalAval = Number(_totalAvaliacoes) || 0;
+  var semProva  = total > 0 && totalAval === 0;
+
+  /* Uma frase só, e ela nomeia o controle que existe de verdade: a
+     setinha de reenvio no cartão do serviço (title "Reenviar para o
+     cliente"). Prometer um botão que não existe seria pior que não
+     dizer nada. */
+  var marcoAvaliacao = '<span class="ponto"></span>No ar · ' +
+    '<b>peça a avaliação</b> — toque no ↗ do serviço e mande pro cliente';
+  var url = FIELDO.perfilUrl(prof);
+
+  var svgOlho = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var svgShare = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>';
+
+  var estado, acoes;
+  if (prof.is_public) {
+    /* v9.12: perfil público com contagem ZERO é contradição — o
+       gatilho exige 3 serviços pra ligar is_public. Se chegou aqui com
+       0, os dados não carregaram (rede fora, cache frio). Afirmar "0
+       serviços públicos" seria transformar falha de carga em fato na
+       cara do dono. Melhor dizer só o que se sabe. */
+    /* v9.12: sem repetir a contagem — ela está 20px acima, na linha do
+       nome. O número aparecia TRÊS vezes na mesma tela (linha do topo,
+       aqui, e no bloco Atividade). Aqui o que importa é o estado. */
+    /* v10.10 · público e sem nenhuma avaliação: estar na busca sem
+       prova é meia vitória, e a faixa passa a dizer o que falta. */
+    estado = semProva
+      ? marcoAvaliacao
+      : '<span class="ponto"></span>No ar e na busca do Google';
+    acoes = '<a class="perfil-bar-btn" href="' + esc(url) + '">' + svgOlho + 'Ver</a>' +
+            '<button type="button" class="perfil-bar-btn perfil-bar-btn--forte" ' +
+            'onclick="compartilharPerfil()">' + svgShare + 'Compartilhar</button>';
+  } else {
+    /* O gatilho ativar_perfil_publico exige TRÊS coisas, não uma:
+         count(reports where is_public) >= 3
+         AND name, profissao e city preenchidos
+       Ficar só com a contagem faria o app dizer "falta 1 serviço" pra
+       quem, na verdade, está travado por não ter posto a cidade — e
+       essa pessoa registraria o serviço e continuaria fora. */
+    var faltaCadastro = [];
+    if (!prof.name)      faltaCadastro.push('seu nome');
+    if (!prof.profissao) faltaCadastro.push('sua profissão');
+    if (!prof.city)      faltaCadastro.push('sua cidade');
+    /* v-perfil-fix4 · o gatilho do banco (comentário acima) não checa
+       WhatsApp — só nome/profissão/cidade/contagem. Mas sem WhatsApp
+       cadastrado a barra de contato inteira some em perfil.html: o
+       perfil ligaria sozinho, no Google, sem nenhum jeito do cliente
+       chamar. Pedir aqui, ANTES da pessoa chegar nesse ponto, evita
+       esse buraco na prática — mesmo sem mudar o gatilho em si. */
+    if (!prof.whatsapp)  faltaCadastro.push('seu WhatsApp');
+
+    var faltam = Math.max(0, MIN_SERVICOS_PUBLICO - total);
+
+    if (faltaCadastro.length) {
+      estado = 'Ainda não aparece na busca: falta preencher <b>' +
+               faltaCadastro.join('</b>, <b>') + '</b> no seu perfil.';
+      acoes = '<button type="button" class="perfil-bar-btn perfil-bar-btn--forte" ' +
+              'onclick="abrirPerfil()">Completar perfil</button>';
+
+    } else if (total === 0) {
+      /* Zero serviços públicos: o link não abre pra ninguém, porque não
+         há nada pra mostrar. A próxima ação é registrar — e o texto
+         promete o que acontece no PRIMEIRO, não no terceiro. */
+      /* v9.14b · SEM botão aqui. Renderizei a tela e havia DOIS botões
+         dourados para o mesmo destino (servico.html) visíveis ao mesmo
+         tempo: este e o "Registrar novo serviço" 200px abaixo. É o
+         mesmo defeito que eu já tinha corrigido na v9.13, voltando por
+         outro estado — de novo só visível renderizando, porque no
+         código os dois estão a 500 linhas de distância.
+         Nesta situação a faixa INFORMA; quem age é o CTA principal. */
+      /* v9.15 · "link" era um QUARTO nome pro mesmo objeto. Ver
+         VOCABULARIO.md — a vitrine é a página; o link é só o endereço
+         dela. Dizer "seu link fica pronto" fazia parecer que o que
+         você ganha é uma URL, e o que você ganha é a página. */
+      estado = 'Registre 1 serviço e seu perfil público abre';
+      acoes = '';
+
+    } else if (semProva) {
+      /* v10.10 · tem serviço publicado e nenhuma avaliação.
+         Vem ANTES da contagem de propósito: "faltam 2 pra entrar na
+         busca" manda a pessoa lançar mais serviço sozinha, que é
+         exatamente o comportamento que fez dez de catorze pararem no
+         terceiro. A avaliação é o passo que depende de um cliente. */
+      estado = marcoAvaliacao;
+      acoes = '<a class="perfil-bar-btn" href="' + esc(url) + '">' + svgOlho + 'Ver</a>' +
+              '<button type="button" class="perfil-bar-btn perfil-bar-btn--forte" ' +
+              'onclick="compartilharPerfil()">' + svgShare + 'Compartilhar</button>';
+
+    } else if (faltam > 0) {
+      /* v9.9 · A CORREÇÃO QUE O DONO PEDIU.
+         Antes esta faixa dizia só "faltam 2 serviços pra entrar na
+         vitrine" — uma parede, sem nada disponível hoje. Só que
+         `is_public` juntava DUAS coisas diferentes:
+
+           · meu link abre quando eu mando pra alguém   ← quero HOJE
+           · apareço no explorar e no Google            ← descoberta
+
+         Só a segunda precisa de portão. Quem recebe o link já conhece
+         a pessoa; só quer ver o trabalho. A policy do banco mudou na
+         v9.9 e o link passa a abrir a partir do PRIMEIRO serviço
+         publicado — não listado, como vídeo privado do YouTube.
+
+         A partir daqui a mensagem principal é "seu link está pronto,
+         manda", e o que falta vira nota de rodapé em vez de muro. */
+      estado = '<span class="ponto"></span>No ar · ' +
+        (faltam === 1 ? 'falta' : 'faltam') + ' ' + faltam +
+        ' pra entrar na busca';
+      acoes = '<a class="perfil-bar-btn" href="' + esc(url) + '">' + svgOlho + 'Ver</a>' +
+              '<button type="button" class="perfil-bar-btn perfil-bar-btn--forte" ' +
+              'onclick="compartilharPerfil()">' + svgShare + 'Compartilhar</button>';
+
+    } else {
+      /* Contagem cumprida e ainda privado: o gatilho roda no servidor
+         a cada serviço novo e pode não ter passado por este perfil.
+         Dizer "falta 0" seria mentira boba. */
+      estado = '<span class="ponto"></span>No ar · busca libera no próximo serviço';
+      acoes = '<a class="perfil-bar-btn" href="' + esc(url) + '">' + svgOlho + 'Ver</a>' +
+              '<button type="button" class="perfil-bar-btn perfil-bar-btn--forte" ' +
+              'onclick="compartilharPerfil()">' + svgShare + 'Compartilhar</button>';
+    }
+  }
+
+  /* `total` aqui já é o número de serviços PÚBLICOS: _totalServicos
+     recebe stats.publicos, não stats.total. Eu tinha escrito
+     _totalPublicos, que não existe — nome inventado, terceiro nesta
+     rodada. Conferido na atribuição. */
+  renderProximoPasso(prof, { publicos: total });
+
+  /* v9.11 · SÓ DEPOIS QUE A CONTAGEM CHEGOU.
+     `renderPerfilPublico` roda duas vezes: uma quando o perfil carrega
+     (com _totalServicos ainda null) e outra quando as métricas chegam.
+     Na primeira passada `total` vale 0 mesmo para quem tem serviços —
+     e o balão de "registre o primeiro" era enfileirado para todo
+     mundo. O sussurro é que revelou isso: ele desiste quando há balão
+     na fila, e nunca aparecia.
+     Guia só depois que o número é REAL. */
+  /* v12.19e · a faixa dizia "falta preencher seu WhatsApp" e, logo
+     abaixo, o balão prometia "o primeiro serviço já abre seu perfil
+     público". As duas coisas na mesma tela, para a mesma pessoa. Quando
+     falta dado do cadastro, o balão fala disso e de mais nada. */
+  var faltaNoPerfil = (!prof.is_public && Array.isArray(faltaCadastro)) ? faltaCadastro : [];
+  if (_totalServicos === null) { /* métricas ainda não chegaram */ }
+  else if (faltaNoPerfil.length) {
+    FIELDO.Guia.mostrar({
+      id: 'completar-perfil',
+      alvo: 'perfilBar',
+      titulo: 'Antes de tudo, <em>complete o perfil</em>',
+      texto: (faltaNoPerfil.indexOf('seu WhatsApp') >= 0
+               ? 'Sem o seu WhatsApp, quem abrir seu perfil não tem como te chamar. '
+               : '') +
+             'Toque em "Completar perfil" e preencha ' + faltaNoPerfil.join(', ') + '. Leva menos de um minuto.',
+      botao: 'Entendi',
+    });
+  }
+  else if (total === 0) {
+    FIELDO.Guia.mostrar({
+      id: 'primeiro-servico',
+      alvo: 'perfilBar',
+      titulo: 'O primeiro serviço já abre seu <em>perfil público</em>',
+      texto: 'Registre um trabalho que você já fez, com foto e data. ' +
+             'Sai um documento pra mandar pro cliente — e seu perfil público ' +
+             'abre na hora, sem esperar os três.',
+      botao: 'Entendi',
+    });
+  } else if (!prof.is_public) {
+    FIELDO.Guia.mostrar({
+      id: 'link-pronto',
+      alvo: 'perfilBarAcoes',
+      titulo: 'Seu perfil <em>já abre</em>',
+      texto: 'Mesmo antes de aparecer na busca, quem receber este link vê ' +
+             'seus serviços e as avaliações de quem contratou. Manda pra ' +
+             'quem já te conhece.',
+      botao: 'Beleza',
+    });
+  }
+
+  /* v9.11 · o bilhete da bio. Entra numa SESSÃO POSTERIOR: o
+     `sussurrar` desiste sozinho se houver balão na fila ou na tela, e
+     não se marca como visto quando desiste — então ele espera a vez
+     em vez de disputar com "Seu link já abre".
+
+     Só faz sentido quando o link realmente abre (1+ serviço público).
+     Antes disso seria mandar a pessoa divulgar uma página vazia. */
+  if (total >= 1) {
+    FIELDO.Guia.sussurrar({
+      id: 'link-na-bio',
+      alvo: 'perfilBarAcoes',
+      texto: 'Cole este link na bio do Instagram e no recado do WhatsApp. ' +
+             'Quem te procurar já vê seu trabalho.',
+      segundos: 8,
+    });
+  }
+
+  document.getElementById('perfilBarEst').innerHTML = estado;
+  document.getElementById('perfilBarAcoes').innerHTML = acoes;
+  /* v10.16 · este innerHTML recria o botão COM a classe --forte, então
+     a harmonização tem de rodar depois dele. Ver harmonizarDourados. */
+  harmonizarDourados();
+  /* v9.14b · 'block', não 'flex'. Este inline-style sobreviveu da
+     estrutura antiga, quando .perfil-bar ERA a linha. Na v9.14 ela
+     virou duas linhas — e o 'flex' SEM align-items punha as duas lado
+     a lado com stretch implícito, esticando o botão até 145px de
+     altura e encostando no texto. Só apareceu renderizando. O flex
+     voltou, agora com align-items:center e flex-wrap declarados na
+     CSS: uma linha quando cabe, duas quando não cabe. */
+  bar.style.display = 'flex';
+}
+
+/* Compartilhar é o canal que já se provou: quem recebe o documento
+   pergunta qual app é. Aqui o dono manda o perfil direto. */
+function renderProximoPasso(prof, stats) {
+  if (!prof) return;
+  var p = FIELDO.Perfil.proximoPasso(prof, stats);
+  setText('dashPassoTit', p.titulo);
+  setText('dashPassoTxt', p.texto);
+  var cta = document.getElementById('dashPassoCta');
+  if (cta) {
+    cta.textContent = p.cta.rotulo;
+    /* v10.16 · a ação fica declarada no DOM. A harmonização abaixo
+       precisa saber O QUE este botão faz, e inferir por href não
+       funciona: 'compartilhar' não tem href — foi exatamente por isso
+       que a regra de duplicação não pegou o Compartilhar repetido. */
+    cta.setAttribute('data-acao', p.cta.acao || '');
+    if (p.cta.acao === 'compartilhar') {
+      cta.setAttribute('href', '#');
+      cta.onclick = function (e) { e.preventDefault(); compartilharPerfil(); };
+    } else {
+      cta.setAttribute('href', p.cta.href);
+      cta.onclick = null;
+    }
+  }
+  var sec = document.getElementById('dashPasso');
+  /* v12.8 · "Seu perfil está pronto → Compartilhar" é o estado FINAL do
+     próximo passo: depois dele, o cartão ficava na tela para sempre,
+     repetindo o Compartilhar que já está no cabeçalho, 200px acima.
+     Pronto é pronto: o cartão só aparece quando há algo a fazer. */
+  if (sec) sec.style.display = (p.id === 'compartilhar') ? 'none' : '';
+
+  /* v10.0 · QUARTA VEZ. O cartão de próximo passo e o botão
+     "Registrar novo serviço" ficavam os dois na tela, os dois
+     dourados, os dois pra servico.html — a mesma duplicação da v9.13,
+     v9.14 e da aba de Contratos.
+
+     O próximo passo É a ação principal, com o motivo junto. Quando ele
+     aponta pro mesmo lugar, o botão solto sai. Quando aponta pra outro
+     (compartilhar, completar perfil), os dois coexistem porque são
+     ações diferentes. */
+  var solto = document.querySelector('.acao-primaria');
+  if (solto) {
+    /* v10.7 · QUINTA VEZ — e desta vez a causa foi a comparação, não o
+       layout.
+       Isto comparava as duas strings de href CRUAS. A v10.3 tornou
+       absolutos os caminhos do db.js (por causa da rota /p/:slug), e o
+       href aqui no HTML continuou relativo. Resultado:
+
+           'servico.html' === '/servico.html'   →  false
+
+       …e o botão duplicado voltou à tela, dourado, 200px abaixo do
+       outro. Exatamente o defeito das v9.13, v9.14 e v10.0, agora por
+       uma quarta causa diferente.
+
+       Comparar o caminho RESOLVIDO encerra a série: 'servico.html',
+       '/servico.html' e './servico.html' passam a ser a mesma coisa,
+       que é o que o navegador entende de qualquer jeito. */
+    var comoUrl = function (h) {
+      try { return new URL(h || '', location.href).pathname; }
+      catch (e) { return String(h || ''); }
+    };
+    var mesmoDestino = comoUrl(solto.getAttribute('href')) === comoUrl(p.cta && p.cta.href);
+    solto.style.display = mesmoDestino ? 'none' : '';
+  }
+
+  harmonizarDourados();
+}
+
+/* ── v10.16 · UM DOURADO POR TELA ────────────────────────────────
+ *
+ * O dono mandou print: "estes dois botões enormes me incomoda".
+ * Eram quatro coisas douradas na mesma tela — o Compartilhar do
+ * cabeçalho, o Compartilhar do cartão, o Registrar novo serviço e o
+ * "+" da barra de baixo. Dourado quer dizer "é isto aqui"; quatro
+ * vezes não quer dizer nada.
+ *
+ * E havia duplicação de verdade no meio: "Compartilhar" duas vezes, a
+ * mesma ação, com 300px entre elas. A regra de duplicação que já existe
+ * logo acima compara HREF — e 'compartilhar' não tem href, é uma ação.
+ * Por isso escapou. Sexta ocorrência desta família, sexta causa.
+ *
+ * POR QUE ESTA FUNÇÃO LÊ O DOM EM VEZ DE DECIDIR NA HORA DE MONTAR
+ * As cinco correções anteriores (v9.13, v9.14, v10.0, v10.7) morreram
+ * todas por ORDEM e por comparação: quem monta primeiro, quem sobrescreve
+ * depois, string relativa contra absoluta. O renderProximoPasso roda na
+ * linha 1202 e o perfilBarAcoes.innerHTML só é escrito na 1253 — uma
+ * decisão tomada dentro do primeiro seria apagada pelo segundo.
+ *
+ * Esta função não decide nada na montagem: olha o que está na tela e
+ * conserta. É idempotente e não depende de ordem, então pode ser
+ * chamada depois de qualquer render. É essa a forma que encerra a série.
+ *
+ * Nada é removido. O alcance de toque continua idêntico. */
+function harmonizarDourados() {
+  var cta = document.getElementById('dashPassoCta');
+  var cartao = document.getElementById('dashPasso');
+  var cartaoNaTela = !!(cartao && cartao.style.display !== 'none' && cta);
+
+  /* O botão solto só é secundário enquanto o cartão está na tela. Sem
+     cartão, ele volta a ser a ação principal — e volta a ser dourado. */
+  var solto = document.querySelector('.acao-primaria');
+  if (solto) solto.classList.toggle('acao-primaria--calma', cartaoNaTela);
+
+  /* O Compartilhar do cabeçalho perde o preenchimento quando o cartão
+     já está pedindo a MESMA coisa. Continua ali, continua clicável. */
+  var pedeCompartilhar = cartaoNaTela && cta.getAttribute('data-acao') === 'compartilhar';
+  var forte = document.querySelector('#perfilBarAcoes .perfil-bar-btn--forte');
+  /* v12.8 · sem o cartão (perfil pronto), o dourado é do "Registrar
+     novo serviço" — a ação do dia a dia. O Compartilhar do cabeçalho
+     fica contornado, igual ao "Ver" do lado. */
+  if (forte && (pedeCompartilhar || !cartaoNaTela)) forte.classList.remove('perfil-bar-btn--forte');
+}
+
+function compartilharPerfil() {
+  var prof = _profAtual;
+  if (!prof) return;
+  var url = FIELDO.perfilUrl(prof);
+  var texto = (prof.name || 'Meu trabalho') +
+    ' — ' + (prof.profissao || 'serviços') +
+    '. Meus serviços e avaliações estão aqui:';
+
+  if (navigator.share) {
+    navigator.share({ title: 'Fieldo', text: texto, url: url })
+      .catch(function () { /* usuário cancelou — não é erro */ });
+    return;
+  }
+  window.open('https://wa.me/?text=' + encodeURIComponent(texto + '\n' + url), '_blank');
+}
+window.compartilharPerfil = compartilharPerfil;
+
+function renderProfissional(prof) {
+  _profAtual = prof;
+  var name = prof.name || prof.profissao || 'Profissional';
+
+  setText('dashName', name);
+  /* v9.12: usa FIELDO.UI.subtitulo, que existe desde a v8.8 exatamente
+     pra isto e que o dashboard nunca chamou. O campo `profissao` deste
+     perfil contém "Marcelo Ferreira Rodrigues — Eletricista em
+     Caraguatatuba, SP" — 61 caracteres com nome e cidade dentro. A
+     concatenação crua repetia o nome logo abaixo do nome, e truncava.
+     Quinta vez neste projeto: a peça existia, a ligação não. */
+  /* v9.14b · numa especialidade longa, a cidade é o que se sacrifica.
+     Com "Instalação e manutenção de refrigeração industrial" o clamp
+     de 2 linhas cortava DENTRO do separador e a linha terminava em
+     "industrial ·…" — isso parece defeito de render, não corte. */
+  var spec = FIELDO.UI.subtitulo(prof);
+  var corte = spec.indexOf(' · ');
+  if (corte > 38) spec = spec.slice(0, corte);
+  setText('dashSpec', spec);
+  setText('dashPlanLabel', (prof.plan || 'free').toUpperCase());
+
+  /* Avatar */
+  var av = document.getElementById('dashAvatar');
+  if (prof.logo_url) {
+    av.innerHTML = '<img src="' + esc(prof.logo_url) + '" alt=""/>';
+  } else {
+    av.textContent = name.charAt(0).toUpperCase();
+  }
+
+  renderPerfilPublico();
+
+  /* Oculta callout de upgrade para pro/team */
+  if (prof.plan === 'pro' || prof.plan === 'team') {
+    var pc = document.getElementById('planCallout');
+    if (pc) pc.style.display = 'none';
+  }
+
+  /* Drawer perfil badge */
+  var dp = document.getElementById('drawerPerfil');
+  if (dp) {
+    dp.innerHTML = '<div style="display:flex;align-items:center;gap:.75rem;padding:.25rem 0">' +
+      '<div style="width:36px;height:36px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;color:var(--on-gold);font-size:.95rem;flex-shrink:0;overflow:hidden">' +
+      (prof.logo_url ? '<img src="'+esc(prof.logo_url)+'" alt="Foto do perfil" style="width:100%;height:100%;object-fit:cover"/>' : name.charAt(0).toUpperCase()) +
+      '</div>' +
+      '<div style="min-width:0"><div style="font-size:.82rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(name) + '</div>' +
+      '<div style="font-size:.7rem;color:var(--muted)">Plano ' + ((prof.plan === 'pro' || prof.plan === 'team') ? 'Pro' : 'Grátis') + '</div></div></div>';
+  }
+
+  /* Preenche modal de perfil */
+  setVal('pNome', prof.name || '');
+  setVal('pSpec', prof.profissao || prof.specialty || '');
+  preencherSelectNicho(prof.niche || '');
+  ligarOutrasProf(prof); /* v12.25 */
+  FIELDO.Credenciais.editor(document.getElementById('credEditor'), prof); /* v12.13 */
+  setVal('pBio', prof.bio || '');
+  setVal('pWpp', prof.whatsapp || '');
+  setVal('pCidade', prof.city || '');
+  setVal('pInsta', prof.instagram || '');
+  setVal('pPixTipo', prof.pix_tipo || 'CPF');
+  setVal('pPixChave', prof.pix_key || '');
+  /* v6.0: reflete o consentimento salvo */
+  var chkP = document.getElementById('pPortfolio');
+  if (chkP) {
+    chkP.checked = prof.portfolio_publico === true;
+    var av = document.getElementById('portfolioAviso');
+    if (av) av.style.display = chkP.checked ? '' : 'none';
+  }
+  setText('modalAvatarName', name);
+
+  if (prof.logo_url) {
+    var mai = document.getElementById('modalAvatarImg');
+    if (mai) mai.innerHTML = '<img src="' + esc(prof.logo_url) + '" alt="Foto do perfil" style="width:100%;height:100%;object-fit:cover"/>';
+  }
+}
+
+/* ── Métricas ── */
+/* ── v5.3: painel financeiro ──────────────────────────────────
+   Só aparece quando existe algo cobrado. Um cartão "R$ 0,00" todo
+   dia para quem nunca preenche valor é ruído, não informação. */
+/* ── v5.3: marcar recebido ────────────────────────────────────
+   Delegação de evento no container: a lista é recriada a cada render,
+   então listener por botão vazaria a cada atualização.
+
+   Envia paid_at junto porque o banco tem constraint: 'pago' exige data.
+   Atualiza a lista inteira depois — o cartão financeiro precisa
+   refletir a mudança na hora. */
+/* ── v5.6: delegação dos botões de reenvio ────────────────────
+   Os dados agora chegam por data-*, lidos via dataset — que devolve
+   a string já decodificada pelo parser, sem passar por avaliação de
+   JavaScript. É o que torna a injeção impossível, não o escape. */
+/* v5.7: botão de emergência do service worker.
+   Um SW quebrado persiste no aparelho e o usuário não tem como sair
+   sozinho — "limpar dados do navegador" apagaria a conta junto, já que
+   a identidade vive no localStorage. Isto remove só o SW e os caches. */
+function bindPwaReset() {
+  var b = document.getElementById('btnPwaReset');
+  if (!b || !window.FIELDO || !FIELDO.PWA) return;
+  b.addEventListener('click', function () {
+    if (!window.confirm('Limpar o cache do app e recarregar?\n\nSeus dados e sua conta não são apagados.')) return;
+    b.disabled = true;
+    b.textContent = 'Limpando…';
+    FIELDO.PWA.reset().catch(function () {
+      b.disabled = false;
+      b.textContent = 'Corrigir app travado';
+      FIELDO.UI.toast('Não foi possível limpar');
+    });
+  });
+}
+
+function bindTemaBtns() {
+  var box = document.getElementById('themePicker');
+  if (!box || box._temaBound) return;
+  box._temaBound = true;
+  box.addEventListener('click', function (ev) {
+    var el = ev.target.closest && ev.target.closest('[data-tema]');
+    if (el) selecionarTema(el.dataset.key);
+  });
+}
+
+function bindNichoBtns() {
+  var box = document.getElementById('nicheList') || document.getElementById('nichePicker');
+  if (!box || box._nichoBound) return;
+  box._nichoBound = true;
+  box.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-rmnicho]');
+    if (!b) return;
+    ev.preventDefault();
+    removerNicho(b.dataset.rmnicho);
+  });
+}
+
+/* v-rebuild-5 · menu de três pontinhos por cartão (serviço/orçamento).
+   Um só aberto por vez; fecha ao apertar Esc ou depois de qualquer
+   ação escolhida — o padrão comum de menu de contexto.
+
+   O fechamento por "clique fora" usa um VÉU (rmBackdrop) em vez de só
+   ouvir clique no documento. Motivo, achado testando: numa lista
+   compacta, o menu aberto de um cartão pode cobrir visualmente os
+   três pontinhos do cartão seguinte. Sem véu, um clique ali tenta
+   acertar um botão que está por baixo de outro elemento — o
+   navegador entrega o clique pra quem está por CIMA (o menu aberto),
+   então nada acontece, ou pior, acerta um item errado por acidente.
+   Com o véu cobrindo a tela inteira atrás do menu, qualquer clique
+   fora do menu sempre fecha e não vaza pra nenhum outro botão —
+   exatamente como um menu de contexto de verdade se comporta. */
+function fecharTodosRowMenus(exceto) {
+  document.querySelectorAll('.rm-menu').forEach(function (m) {
+    if (m === exceto || m.hidden) return;
+    m.hidden = true;
+    var b = m.previousElementSibling;
+    if (b && b.classList.contains('rm-btn')) b.setAttribute('aria-expanded', 'false');
+  });
+  var veu = document.getElementById('rmBackdrop');
+  if (veu) veu.remove();
+}
+function toggleRowMenu(btn) {
+  var menu = btn.nextElementSibling;
+  if (!menu || !menu.classList.contains('rm-menu')) return;
+  var vaiAbrir = menu.hidden;
+  fecharTodosRowMenus(vaiAbrir ? menu : null);
+  menu.hidden = !vaiAbrir;
+  btn.setAttribute('aria-expanded', vaiAbrir ? 'true' : 'false');
+  if (vaiAbrir) {
+    var veu = document.createElement('div');
+    veu.id = 'rmBackdrop';
+    /* mesma régua do z-index de .rm-menu (400 vs 401, ver fieldo.css) —
+       o véu fica logo abaixo do menu, e acima de topbar/menu inferior.
+
+       v-rebuild-7 · CORREÇÃO: estava anexado em document.body. Bug real
+       relatado ("Arquivar não arquiva"): <main class="page"> tem
+       position:relative + z-index:1 — isso abre um contexto de
+       empilhamento PRÓPRIO, e todo z-index LÁ DENTRO (inclusive o 401
+       do menu) só vale DENTRO dele. Comparado direto com algo fora
+       (o véu, filho de <body>), quem decide é o z-index do próprio
+       <main> (1) contra o do véu (400) — o véu "ganhava" e cobria o
+       menu inteiro por cima, invisível (é transparente), engolindo
+       o clique em qualquer item antes dele chegar no botão real.
+       Anexando o véu DENTRO do mesmo <main>, os dois voltam a
+       competir no mesmo grupo, e o 401 do menu vale de verdade. */
+    veu.style.cssText = 'position:fixed;inset:0;z-index:400;background:transparent';
+    veu.addEventListener('click', function () { fecharTodosRowMenus(); });
+    var raiz = document.getElementById('main-content') || document.body;
+    raiz.appendChild(veu);
+  }
+}
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Escape') fecharTodosRowMenus();
+});
+
+function bindReenvioBtns() {
+  ['serviceList', 'orcList'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el || el._reenvBound) return;
+    el._reenvBound = true;
+
+    el.addEventListener('click', function (ev) {
+      var btn = ev.target.closest && ev.target.closest('[data-act]');
+      if (!btn) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      fecharTodosRowMenus();
+
+      var act = btn.dataset.act;
+      if (act === 'rel') {
+        reenviarRelatorio(btn.dataset.token, btn.dataset.cliente);
+      } else if (act === 'orc') {
+        reenviarOrcamento(btn.dataset.oid, btn.dataset.cliente,
+                          parseFloat(btn.dataset.total) || 0);
+      }
+      else if (act === 'arq-rel')  { arquivarRegistro('reports', btn.dataset.rid); }
+      else if (act === 'rest-rel') { restaurarRegistro('reports', btn.dataset.rid); }
+      else if (act === 'del-rel')  { excluirRegistro('reports', btn.dataset.rid); }
+      else if (act === 'arq-orc')  { arquivarRegistro('budgets', btn.dataset.oid); }
+      else if (act === 'rest-orc') { restaurarRegistro('budgets', btn.dataset.oid); }
+      else if (act === 'del-orc')  { excluirRegistro('budgets', btn.dataset.oid); }
+    });
+  });
+}
+
+/* ── v7.2: arquivamento (soft-delete) ─────────────────────────────
+   Arquivar tira o registro da lista do profissional SEM apagar: o link
+   que o cliente já tem e a avaliação continuam vivos. Excluir é o
+   hard-delete (cascata remove a avaliação) — por isso pede confirmação.
+   Itens ainda não sincronizados não mostram arquivar (não existem no
+   servidor); o render já os exclui do botão. */
+var _arqServ = false, _arqOrc = false;
+
+function _apiAlvo(tabela) {
+  return tabela === 'reports' ? FIELDO.Reports : FIELDO.Budgets;
+}
+
+function arquivarRegistro(tabela, id) {
+  _apiAlvo(tabela).update(id, { arquivado_em: new Date().toISOString() })
+    .then(function () {
+      FIELDO.UI.toast(tabela === 'reports' ? 'Serviço arquivado' : 'Orçamento arquivado');
+      tabela === 'reports' ? recarregarServicos() : recarregarOrcamentos();
+    })
+    .catch(function () { FIELDO.UI.toast('Não foi possível arquivar agora'); });
+}
+
+function restaurarRegistro(tabela, id) {
+  _apiAlvo(tabela).update(id, { arquivado_em: null })
+    .then(function () {
+      FIELDO.UI.toast('Restaurado');
+      tabela === 'reports' ? recarregarServicos() : recarregarOrcamentos();
+    })
+    .catch(function () { FIELDO.UI.toast('Não foi possível restaurar agora'); });
+}
+
+function excluirRegistro(tabela, id) {
+  var msg = tabela === 'reports'
+    ? 'Excluir este serviço para sempre? A avaliação do cliente também será perdida. Se só quer tirá-lo da lista, use Arquivar.'
+    : 'Excluir este orçamento para sempre? Esta ação não pode ser desfeita.';
+  if (!window.confirm(msg)) return;
+  _apiAlvo(tabela).delete(id)
+    .then(function () {
+      FIELDO.UI.toast('Excluído');
+      tabela === 'reports' ? recarregarServicos() : recarregarOrcamentos();
+    })
+    .catch(function () { FIELDO.UI.toast('Não foi possível excluir agora'); });
+}
+
+function recarregarServicos() {
+  FIELDO.Reports.list({ limit: 50, arquivados: _arqServ })
+    .then(renderServicos)
+    .catch(function () { FIELDO.UI.toast('Erro ao carregar serviços'); });
+}
+
+function recarregarOrcamentos() {
+  FIELDO.Budgets.list(50, { arquivados: _arqOrc })
+    .then(renderOrcamentos)
+    .catch(function () { FIELDO.UI.toast('Erro ao carregar orçamentos'); });
+}
+
+function ligarTogglesArquivo() {
+  var ts = document.getElementById('arqServToggle');
+  if (ts && !ts._bound) {
+    ts._bound = true;
+    ts.addEventListener('click', function () {
+      _arqServ = !_arqServ;
+      ts.textContent = _arqServ ? '← Ativos' : 'Arquivados';
+      ts.setAttribute('aria-pressed', _arqServ ? 'true' : 'false');
+      recarregarServicos();
+    });
+  }
+  var to = document.getElementById('arqOrcToggle');
+  if (to && !to._bound) {
+    to._bound = true;
+    to.addEventListener('click', function () {
+      _arqOrc = !_arqOrc;
+      to.textContent = _arqOrc ? '← Ativos' : 'Arquivados';
+      to.setAttribute('aria-pressed', _arqOrc ? 'true' : 'false');
+      recarregarOrcamentos();
+    });
+  }
+}
+
+function bindPagoBtns() {
+  var list = document.getElementById('serviceList');
+  if (!list || list._pagoBound) return;
+  list._pagoBound = true;
+
+  list.addEventListener('click', function (ev) {
+    var btn = ev.target.closest && ev.target.closest('.pago-btn');
+    if (!btn) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    fecharTodosRowMenus();
+
+    var id = btn.dataset.rid;
+    if (!id || btn.disabled) return;
+
+    /* v-rebuild-5: guarda o conteúdo original (ícone + rótulo) pra
+       devolver exatamente igual se der erro — antes disto o reset de
+       erro escrevia 'R$' cru, que era certo quando o botão só tinha
+       'R$' e ficou errado assim que ele ganhou um rótulo por extenso. */
+    var original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="rm-ico" aria-hidden="true">R$</span>Confirmando…';
+
+    FIELDO.Reports.update(id, {
+      payment_status: 'pago',
+      paid_at: new Date().toISOString(),
+    }).then(function () {
+      FIELDO.UI.toast('Marcado como recebido ✓');
+      carregarDashboard();
+    }).catch(function (err) {
+      btn.disabled = false;
+      btn.innerHTML = original;
+      FIELDO.UI.toast('Não foi possível atualizar');
+      console.error('[pago]', err);
+    });
+  });
+}
+
+function renderFinanceiro(stats) {
+  var sec = document.getElementById('secFinanceiro');
+  if (!sec) return;
+
+  var temMovimento = (stats.qtdReceber > 0) || (stats.qtdPagoMes > 0);
+  if (!temMovimento) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+
+  setText('mReceber',  FIELDO.UI.brl(stats.aReceber || 0));
+  setText('mRecebido', FIELDO.UI.brl(stats.recebidoMes || 0));
+
+  setText('mReceberSub', stats.qtdReceber
+    ? stats.qtdReceber + (stats.qtdReceber === 1 ? ' serviço' : ' serviços')
+    : 'nada pendente');
+  setText('mRecebidoSub', stats.qtdPagoMes
+    ? stats.qtdPagoMes + (stats.qtdPagoMes === 1 ? ' serviço · este mês' : ' serviços · este mês')
+    : 'este mês');
+
+  /* Destaque só quando há de fato algo a cobrar */
+  var card = document.getElementById('cardReceber');
+  if (card) card.classList.toggle('doc-metric--alert', (stats.qtdReceber || 0) > 0);
+
+  var link = document.getElementById('linkAReceber');
+  if (link) link.style.display = (stats.qtdReceber || 0) > 0 ? '' : 'none';
+}
+
+function renderMetricas(stats) {
+  renderFinanceiro(stats);
+  setText('mTotal',    stats.total || '—');
+  setText('mMes',      stats.mes   || '—');
+  /* v9.14: mostrava a CHAVE do banco — "eletrica", sem acento e em
+     minúscula, na cara do usuário. FIELDO.Niches.label() existe pra
+     isso e a tela não chamava. Sexta vez nesta sequência. */
+  var lblNicho = stats.nichoTop
+    ? (function () { try { return FIELDO.Niches.label(stats.nichoTop) || stats.nichoTop; }
+                     catch (e) { return stats.nichoTop; } })()
+    : null;
+  setHTML('mNicho',    lblNicho ? '<em>' + esc(lblNicho) + '</em>' : '—');
+  setText('qsServicos', stats.total || '—');
+  setText('qsMes',      stats.mes   || '—');
+
+  /* v9.12 · UMA linha no lugar do score gigante + três tiles. O
+     detalhe continua inteiro na aba Reputação — aqui fica o resumo
+     que cabe num olhar. E o número de serviços aparece UMA vez: antes
+     ele estava em "média de 15 serviços", "15 SERVIÇOS" e "15
+     serviços públicos", tudo na mesma tela. */
+  var linha = document.getElementById('dashLinha');
+  if (linha) {
+    /* Dois itens, no máximo. Com três a linha quebrava no celular e
+       ficava pior que a grade que ela substituiu. "Este mês" saiu
+       porque já aparece em destaque logo abaixo, na aba Atividade —
+       era a terceira aparição do mesmo tipo de número. */
+    /* v9.14 · A reputação é o ativo do produto e estava em cinza
+       .66rem. Agora: nota em serif (número lê como valor), estrelas
+       logo abaixo, e a contagem como apoio. Continua UMA linha e
+       continua sem repetir número nenhum de outra parte da tela. */
+    var html = '';
+    if (stats.avgScore) {
+      html += '<span class="dash-nota">' + esc(stats.avgScore).replace('.', ',') + '</span>' +
+              '<span class="dash-estrelas" aria-hidden="true">' +
+                esc(FIELDO.UI.stars(Math.round(parseFloat(stats.avgScore)))) + '</span>';
+    }
+    if (stats.total) {
+      /* aria-hidden: é ornamento visual, não conteúdo. Sem isso o
+         leitor de tela lê "ponto" entre cada número. */
+      if (html) html += '<span class="sep" aria-hidden="true">·</span>';
+      /* Um span só: texto solto dentro de um flex vira "anonymous flex
+         item" e herda o gap do container — era isso que abria um vão
+         entre o "15" e a palavra "serviços". */
+      html += '<span><b>' + stats.total + '</b> serviço' + (stats.total === 1 ? '' : 's') + '</span>';
+    }
+    /* Sem avaliação ainda: diz o que falta, não deixa vazio. */
+    if (!html) html = '<span>sem avaliações ainda</span>';
+    linha.innerHTML = html;
+    linha.setAttribute('aria-label', stats.avgScore
+      ? 'Nota ' + stats.avgScore + ' de 5, em ' + (stats.total || 0) + ' serviços'
+      : 'Ainda sem avaliações');
+  }
+  /* v9.6: a faixa precisa do total pra dizer quantos faltam. As duas
+     cargas (perfil e métricas) chegam em ordem imprevisível — por isso
+     cada uma chama, e a função sabe esperar a outra. */
+  _totalServicos = stats.publicos || 0;
+  _totalAvaliacoes = stats.total || 0;   /* v10.10 · ver renderPerfilPublico() */
+  renderPerfilPublico();
+
+  if (stats.avgScore) {
+    setHTML('dashScoreVal', '<em>' + stats.avgScore + '</em>');
+    setText('dashStars',   FIELDO.UI.stars(Math.round(parseFloat(stats.avgScore))));
+    setText('dashScoreSub', 'média de ' + (stats.total || 0) + ' serviço' + (stats.total !== 1 ? 's' : ''));
+  }
+}
+
+/* ── Serviços recentes ── */
+var NICHE_EMOJI = {
+  eletrica: '⚡', hidraulica: '🔧', pintura: '🎨',
+  'ar-condicionado': '❄️', alvenaria: '🧱', informatica: '💻',
+  serralheria: '🔩',
+};
+
+/* v12.16 · obras em andamento. Carrega à parte do Promise.all do
+   dashboard: se falhar, some só esta seção. */
+function carregarObras() {
+  if (!FIELDO.Obras) return;
+  FIELDO.Obras.comSaldo().then(renderObras).catch(function () {
+    var sec = document.getElementById('secObras'); if (sec) sec.style.display = 'none';
+  });
+}
+function renderObras(obras) {
+  var sec = document.getElementById('secObras'), box = document.getElementById('obrasConteudo');
+  if (!sec || !box) return;
+  var and = (obras || []).filter(function (o) { return o.status !== 'concluida'; });
+  sec.style.display = '';
+  document.getElementById('obrasVerTodas').style.display = (obras || []).length ? '' : 'none';
+  if (!and.length) {
+    box.innerHTML = '<p class="pn-obras-convite">Serviço de vários dias? <a href="obra.html?nova=1">Crie uma obra</a> com o valor combinado: cada relatório desconta do total e o cliente vê quanto resta.</p>';
+    return;
+  }
+  box.innerHTML = '<ul class="pn-obras">' + and.slice(0, 5).map(function (o) {
+    var s = o.saldo, acima = s.restante < 0;
+    return '<li class="pn-obra">' +
+      '<a class="pn-obra-link" href="obra.html?id=' + esc(o.id) + '">' +
+        '<div class="pn-obra-top"><span class="pn-obra-nome">' + esc(o.titulo || o.cliente) + '</span>' +
+          '<span class="pn-obra-resta"><small>' + (acima ? 'Acima do combinado' : 'Resta') + '</small> ' + esc(FIELDO.UI.brl(Math.abs(s.restante))) + ' <small>de ' + esc(FIELDO.UI.brl(s.total)) + '</small></span></div>' +
+        (o.titulo ? '<div class="pn-obra-sub">' + esc(o.cliente) + '</div>' : '') +
+        '<div class="pn-obra-barra' + (acima ? ' pn-obra-barra--acima' : '') + '"><span style="width:' + (acima ? 100 : s.pct) + '%"></span></div>' +
+      '</a>' +
+      '<a class="pn-obra-add" href="servico.html?obra=' + esc(o.id) + '" aria-label="Novo relatório da obra ' + esc(o.titulo || o.cliente) + '"><b>+</b>Relatório</a>' +
+    '</li>';
+  }).join('') + '</ul>';
+}
+
+function renderServicos(rows) {
+  var list = document.getElementById('serviceList');
+  if (!list) return;
+  bindPagoBtns();
+  bindReenvioBtns();
+
+  if (!rows || !rows.length) {
+    list.innerHTML =
+      '<div class="empty-state">' +
+        '<div class="empty-state-glyph" aria-hidden="true">⬡</div>' +
+        /* v9.14b: <em> dourado no papel dava 4.10:1 a 18.4px — passa
+           raspando de "texto grande" (18.66px) e por isso reprova. A
+           correção certa não é aumentar a fonte pra driblar a régua, é
+           usar o tom de dourado que existe pra texto. */
+        '<h3>Comece seu <em style="color:var(--gold-text)">histórico técnico</em></h3>' +
+        /* v9.12: saiu "e que aparecem no Google". Nada está indexado, e
+           esta era a quarta tela repetindo a promessa. O que o produto
+           entrega HOJE é o documento na mão do cliente — e isso já é
+           bom o bastante pra não precisar de enfeite. */
+        '<p>Cada serviço vira um documento com foto, data e a avaliação de quem contratou.</p>' +
+        /* v9.13: sem botão aqui. O "Registrar novo serviço" está no topo
+           da mesma tela, em dourado, impossível de não ver — e antes desta
+           versão havia TRÊS entradas pra mesma ação visíveis ao mesmo
+           tempo (topo, "+ Novo" do cabeçalho, e esta). Estado vazio
+           explica; quem age é o botão principal. */
+      '</div>';
+    return;
+  }
+
+  list.innerHTML = rows.map(function(r) {
+    var emoji = (function(){var l=(r.category_label||(window.FIELDO&&FIELDO.Profissoes?FIELDO.Profissoes.rotulo(r.niche||r.category_key):'')||'S').trim();return esc(l.charAt(0).toUpperCase());})(); /* v12.9 · inicial da categoria, sem ícone */
+    var thumb = r.photos && r.photos[0]
+      ? '<img src="' + esc(r.photos[0]) + '" alt=""/>'
+      : '<div class="service-thumb-ph">' + emoji + '</div>';
+    var rating = r.rating
+      ? '<div class="service-score">' + FIELDO.UI.stars(r.rating) + '</div>'
+      : '';
+    return '<div class="service-card" style="position:relative">' +
+      '<a href="relatorio.html?id=' + esc(r.id) + '" style="display:flex;align-items:center;gap:.75rem;flex:1;text-decoration:none;color:inherit">' +
+        '<div class="service-thumb">' + thumb + '</div>' +
+        '<div class="service-info">' +
+          '<div class="service-client">' + esc(r.client_name) + '</div>' +
+          '<div class="service-meta">' +
+            '<span class="service-niche">' + esc(r.category_label || r.niche || r.category_key || '—') + '</span>' +
+            '<span class="service-dot"></span>' +
+            '<span class="service-date">' + FIELDO.UI.fmtDate(r.service_date || r.created_at) + '</span>' +
+            /* v5.3: valor e situação de pagamento na própria lista.
+               Sem isto o profissional teria que abrir cada relatório
+               para saber quem ainda deve. */
+            /* v5.7.3: registro criado offline ainda não subiu. Sem este
+               aviso, o profissional não sabe que precisa pegar sinal em
+               algum momento — e some do aparelho se ele limpar dados. */
+            (r._pendingSync
+              ? '<span class="service-dot"></span>' +
+                '<span class="service-pend" title="Aguardando conexão">⟳ não enviado</span>'
+              : '') +
+            (r.valor
+              ? '<span class="service-dot"></span>' +
+                '<span class="service-valor' + (r.payment_status === 'pendente' ? ' service-valor--pend' : '') + '">' +
+                  esc(FIELDO.UI.brl(r.valor)) +
+                  (r.payment_status === 'pago' ? ' ✓' : '') +
+                '</span>' +
+                /* v5.4: o cliente avisou que pagou, mas isso é AVISO, não
+                   confirmação. O profissional confirma tocando no botão. */
+                (r.client_paid_claim_at && r.payment_status === 'pendente'
+                  ? '<span class="service-claim">cliente avisou que pagou</span>' : '')
+              : '') +
+          '</div>' +
+        '</div>' +
+        rating +
+      '</a>' +
+      /* v-rebuild-5 · menu de três pontinhos no lugar dos botões
+         flutuantes (ver AÇÕES DO CARTÃO em fieldo.css). Mesma lógica
+         de antes decidindo quais ações cabem aqui — só a apresentação
+         mudou. data-* + delegação preserva a proteção XSS (nome do
+         cliente nunca vira código dentro de atributo). */
+      (function () {
+        var itens = _arqServ
+          ? '<button type="button" class="rm-item" role="menuitem" data-act="rest-rel" data-rid="' + esc(r.id) + '">' +
+              '<span class="rm-ico" aria-hidden="true">⤺</span>Restaurar</button>' +
+            '<button type="button" class="rm-item rm-item--danger" role="menuitem" data-act="del-rel" data-rid="' + esc(r.id) + '">' +
+              '<span class="rm-ico" aria-hidden="true">✕</span>Excluir definitivamente</button>'
+          : (
+            (r.payment_status === 'pendente'
+              ? '<button type="button" class="rm-item pago-btn' + (r.client_paid_claim_at ? ' rm-item--claim' : '') + '" role="menuitem" data-rid="' + esc(r.id) + '">' +
+                  '<span class="rm-ico" aria-hidden="true">R$</span>' +
+                  (r.client_paid_claim_at ? 'Confirmar pagamento' : 'Marcar como recebido') + '</button>'
+              : '') +
+            (r.rating_token
+              ? '<button type="button" class="rm-item" role="menuitem" data-act="rel" data-token="' + esc(r.rating_token) + '" data-cliente="' + esc(r.client_name) + '">' +
+                  '<span class="rm-ico" aria-hidden="true">↗</span>Reenviar por WhatsApp</button>'
+              : '') +
+            (r._pendingSync ? ''
+              : '<button type="button" class="rm-item" role="menuitem" data-act="arq-rel" data-rid="' + esc(r.id) + '">' +
+                  '<span class="rm-ico" aria-hidden="true">🗄</span>Arquivar</button>')
+          );
+        if (!itens) return '';
+        return '<div class="card-acts">' +
+          '<button type="button" class="rm-btn" aria-haspopup="true" aria-expanded="false" aria-label="Mais ações" onclick="toggleRowMenu(this)">' +
+            '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' +
+          '</button>' +
+          '<div class="rm-menu" role="menu" hidden>' + itens + '</div>' +
+        '</div>';
+      })() +
+    '</div>';
+  }).join('');
+}
+
+/* ── Reenvio de relatório por WhatsApp ── */
+function reenviarRelatorio(token, cliente) {
+  /* v6.9: avisa ANTES de enviar um link que o cliente não conseguirá
+     abrir. Rodando local, a URL aponta para o aparelho do profissional
+     — mandar assim gera confusão dos dois lados. */
+  if (!FIELDO.publicUrlConfigurado() &&
+      !window.confirm('Você está rodando o app localmente.\n\n' +
+        'O link gerado NÃO vai abrir no celular do cliente. ' +
+        'Publique o app ou configure PUBLIC_BASE_URL no db.js.\n\nEnviar mesmo assim?')) {
+    return;
+  }
+  /* v6.8: link para o cliente precisa abrir no aparelho DELE.
+     Testando em 127.0.0.1 o link saía com o IP local — o WhatsApp
+     nem reconhecia como link, e mesmo colado não abriria. */
+  var origin = FIELDO.publicUrl('').replace(/\/$/, '');
+  var url = origin + '/avaliar.html?token=' + encodeURIComponent(token);
+  var msg = 'Olá ' + (cliente || '') + '! Segue o link do relatório do serviço — você pode avaliar por aqui:\n\n' + url;
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+/* ── Orçamentos recentes ── */
+function renderOrcamentos(rows) {
+  var list = document.getElementById('orcList');
+  if (!list) return;
+  bindReenvioBtns();
+
+  if (!rows || !rows.length) {
+    list.innerHTML =
+      '<div class="empty-state">' +
+        '<div class="empty-state-glyph" aria-hidden="true">§</div>' +
+        '<h3>Nenhum orçamento <em>ainda</em></h3>' +
+        '<p>Crie propostas profissionais com Pix integrado.<br>O cliente aprova pelo WhatsApp em 1 clique.</p>' +
+        '<a href="orcamento.html" class="btn btn--primary">Criar orçamento</a>' +
+      '</div>';
+    return;
+  }
+
+  list.innerHTML = rows.map(function (o) {
+    var statusBadge = '';
+    var status = (o.status || 'pendente').toLowerCase();
+    /* v12.8 · a situação ia colada no nome e era cortada ("APROV…"),
+       e só aprovado/recusado apareciam: um orçamento esperando resposta
+       não dizia nada. Agora vai na linha de baixo, para todos. */
+    var ST = { aprovado: ['Aprovado', 'var(--green)'], recusado: ['Recusado', 'var(--red)'],
+               rascunho: ['Rascunho', 'var(--muted)'] };
+    var st = ST[status] || ['Aguardando resposta', 'var(--gold-d)'];
+    var statusLinha = '<span class="service-date" style="color:' + st[1] + ';font-weight:500">' + st[0] + '</span>';
+
+    return '<div class="service-card" style="position:relative">' +
+      '<a href="relatorio.html?orc=' + esc(o.id) + '" style="display:flex;align-items:center;gap:.75rem;flex:1;text-decoration:none;color:inherit">' +
+        '<div class="service-thumb"><div class="service-thumb-ph">R$</div></div>' +
+        '<div class="service-info">' +
+          '<div class="service-client">' + esc(o.client_name || o.cliente || '—') + statusBadge + '</div>' +
+          '<div class="service-meta">' +
+            statusLinha +
+            '<span class="service-dot"></span>' +
+            '<span class="service-date">' + FIELDO.UI.fmtDate(o.created_at) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="service-score" style="color:var(--gold-d);font-family:var(--mono);font-size:.85rem;font-weight:500">' + FIELDO.UI.brl(o.total || 0) + '</div>' +
+      '</a>' +
+      /* v5.5: orçamento aprovado e ainda sem serviço vira serviço com
+         um toque, com cliente/valor/local já preenchidos. Antes o
+         profissional redigitava o que já estava no orçamento.
+         v-rebuild-5: mesmo menu de três pontinhos da lista de serviços
+         — ver comentário lá em renderServicos(). */
+      (function () {
+        var itens = _arqOrc
+          ? '<button type="button" class="rm-item" role="menuitem" data-act="rest-orc" data-oid="' + esc(o.id) + '">' +
+              '<span class="rm-ico" aria-hidden="true">⤺</span>Restaurar</button>' +
+            '<button type="button" class="rm-item rm-item--danger" role="menuitem" data-act="del-orc" data-oid="' + esc(o.id) + '">' +
+              '<span class="rm-ico" aria-hidden="true">✕</span>Excluir definitivamente</button>'
+          : (
+            (status === 'aprovado' && !o.linked_report_id
+              ? '<a class="rm-item rm-item--green" role="menuitem" href="servico.html?orc=' + esc(o.id) + '">' +
+                  '<span class="rm-ico" aria-hidden="true">▶</span>Criar serviço</a>'
+              : '') +
+            '<button type="button" class="rm-item" role="menuitem" data-act="orc" data-oid="' + esc(o.id) + '" data-cliente="' + esc(o.client_name || o.cliente || '') + '" data-total="' + Number(o.total || 0) + '">' +
+              '<span class="rm-ico" aria-hidden="true">↗</span>Reenviar por WhatsApp</button>' +
+            (o._pendingSync ? ''
+              : '<button type="button" class="rm-item" role="menuitem" data-act="arq-orc" data-oid="' + esc(o.id) + '">' +
+                  '<span class="rm-ico" aria-hidden="true">🗄</span>Arquivar</button>')
+          );
+        if (!itens) return '';
+        return '<div class="card-acts">' +
+          '<button type="button" class="rm-btn" aria-haspopup="true" aria-expanded="false" aria-label="Mais ações" onclick="toggleRowMenu(this)">' +
+            '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>' +
+          '</button>' +
+          '<div class="rm-menu" role="menu" hidden>' + itens + '</div>' +
+        '</div>';
+      })() +
+    '</div>';
+  }).join('');
+}
+
+function reenviarOrcamento(orcId, cliente, total) {
+  /* v6.9: avisa ANTES de enviar um link que o cliente não conseguirá
+     abrir. Rodando local, a URL aponta para o aparelho do profissional
+     — mandar assim gera confusão dos dois lados. */
+  if (!FIELDO.publicUrlConfigurado() &&
+      !window.confirm('Você está rodando o app localmente.\n\n' +
+        'O link gerado NÃO vai abrir no celular do cliente. ' +
+        'Publique o app ou configure PUBLIC_BASE_URL no db.js.\n\nEnviar mesmo assim?')) {
+    return;
+  }
+  /* v6.8: link para o cliente precisa abrir no aparelho DELE.
+     Testando em 127.0.0.1 o link saía com o IP local — o WhatsApp
+     nem reconhecia como link, e mesmo colado não abriria. */
+  var origin = FIELDO.publicUrl('').replace(/\/$/, '');
+  var url = origin + '/relatorio.html?orc=' + encodeURIComponent(orcId);
+  var msg = 'Olá ' + (cliente || '') + '! Segue o orçamento que preparei:\n\n' +
+    '💰 Total: ' + FIELDO.UI.brl(total) + '\n' +
+    '📄 Ver detalhes: ' + url + '\n\n' +
+    'Qualquer dúvida estou à disposição!';
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+/* ── Hashes ── */
+function renderHashes(rows) {
+  var hl = document.getElementById('hashList');
+  if (!hl) return;
+  setText('qsHashes', rows.length || '—');
+
+  if (!rows || !rows.length) return;
+
+  /* v12.8 · cada linha era 36 caracteres de hash e mais nada — dezenas
+     de linhas iguais que não diziam de QUAL documento era o selo. Agora
+     diz o documento e a data; o código do selo fica curto, ao lado. */
+  var TIPO = { relatorio: 'Relatório', report: 'Relatório', orcamento: 'Orçamento', budget: 'Orçamento', contrato: 'Contrato' };
+  hl.innerHTML = rows.slice(0, 8).map(function(h) {
+    var titulo = (h.conteudo_resumo || '').trim() || TIPO[String(h.tipo || '').toLowerCase()] || 'Documento';
+    return '<div class="hash-row">' +
+      '<div class="hash-icon">' +
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+      '</div>' +
+      '<div class="hash-val" style="font-family:var(--sans);font-size:.8rem;color:var(--text)">' + esc(titulo) +
+        '<div style="font-family:var(--mono);font-size:.62rem;color:var(--muted);margin-top:.1rem">' +
+          esc(FIELDO.UI.fmtDate(h.created_at)) + (h.hash ? ' · ' + esc(String(h.hash).slice(0, 10)) : '') + '</div></div>' +
+      '<div class="hash-badge">✓ válido</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ── Reputação ── */
+function renderReputacao(stats, hashes) {
+  setText('rScore', stats.avgScore || '—');
+  setText('rSelos', (hashes || []).length || '—');
+  FIELDO.Avaliacoes.list().then(function(rows) {
+    setText('rAvals', rows.length || '—');
+  }).catch(function() {});
+}
+
+/* ══════════════════════════════════════════
+   PERFIL MODAL
+══════════════════════════════════════════ */
+function abrirPerfil() {
+  document.getElementById('perfilModal').style.display = 'flex';
+  /* v4.3: renderiza seções de personalização ao abrir */
+  renderThemePicker();
+  renderNicheEditor();
+}
+
+function fecharPerfil(e) {
+  if (e && e.target !== document.getElementById('perfilModal')) return;
+  document.getElementById('perfilModal').style.display = 'none';
+}
+
+/* ── v4.3 ── Theme picker ───────────────────────────────────── */
+function renderThemePicker() {
+  var box = document.getElementById('themePicker');
+  if (!box) return;
+  var current = FIELDO.Themes.current();
+
+  FIELDO.Pro.check().then(function(isPro){
+    var swatches = {
+      paper:    'linear-gradient(135deg,#f0ece3 0%,#e4dfd2 60%,#9a7218 60%,#9a7218 100%)',
+      midnight: 'linear-gradient(135deg,#0e0e14 0%,#16161e 60%,#c49a30 60%,#c49a30 100%)',
+      sage:     'linear-gradient(135deg,#dfe6dc 0%,#ccd4c4 60%,#5a6b2e 60%,#5a6b2e 100%)',
+      ember:    'linear-gradient(135deg,#f4e2d0 0%,#e6c8a7 60%,#b85427 60%,#b85427 100%)',
+    };
+
+    box.innerHTML = FIELDO.Themes.list().map(function(t){
+      var locked = t.proOnly && !isPro;
+      var active = t.key === current;
+      var cls = 'theme-opt' + (active ? ' is-active' : '') + (locked ? ' is-locked' : '');
+      /* v5.6: já existe data-key; o onclick era redundante e repetia
+         o padrão inseguro. Delegação usa o data-key. */
+      return '<div class="'+cls+'" data-key="'+FIELDO.UI.esc(t.key)+'" data-tema="1" role="button" tabindex="0">'+
+        '<div class="theme-swatch" style="background:'+swatches[t.key]+'"></div>'+
+        '<div class="theme-opt-lbl">'+FIELDO.UI.esc(t.label)+'</div>'+
+      '</div>';
+    }).join('');
+  });
+}
+
+function selecionarTema(key) {
+  FIELDO.Themes.set(key).then(function(r){
+    if (r.ok) {
+      renderThemePicker();
+      FIELDO.UI.toast('Tema "'+FIELDO.Themes.meta(key).label+'" aplicado');
+    } else if (r.error === 'pro_required') {
+      FIELDO.UpgradeUI.show({ reason: 'pro_required', action: 'use_themes' });
+    }
+  });
+}
+
+/* ── v4.3 ── Niche editor ───────────────────────────────────── */
+function renderNicheEditor() {
+  var box = document.getElementById('nicheList');
+  if (!box) return;
+  var all = FIELDO.Niches.list();
+  box.innerHTML = all.map(function(n){
+    var custom = FIELDO.Niches.isCustom(n.key);
+    return '<span class="niche-chip'+(custom?'':' is-default')+'">'+
+      FIELDO.UI.esc(n.emoji)+' '+FIELDO.UI.esc(n.label)+
+      (custom
+      /* v5.6: nicho customizado é texto digitado pelo usuário —
+         não pode entrar em string JS dentro de atributo. */
+      ? '<button type="button" class="niche-chip-x" data-rmnicho="' + FIELDO.UI.esc(n.key) + '" aria-label="Remover">✕</button>'
+        : '')+
+    '</span>';
+  }).join('');
+}
+
+function abrirAddNicho() {
+  /* Gate: só Pro pode adicionar custom niches */
+  FIELDO.UsageGuard.enforce('use_custom_niches').then(function(ok){
+    if (!ok) return;
+    document.getElementById('nicheAddToggle').style.display = 'none';
+    document.getElementById('nicheAddRow').style.display = 'grid';
+    document.getElementById('nicheEmoji').focus();
+  });
+}
+
+function adicionarNicho() {
+  var emoji = (document.getElementById('nicheEmoji').value || '🔧').trim();
+  var label = (document.getElementById('nicheLabel').value || '').trim();
+  if (!label) {
+    FIELDO.UI.toast('Digite um nome para a categoria');
+    return;
+  }
+  var r = FIELDO.Niches.add({ label: label, emoji: emoji });
+  if (!r.ok) {
+    var msgs = {
+      empty_label: 'Nome obrigatório',
+      too_long:    'Nome muito longo (máx 22)',
+      duplicate:   'Já existe categoria com esse nome',
+      limit:       'Limite de 12 personalizadas atingido',
+    };
+    FIELDO.UI.toast(msgs[r.error] || 'Falha ao adicionar');
+    return;
+  }
+  document.getElementById('nicheEmoji').value = '';
+  document.getElementById('nicheLabel').value = '';
+  document.getElementById('nicheAddRow').style.display = 'none';
+  document.getElementById('nicheAddToggle').style.display = '';
+  renderNicheEditor();
+  FIELDO.UI.toast('Categoria "'+label+'" adicionada');
+}
+
+function removerNicho(key) {
+  if (!confirm('Remover essa categoria? Relatórios já criados continuam funcionando.')) return;
+  FIELDO.Niches.remove(key);
+  renderNicheEditor();
+}
+
+var _avatarFile = null; /* arquivo de foto pendente de upload */
+
+function previewAvatar(input) {
+  var file = input.files[0];
+  if (!file) return;
+  _avatarFile = file;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = document.getElementById('modalAvatarImg');
+    if (img) img.innerHTML = '<img src="' + e.target.result + '" alt="Prévia da nova foto" style="width:100%;height:100%;object-fit:cover"/>';
+  };
+  reader.readAsDataURL(file);
+}
+
+function salvarPerfil() {
+  var nome = (getVal('pNome') || '').trim();
+  if (!nome) { FIELDO.UI.toast('Informe seu nome'); return; }
+
+  setLoading('spinSalvar', true);
+
+  /* Upload de avatar com validação de tipo (delegado ao módulo) */
+  var uploadPromise = Promise.resolve(null);
+  if (_avatarFile) {
+    uploadPromise = FIELDO.Professionals.uploadAvatar(_avatarFile)
+      .catch(function(err) {
+        console.warn('[Fieldo] avatar upload falhou:', err);
+        FIELDO.UI.toast('Não foi possível enviar a foto: ' + (err && err.message || ''));
+        return null; /* não bloqueia o salvamento do perfil */
+      });
+  }
+
+  uploadPromise.then(function(logoUrl) {
+    var data = {
+      name:      nome,
+      profissao: getVal('pSpec'),
+      niche:     getVal('pNicho') || null,
+      bio:       getVal('pBio'),
+      whatsapp:  getVal('pWpp'),
+      city:      getVal('pCidade'),
+      instagram: getVal('pInsta'),
+      pix_tipo:  getVal('pPixTipo'),
+      pix_key:   getVal('pPixChave'),
+      /* v6.0: consentimento explícito de portfólio */
+      portfolio_publico: !!(document.getElementById('pPortfolio') || {}).checked,
+    };
+    Object.assign(data, FIELDO.Credenciais.ler(document.getElementById('credEditor'))); /* v12.13 */
+    if (_temOutras && _outrasCtl) data.outras_profissoes = _outrasCtl.valor(); /* v12.25 */
+    if (logoUrl) data.logo_url = logoUrl;
+
+    return FIELDO.Professionals.update(data);
+  }).then(function(prof) {
+    _avatarFile = null;
+    setLoading('spinSalvar', false);
+    document.getElementById('perfilModal').style.display = 'none';
+    renderProfissional(prof);
+    FIELDO.UI.toast('Perfil salvo ✓');
+  }).catch(function(e) {
+    setLoading('spinSalvar', false);
+    FIELDO.UI.handleError(e);
+  });
+}
+
+/* ══════════════════════════════════════════
+   LOGOUT
+══════════════════════════════════════════ */
+function confirmarLogout() {
+  if (confirm('Sair do Fieldo?')) {
+    FIELDO.Auth.logout();
+    window.location.href = 'entrar.html';
+  }
+}
+
+/* ══════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════ */
+function setText(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+function setHTML(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.innerHTML = val;
+}
+function setVal(id, val) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (el.tagName === 'SELECT') {
+    Array.from(el.options).forEach(function(o) { o.selected = o.value === val; });
+  } else {
+    el.value = val || '';
+  }
+}
+function getVal(id) {
+  var el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+/* v7.3 Fase 4 do plano de nicho: popula o select com os 8 padrão +
+   os customizados deste aparelho (FIELDO.Niches já existe pro
+   dropdown de categoria dos relatórios — reaproveitado aqui). Se o
+   profissional ainda não tem niche salvo (perfil antigo, sem
+   relatório ainda), o select abre em branco — força uma escolha
+   consciente em vez de assumir um valor errado silenciosamente. */
+
+/* v12.9 · categoria do perfil = campo de profissão (digita ou escolhe).
+   O <select> com 9 opções e emoji saiu; quem não achava a sua ficava
+   em "Outro". O valor salvo continua em #pNicho (agora oculto). */
+/* v12.25 · outras profissões. Só aparece quando o banco já tem a coluna
+   (o perfil carregado traz outras_profissoes): antes da migration, mandar
+   o campo derrubaria o salvar do perfil inteiro. */
+var _outrasCtl = null, _temOutras = false, _outrasRecarregou = false;
+function ligarOutrasProf(prof) {
+  var el = document.getElementById('pOutras'), campo = document.getElementById('pOutrasCampo');
+  _temOutras = !!(prof && Object.prototype.hasOwnProperty.call(prof, 'outras_profissoes') && FIELDO.OutrasProfissoes);
+  /* v12.26 · mesmo conserto de meu-perfil.html: perfil guardado no
+     aparelho antes da v12.25 não tem o campo; busca no servidor uma vez
+     e liga com o dado novo, em vez de esconder "Outras profissões". */
+  if (!_temOutras && prof && FIELDO.OutrasProfissoes && !_outrasRecarregou) {
+    _outrasRecarregou = true;
+    FIELDO.Professionals.me(true).then(function (novo) {
+      if (novo && Object.prototype.hasOwnProperty.call(novo, 'outras_profissoes')) ligarOutrasProf(novo);
+    }).catch(function () {});
+  }
+  if (campo) campo.hidden = !_temOutras;
+  if (!_temOutras || !el) return;
+  var v = prof.outras_profissoes || [];
+  if (!_outrasCtl) {
+    _outrasCtl = FIELDO.OutrasProfissoes.montar(el, { id: 'pOutras', classe: 'field-input', valor: v,
+      principal: function () { return getVal('pNicho'); } });
+  } else _outrasCtl.definir(v);
+}
+
+function ligarCampoNicho(valorAtual, profissao) {
+  var txt = document.getElementById('pNichoTxt'), oculto = document.getElementById('pNicho');
+  if (!txt || !oculto) return;
+  var inicial = (valorAtual && valorAtual !== 'outro') ? { key: valorAtual, label: FIELDO.Profissoes.rotulo(valorAtual) }
+              : FIELDO.Profissoes.resolver(profissao || '');
+  txt.value = inicial ? inicial.label : '';
+  oculto.value = inicial ? inicial.key : '';
+  if (!txt._ligado) {
+    txt._ligado = true;
+    FIELDO.Profissoes.ligar(txt, document.getElementById('pNichoSug'), function (r) { oculto.value = r ? r.key : ''; });
+  }
+}
+function preencherSelectNicho(valorAtual) {
+  ligarCampoNicho(valorAtual, (document.getElementById('pSpec') || {}).value || '');
+}
+function setLoading(spinId, on) {
+  var sp = document.getElementById(spinId);
+  if (sp) sp.classList.toggle('on', on);
+}
+function esc(s) { return FIELDO.UI.esc(s); }
+</script>
+
+<script src="/crescimento.js" defer></script>
+<!-- v12.41 · Fieldo Studio: cartão com o resultado do último vídeo -->
+<script src="/db.studio.js" defer></script>
+<script src="/studio-painel.js" defer></script>
+<script src="/seus-dados.js" defer></script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

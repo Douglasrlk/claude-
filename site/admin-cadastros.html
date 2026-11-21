@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Cadastros · Admin · Fieldo</title>
+<meta name="robots" content="noindex,nofollow"/>
+<!--
+  Fieldo · admin-cadastros.html — v12.10
+  Painel para EXCLUIR CADASTROS PERMANENTEMENTE.
+
+  Mesmo portão do admin-analytics: a página é pública como arquivo, mas
+  sem a FIELDO_ADMIN_KEY ela não faz nada — quem decide é a Edge Function
+  admin-cadastros, que confere a chave em tempo constante e só então toca
+  no banco. A chave fica só nesta aba (sessionStorage) e some ao fechar.
+
+  Três travas antes de apagar:
+    1. o inventário completo da conta aparece antes, contado no banco;
+    2. é preciso digitar "EXCLUIR" + o código da conta (conferido de novo
+       no servidor — não adianta mexer na página);
+    3. a exclusão é uma transação só: ou a conta some inteira, ou nada muda.
+-->
+<link rel="stylesheet" href="/fieldo.css"/>
+<style>
+  :root { --perigo:#a12a1c; --perigo-bg:rgba(161,42,28,.07); --perigo-bd:rgba(161,42,28,.28); }
+  body { background: var(--paper, #f5f2ec); color: var(--text, #1a1a24); font-family: var(--sans, system-ui, sans-serif); margin: 0; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+  .eyebrow { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted, #625d57); margin-bottom: .35rem; }
+  h1 { font-family: var(--serif, Georgia, serif); font-weight: 400; font-size: clamp(1.6rem, 5vw, 2.1rem); margin: 0 0 .5rem; }
+  h1 em { color: var(--gold-d, #7a5a10); }
+  .sub { color: var(--muted, #625d57); font-size: .9rem; line-height: 1.55; margin: 0 0 1.25rem; max-width: 40rem; }
+  input[type=password], input[type=search], input[type=text] {
+    width: 100%; box-sizing: border-box; min-height: 46px; padding: .7rem .9rem; font-size: 1rem;
+    border: 1px solid var(--border2, rgba(14,14,20,.16)); border-radius: 10px; background: #fff; color: inherit; font-family: inherit;
+  }
+  .btn { min-height: 44px; padding: .6rem 1.1rem; border-radius: 10px; border: 1px solid var(--border2, rgba(14,14,20,.16));
+    background: #fff; color: inherit; font: 500 .9rem var(--sans, system-ui, sans-serif); cursor: pointer; }
+  .btn--ouro { background: var(--gold, #856310); border-color: var(--gold, #856310); color: #fff; }
+  .btn--perigo { background: var(--perigo); border-color: var(--perigo); color: #fff; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .err { color: var(--perigo); font-size: .88rem; margin-top: .6rem; min-height: 1.2em; }
+  #gate { max-width: 420px; }
+  #gate .linha { display: flex; gap: .5rem; margin-top: .5rem; }
+  #app { display: none; }
+
+  .barra { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-bottom: .75rem; }
+  .barra input { flex: 1 1 240px; }
+  .filtros { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .filtro { min-height: 38px; padding: .4rem .85rem; border-radius: 999px; border: 1px solid var(--border2, rgba(14,14,20,.16));
+    background: transparent; font: 500 .84rem var(--sans, system-ui, sans-serif); color: var(--text2, #4a4855); cursor: pointer; }
+  .filtro.on { background: var(--ink, #0e0e14); border-color: var(--ink, #0e0e14); color: #fff; }
+  .filtro span { opacity: .7; margin-left: .25rem; }
+  .contagem { font-size: .82rem; color: var(--muted, #625d57); margin-bottom: .5rem; }
+
+  .conta { display: flex; gap: .9rem; align-items: center; padding: .85rem 1rem; background: #fff;
+    border: 1px solid var(--border, rgba(14,14,20,.09)); border-radius: 12px; margin-bottom: .45rem; }
+  .conta-ini { width: 40px; height: 40px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center;
+    background: var(--paper3, #e4dfd2); font-family: var(--serif, Georgia, serif); font-style: italic; color: var(--gold-d, #7a5a10); }
+  .conta-info { flex: 1; min-width: 0; }
+  .conta-nome { font-weight: 600; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .conta-nome.vazio { color: var(--muted, #625d57); font-weight: 500; font-style: italic; }
+  .conta-sub { font-size: .8rem; color: var(--muted, #625d57); margin-top: .1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tags { display: flex; gap: .3rem; flex-wrap: wrap; margin-top: .35rem; }
+  .tag { font-size: .7rem; padding: .12rem .5rem; border-radius: 999px; background: var(--paper2, #ede9df); color: var(--text2, #4a4855); }
+  .tag--pro { background: rgba(133,99,16,.12); color: var(--gold-d, #7a5a10); }
+  .tag--aviso { background: var(--perigo-bg); color: var(--perigo); }
+  .conta .btn { flex: none; font-size: .84rem; }
+  @media (max-width: 560px) { .conta { flex-wrap: wrap; } .conta .btn { width: 100%; } }
+
+  /* janela de exclusão */
+  .fundo { position: fixed; inset: 0; background: rgba(14,14,20,.55); display: none; align-items: flex-end; justify-content: center; z-index: 50; }
+  .fundo.on { display: flex; }
+  .janela { background: var(--paper, #f5f2ec); width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto;
+    border-radius: 16px 16px 0 0; padding: 1.25rem 1.1rem 1.5rem; box-sizing: border-box; }
+  @media (min-width: 640px) { .fundo { align-items: center; } .janela { border-radius: 16px; } }
+  .janela h2 { font-family: var(--serif, Georgia, serif); font-weight: 400; font-size: 1.35rem; margin: 0 0 .2rem; }
+  .janela .quem { color: var(--muted, #625d57); font-size: .85rem; margin-bottom: 1rem; }
+  .inv { width: 100%; border-collapse: collapse; font-size: .9rem; margin-bottom: 1rem; }
+  .inv td { padding: .45rem 0; border-bottom: 1px solid var(--border, rgba(14,14,20,.09)); }
+  .inv td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .alerta { background: var(--perigo-bg); border: 1px solid var(--perigo-bd); color: var(--perigo); border-radius: 10px;
+    padding: .7rem .85rem; font-size: .86rem; line-height: 1.5; margin-bottom: .6rem; }
+  .alerta strong { display: block; margin-bottom: .1rem; }
+  .confirma { margin-top: 1rem; }
+  .confirma label { display: block; font-size: .88rem; margin-bottom: .4rem; }
+  .confirma code { background: var(--paper2, #ede9df); padding: .1rem .4rem; border-radius: 4px; font-weight: 600; white-space: nowrap; }
+  .acoes { display: flex; gap: .5rem; margin-top: 1rem; }
+  .acoes .btn { flex: 1; }
+  .recibo { background: #fff; border: 1px solid var(--border, rgba(14,14,20,.09)); border-radius: 10px; padding: .8rem .9rem;
+    font-size: .84rem; line-height: 1.6; }
+  .ok { color: #1e5c38; font-weight: 600; margin-bottom: .4rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="gate">
+    <div class="eyebrow">Acesso restrito</div>
+    <h1>Excluir <em>cadastros</em></h1>
+    <p class="sub">Use a mesma chave do painel de estatísticas (FIELDO_ADMIN_KEY).</p>
+    <div class="linha">
+      <input type="password" id="chave" placeholder="Chave de administrador" autocomplete="off"/>
+      <button class="btn btn--ouro" id="btnEntrar">Entrar</button>
+    </div>
+    <div class="err" id="gateErr"></div>
+  </div>
+
+  <div id="app">
+    <div class="eyebrow">Administração</div>
+    <h1>Excluir <em>cadastros</em></h1>
+    <p class="sub">A exclusão é permanente: login, perfil público, relatórios, orçamentos, avaliações, selos, locação, contratos e fotos. Não há como desfazer. Antes de apagar, você vê tudo o que a conta tem.</p>
+
+    <div class="barra">
+      <input type="search" id="busca" placeholder="Nome, profissão, cidade, WhatsApp ou código da conta"/>
+      <button class="btn" id="btnBuscar">Buscar</button>
+    </div>
+    <div class="filtros" id="filtros"></div>
+    <div class="contagem" id="contagem"></div>
+    <div id="lista"></div>
+  </div>
+</div>
+
+<div class="fundo" id="fundo" role="dialog" aria-modal="true" aria-labelledby="jTitulo">
+  <div class="janela" id="janela"></div>
+</div>
+
+<script>
+'use strict';
+var EDGE_URL = 'https://jrsctnncoljdcvdofxsg.supabase.co/functions/v1/admin-cadastros';
+var _chave = '';
+try { _chave = sessionStorage.getItem('_fieldo_admin_key') || ''; } catch (e) {}
+var _contas = [], _filtro = 'todos';
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+function data(iso) { return iso ? new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'; }
+function n(v) { return Number(v || 0).toLocaleString('pt-BR'); }
+
+function chamar(corpo) {
+  return fetch(EDGE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-key': _chave }, body: JSON.stringify(corpo) })
+    .then(function (r) {
+      if (r.status === 403) throw { proibido: true };
+      return r.json().then(function (j) { if (!r.ok) { j._status = r.status; throw j; } return j; });
+    });
+}
+
+function tipo(c) {
+  if (c.name && c.locadora_nome) return 'ambos';
+  if (c.name) return 'profissional';
+  if (c.locadora_nome) return 'locadora';
+  return 'login';
+}
+
+var FILTROS = [
+  ['todos', 'Todos'], ['profissional', 'Profissionais'], ['locadora', 'Locadoras'], ['login', 'Só login, sem perfil']
+];
+function desenharFiltros() {
+  var cont = { todos: _contas.length, profissional: 0, locadora: 0, login: 0 };
+  _contas.forEach(function (c) { var t = tipo(c); if (t === 'ambos') { cont.profissional++; cont.locadora++; } else cont[t]++; });
+  document.getElementById('filtros').innerHTML = FILTROS.map(function (f) {
+    return '<button type="button" class="filtro' + (f[0] === _filtro ? ' on' : '') + '" data-f="' + f[0] + '">' + f[1] + '<span>' + cont[f[0]] + '</span></button>';
+  }).join('');
+}
+
+function desenharLista() {
+  desenharFiltros();
+  var vis = _contas.filter(function (c) {
+    var t = tipo(c);
+    return _filtro === 'todos' || t === _filtro || (t === 'ambos' && (_filtro === 'profissional' || _filtro === 'locadora'));
+  });
+  document.getElementById('contagem').textContent = vis.length + (vis.length === 1 ? ' conta' : ' contas');
+  document.getElementById('lista').innerHTML = vis.map(function (c) {
+    var nome = c.name || c.locadora_nome;
+    var sub = [c.profissao, c.city, c.whatsapp].filter(Boolean).join(' · ') || ('Criada em ' + data(c.created_at));
+    var tags = [];
+    if (c.plan === 'pro') tags.push('<span class="tag tag--pro">Pro</span>');
+    if (c.assinatura && c.assinatura !== 'cancelada') tags.push('<span class="tag tag--aviso">Assinatura ' + esc(c.assinatura) + '</span>');
+    if (c.locadora_nome) tags.push('<span class="tag">Locadora</span>');
+    if (c.relatorios) tags.push('<span class="tag">' + n(c.relatorios) + ' relatórios</span>');
+    if (c.orcamentos) tags.push('<span class="tag">' + n(c.orcamentos) + ' orçamentos</span>');
+    if (c.equipamentos) tags.push('<span class="tag">' + n(c.equipamentos) + ' equipamentos</span>');
+    tags.push('<span class="tag">Último acesso ' + data(c.last_sign_in_at) + '</span>');
+    return '<div class="conta">' +
+      '<div class="conta-ini">' + esc((nome || '?').charAt(0).toUpperCase()) + '</div>' +
+      '<div class="conta-info">' +
+        '<div class="conta-nome' + (nome ? '' : ' vazio') + '">' + esc(nome || 'Sem perfil (só login)') + '</div>' +
+        '<div class="conta-sub">' + esc(sub) + ' · código ' + esc(c.id.slice(0, 8)) + '</div>' +
+        '<div class="tags">' + tags.join('') + '</div>' +
+      '</div>' +
+      '<button type="button" class="btn" data-id="' + esc(c.id) + '">Revisar e excluir</button>' +
+    '</div>';
+  }).join('') || '<p class="sub">Nenhuma conta encontrada.</p>';
+}
+
+function carregar() {
+  var busca = document.getElementById('busca').value;
+  document.getElementById('lista').style.opacity = '.5';
+  return chamar({ acao: 'listar', busca: busca }).then(function (r) {
+    try { sessionStorage.setItem('_fieldo_admin_key', _chave); } catch (e) {}
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    _contas = r.contas || [];
+    desenharLista();
+  }).catch(function (e) {
+    if (e && e.proibido) {
+      document.getElementById('gate').style.display = 'block';
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('gateErr').textContent = 'Chave incorreta.';
+      try { sessionStorage.removeItem('_fieldo_admin_key'); } catch (x) {}
+      return;
+    }
+    /* v12.10 · "não respondeu" e "chave errada" são coisas diferentes:
+       quando o pedido nem chega ao servidor, a chave não foi conferida. */
+    var msg;
+    if (e && e.error === 'server_misconfigured') msg = 'O servidor está sem a chave de administrador configurada (FIELDO_ADMIN_KEY no Supabase).';
+    else if (e && (e.detalhe || e.error)) msg = 'O servidor respondeu com erro: ' + (e.detalhe || e.error);
+    else msg = 'Não consegui falar com o servidor — a chave nem chegou a ser conferida. Abra pelo site: fieldo-zelo.com.br/admin-cadastros.html (não pelo arquivo baixado) e confira a internet.';
+    document.getElementById('gateErr').textContent = msg;
+  }).then(function () { document.getElementById('lista').style.opacity = '1'; });
+}
+
+/* ── janela: inventário → confirmação → recibo ── */
+var _alvo = null;
+function fechar() { document.getElementById('fundo').classList.remove('on'); _alvo = null; }
+
+function abrir(id) {
+  _alvo = id;
+  var j = document.getElementById('janela');
+  j.innerHTML = '<h2 id="jTitulo">Carregando…</h2>';
+  document.getElementById('fundo').classList.add('on');
+  chamar({ acao: 'inventario', id: id }).then(function (inv) {
+    if (_alvo !== id) return;
+    var p = inv.profissional || {}, l = inv.locadora || {}, c = inv.conta || {};
+    var nome = p.nome || l.nome || 'Conta sem perfil';
+    var codigo = 'EXCLUIR ' + id.slice(0, 8);
+    var linhas = [
+      ['Login (acesso ao app)', c.criado ? 'sim' : 'não'],
+      ['Perfil público', p.nome ? (p.is_public ? 'no ar' : 'privado') : '—'],
+      ['Relatórios de serviço', inv.relatorios], ['Orçamentos', inv.orcamentos], ['Avaliações de clientes', inv.avaliacoes],
+      ['Selos digitais', inv.selos], ['Vitrine de locação', l.nome ? 'sim' : '—'], ['Equipamentos', inv.equipamentos],
+      ['Locações', inv.locacoes], ['Contratos de locação', inv.contratos],
+      ['Fotos e arquivos', inv.arquivos], ['Eventos de uso (ficam anônimos)', inv.eventos],
+    ];
+    var alertas = [];
+    if (inv.empresas_dono > 0) alertas.push(['Não dá para excluir agora', 'Esta conta é a única responsável por uma empresa no módulo de gestão. Transfira a empresa para outra pessoa antes.']);
+    if (inv.assinatura && inv.assinatura !== 'cancelada') alertas.push(['Assinatura ' + inv.assinatura, 'Excluir aqui não cancela a cobrança no Asaas. Cancele a assinatura lá antes, ou o cliente continua sendo cobrado.']);
+    if (inv.contratos_assinados > 0) alertas.push([inv.contratos_assinados + ' contrato(s) de locação assinado(s)', 'São a prova do acordo para a locadora e para o cliente dela. Depois de excluídos, nenhum dos dois consegue abrir o contrato.']);
+    if (inv.avaliacoes > 0) alertas.push(['Avaliações de clientes', 'As ' + inv.avaliacoes + ' avaliações deixam de existir junto com o perfil.']);
+    var bloqueado = inv.empresas_dono > 0;
+    j.innerHTML =
+      '<h2 id="jTitulo">' + esc(nome) + '</h2>' +
+      '<div class="quem">' + esc([p.profissao, p.city || null, p.whatsapp].filter(Boolean).join(' · ') || 'Criada em ' + data(c.criado)) +
+        (p.slug ? ' · <a href="/p/' + encodeURIComponent(p.slug) + '" target="_blank" rel="noopener">ver perfil</a>' : '') + '</div>' +
+      alertas.map(function (a) { return '<div class="alerta"><strong>' + esc(a[0]) + '</strong>' + esc(a[1]) + '</div>'; }).join('') +
+      '<table class="inv"><tbody>' + linhas.map(function (x) {
+        return '<tr><td>' + esc(x[0]) + '</td><td>' + esc(typeof x[1] === 'number' ? n(x[1]) : x[1]) + '</td></tr>';
+      }).join('') + '</tbody></table>' +
+      (bloqueado ? '' :
+      '<div class="confirma"><label for="conf">Para apagar tudo isso para sempre, digite <code>' + esc(codigo) + '</code></label>' +
+        '<input type="text" id="conf" autocomplete="off" autocapitalize="characters" spellcheck="false"/></div>') +
+      '<div class="err" id="jErr"></div>' +
+      '<div class="acoes"><button type="button" class="btn" id="jCancelar">Cancelar</button>' +
+        (bloqueado ? '' : '<button type="button" class="btn btn--perigo" id="jExcluir" disabled>Excluir para sempre</button>') + '</div>';
+    var conf = document.getElementById('conf'), bt = document.getElementById('jExcluir');
+    if (conf) {
+      conf.addEventListener('input', function () { bt.disabled = conf.value.trim().toUpperCase() !== codigo.toUpperCase(); });
+      conf.focus();
+      bt.addEventListener('click', function () { excluir(id, conf.value.trim(), nome); });
+    }
+    document.getElementById('jCancelar').addEventListener('click', fechar);
+  }).catch(function (e) {
+    j.innerHTML = '<h2>Não foi possível abrir</h2><p class="sub">' + esc((e && (e.detalhe || e.error)) || 'erro de conexão') + '</p>' +
+      '<div class="acoes"><button type="button" class="btn" onclick="fechar()">Fechar</button></div>';
+  });
+}
+
+function excluir(id, confirmacao, nome) {
+  var bt = document.getElementById('jExcluir');
+  bt.disabled = true; bt.textContent = 'Excluindo…';
+  chamar({ acao: 'excluir', id: id, confirmacao: confirmacao }).then(function (r) {
+    _contas = _contas.filter(function (c) { return c.id !== id; });
+    desenharLista();
+    var a = r.apagado || {};
+    var texto = 'Cadastro excluído: ' + (r.nome || nome) + ' (código ' + id.slice(0, 8) + ') em ' + new Date(r.excluido_em).toLocaleString('pt-BR') + '. ' +
+      'Apagados: ' + n(a.relatorios) + ' relatórios, ' + n(a.orcamentos) + ' orçamentos, ' + n(a.avaliacoes) + ' avaliações, ' + n(a.selos) + ' selos, ' +
+      n(a.equipamentos) + ' equipamentos, ' + n(a.locacoes) + ' locações, ' + n(a.contratos) + ' contratos, ' + n(a.arquivos) + ' arquivos. ' +
+      n(a.eventos_anonimizados) + ' eventos de uso ficaram anônimos.';
+    document.getElementById('janela').innerHTML =
+      '<h2 id="jTitulo">Excluído</h2>' +
+      '<div class="recibo"><div class="ok">✓ A conta e tudo dela foram apagados.</div>' + esc(texto) +
+        (r.arquivos_com_falha ? '<div class="alerta" style="margin-top:.6rem"><strong>' + r.arquivos_com_falha + ' arquivo(s) não saíram</strong>Os dados foram apagados; alguns arquivos de foto ficaram no Storage. Rode a exclusão de novo mais tarde ou apague a pasta ' + esc(id) + ' no painel do Supabase.</div>' : '') +
+      '</div>' +
+      '<div class="acoes"><button type="button" class="btn" id="jCopiar">Copiar recibo</button><button type="button" class="btn btn--ouro" id="jFechar">Fechar</button></div>';
+    document.getElementById('jFechar').addEventListener('click', fechar);
+    document.getElementById('jCopiar').addEventListener('click', function () {
+      try { navigator.clipboard.writeText(texto); this.textContent = 'Copiado'; } catch (e) {}
+    });
+  }).catch(function (e) {
+    bt.disabled = false; bt.textContent = 'Excluir para sempre';
+    var msg = (e && e.error === 'confirmacao_incorreta') ? 'O código digitado não confere.'
+            : (e && e.detalhe) ? e.detalhe : 'Não foi possível excluir. Nada foi apagado.';
+    document.getElementById('jErr').textContent = msg;
+  });
+}
+
+document.getElementById('btnEntrar').addEventListener('click', function () {
+  _chave = document.getElementById('chave').value.trim();
+  if (_chave) carregar();
+});
+document.getElementById('chave').addEventListener('keydown', function (e) { if (e.key === 'Enter') document.getElementById('btnEntrar').click(); });
+document.getElementById('btnBuscar').addEventListener('click', carregar);
+document.getElementById('busca').addEventListener('keydown', function (e) { if (e.key === 'Enter') carregar(); });
+document.getElementById('filtros').addEventListener('click', function (e) {
+  var b = e.target.closest('.filtro'); if (!b) return; _filtro = b.getAttribute('data-f'); desenharLista();
+});
+document.getElementById('lista').addEventListener('click', function (e) {
+  var b = e.target.closest('[data-id]'); if (b) abrir(b.getAttribute('data-id'));
+});
+document.getElementById('fundo').addEventListener('click', function (e) { if (e.target.id === 'fundo') fechar(); });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fechar(); });
+/* Aberta como arquivo (file://) ou dentro de uma pré-visualização, a
+   página não alcança o servidor: avisa antes de pedir a chave. */
+if (location.protocol === 'file:' || !/fieldo|netlify/.test(location.hostname)) {
+  document.getElementById('gateErr').textContent = 'Esta página só funciona aberta pelo site: fieldo-zelo.com.br/admin-cadastros.html';
+}
+if (_chave) carregar();
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

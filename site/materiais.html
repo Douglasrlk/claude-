@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#f5f2ec"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Material · Fieldo</title>
+  <meta name="robots" content="noindex"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-title" content="Fieldo"/>
+  <style>
+    /* Alvos grandes: o cara está de luva, em pé, com sol na tela. */
+    .mt-card{background:var(--paper);border:1px solid var(--border);border-radius:var(--r-l);padding:1rem 1.1rem;margin-bottom:.8rem}
+    .mt-lista-nome{font-size:.95rem;font-weight:500;color:var(--text)}
+    .mt-lista-sub{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+    .mt-badge{font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;padding:.22rem .55rem;border-radius:2rem;background:var(--paper3);color:var(--muted);white-space:nowrap}
+    .mt-badge.cotada{background:var(--gold-bg);color:var(--gold-d);border:1px solid var(--gold-bd)}
+
+    /* ── ambiente ── */
+    .amb{border:1px solid var(--border);border-radius:var(--r-l);margin-bottom:.75rem;overflow:hidden;background:var(--paper)}
+    .amb-hd{display:flex;align-items:center;gap:.6rem;padding:.7rem .9rem;background:var(--paper2);border-bottom:1px solid var(--border)}
+    .amb-nome{flex:1;font-size:.88rem;font-weight:500;color:var(--text);background:none;border:none;padding:0;font-family:inherit}
+    .amb-nome:focus{outline:none;border-bottom:1px solid var(--gold)}
+    .amb-qtd{font-family:var(--mono);font-size:.66rem;color:var(--subtle)}
+    .amb-body{padding:.35rem .9rem .6rem}
+
+    .item{display:flex;align-items:center;gap:.6rem;padding:.55rem 0;border-bottom:1px solid var(--border)}
+    .item:last-child{border-bottom:none}
+    .item-nome{flex:1;font-size:.82rem;color:var(--text);line-height:1.4}
+    .item-un{font-family:var(--mono);font-size:.66rem;color:var(--subtle)}
+    .item-livre{font-style:italic;color:var(--muted)}
+    .qtd{display:flex;align-items:center;gap:.15rem;flex-shrink:0}
+    .qtd button{width:30px;height:30px;border:1px solid var(--border2);background:var(--paper);border-radius:var(--r);font-size:1rem;color:var(--text);cursor:pointer;line-height:1;padding:0}
+    .qtd button:active{background:var(--paper3)}
+    .qtd input{width:46px;height:30px;text-align:center;font-family:var(--mono);font-size:.8rem;border:1px solid var(--border2);border-radius:var(--r);background:var(--paper);color:var(--text)}
+    .item-x{width:28px;height:28px;border:none;background:none;color:var(--subtle);font-size:1rem;cursor:pointer;flex-shrink:0}
+
+    /* ── busca ── */
+    .busca-wrap{position:relative;margin-bottom:.6rem}
+    .res{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:20;background:var(--paper);border:1px solid var(--border2);border-radius:var(--r-l);max-height:52vh;overflow-y:auto;box-shadow:0 8px 24px rgba(14,14,20,.14)}
+    .res-item{padding:.6rem .8rem;border-bottom:1px solid var(--border);cursor:pointer}
+    .res-item:last-child{border-bottom:none}
+    .res-item:active{background:var(--paper2)}
+    .res-nome{font-size:.82rem;color:var(--text);line-height:1.35}
+    .res-meta{font-family:var(--mono);font-size:.63rem;color:var(--gold-d);margin-top:.15rem}
+    .res-novo{padding:.7rem .8rem;font-size:.8rem;color:var(--gold-d);cursor:pointer;background:var(--gold-bg)}
+
+    .barra{position:sticky;bottom:0;background:var(--paper);border-top:1px solid var(--border);padding:.7rem 0 max(.7rem,env(safe-area-inset-bottom));margin-top:1rem;display:flex;gap:.5rem}
+    .salvo{font-family:var(--mono);font-size:.63rem;color:var(--subtle);text-align:center;padding:.3rem 0;min-height:1.1rem}
+    .prev{background:var(--paper2);border:1px solid var(--border);border-radius:var(--r-l);padding:.9rem 1rem;font-family:var(--mono);font-size:.74rem;color:var(--text);white-space:pre-wrap;line-height:1.65;max-height:44vh;overflow-y:auto}
+  
+    /* v10.0 · alvos de toque. Este arquivo tem CSS próprio e não
+       herda as regras do fieldo.css.
+       NOTA: a primeira tentativa injetou isto dentro de uma STRING
+       JavaScript — o template da folha de impressão também contém
+       a tag de fechamento do style, e eu procurei a ÚLTIMA ocorrência
+       por engano. O teste de sintaxe pegou.
+       v-fiel-icone · essa mesma nota tinha, sem querer, a tag de
+       fechamento ESCRITA POR EXTENSO logo acima — dentro de um bloco
+       <style>, o navegador não sabe diferenciar "texto sobre a tag"
+       de "a tag de verdade": ele fecha o style no primeiro sinal que
+       encontra, sempre, mesmo dentro de um comentário. Resultado real
+       (visto renderizando a página): o resto do CSS vazava como texto
+       visível no topo da tela, antes do cabeçalho. Reescrita aqui sem
+       usar os sinais de menor/maior, exatamente pra não repetir isso. */
+    .topbar-back{min-height:44px;display:inline-flex;align-items:center;padding:0 8px;margin:0 -8px}
+    .topbar-logo{min-height:44px}
+    input,select{min-height:44px}
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="painel.html" class="topbar-logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      <span class="topbar-brand">Field<em>o</em></span>
+    </a>
+    <button class="topbar-back" id="btnVoltar" onclick="voltar()"
+            style="font-family:var(--mono);font-size:.7rem;color:rgba(255,255,255,.68);background:none;border:none;cursor:pointer">Voltar</button>
+  </div>
+</header>
+
+<div class="page">
+
+  <!-- ═══ TELA 1 · LISTAS ═══ -->
+  <section id="telaListas">
+    <div class="page-eyebrow">Material</div>
+    <h1 class="page-title">Suas listas<br>de <em>compra</em></h1>
+
+    <div id="listasSkel" class="mt-card" style="text-align:center;color:var(--muted);font-size:.8rem">
+      Carregando…
+    </div>
+    <div id="listasErro" class="mt-card" hidden
+         style="border-color:rgba(200,60,50,.28);background:rgba(200,60,50,.04)">
+      <div style="font-size:.85rem;color:#a83a30;margin-bottom:.5rem">Não consegui carregar suas listas.</div>
+      <button class="btn btn--ghost btn--sm" onclick="carregarListas()">Tentar de novo</button>
+    </div>
+    <div id="listasVazio" class="mt-card" hidden style="text-align:center">
+      <div style="font-size:.86rem;color:var(--text);margin-bottom:.35rem">Nenhuma lista ainda</div>
+      <div style="font-size:.78rem;color:var(--muted);line-height:1.6">
+        Monte por ambiente — sala, cozinha, área — e o Fieldo agrupa por produto
+        na hora de mandar pra loja.
+      </div>
+    </div>
+    <div id="listas"></div>
+
+    <button class="btn btn--primary btn--full btn--lg" style="margin-top:1rem" onclick="novaLista()">
+      Nova lista
+    </button>
+  </section>
+
+  <!-- ═══ TELA 2 · EDITAR ═══ -->
+  <section id="telaEditar" hidden>
+    <input class="field-input" id="inpTitulo" placeholder="Nome da obra"
+           style="font-size:1.05rem;font-weight:500;margin-bottom:.5rem" oninput="marcarSujo()"/>
+    <input class="field-input" id="inpLocal" placeholder="Endereço ou referência (opcional)"
+           style="margin-bottom:1rem" oninput="marcarSujo()"/>
+
+    <div class="busca-wrap">
+      <input class="field-input" id="inpBusca" placeholder="Buscar material… (ex.: tomada, paflon, disjuntor)"
+             autocomplete="off" oninput="buscar()" onfocus="buscar()"/>
+      <div class="res" id="res" hidden></div>
+    </div>
+
+    <div id="ambientes"></div>
+
+    <button class="btn btn--ghost btn--full btn--sm" style="margin-top:.4rem" onclick="novoAmbiente()">
+      + Ambiente
+    </button>
+
+    <div class="salvo" id="salvo"></div>
+
+    <div class="barra">
+      <button class="btn btn--ghost" style="flex:1" onclick="verLista()">Ver lista</button>
+      <button class="btn btn--primary" style="flex:1.4" onclick="exportar()">Mandar pra loja</button>
+    </div>
+  </section>
+
+  <!-- ═══ TELA 3 · PRÉVIA POR PRODUTO ═══ -->
+  <section id="telaPrevia" hidden>
+    <div class="page-eyebrow">Como a loja vai receber</div>
+    <h1 class="page-title">Agrupado<br>por <em>produto</em></h1>
+    <p style="font-size:.8rem;color:var(--muted);line-height:1.7;margin-bottom:1rem">
+      Você montou por ambiente. A loja busca por produto — então o mesmo item
+      em cômodos diferentes vira uma linha só, com a soma.
+    </p>
+    <div class="prev" id="previa"></div>
+    <div class="barra">
+      <button class="btn btn--ghost" style="flex:1" onclick="voltarEditar()">Voltar</button>
+      <button class="btn btn--primary" style="flex:1.4" onclick="enviarWhats()">Abrir WhatsApp</button>
+    </div>
+    <div style="display:flex;gap:.5rem;margin-top:.5rem">
+      <button class="btn btn--ghost btn--sm" style="flex:1" onclick="baixarPDF()">Baixar PDF</button>
+      <button class="btn btn--ghost btn--sm" style="flex:1" onclick="copiarTexto()">Copiar texto</button>
+    </div>
+  </section>
+
+</div>
+
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="db.js"></script>
+<script>
+/* v8.3 · Cotação de material — Fase 2.
+   Montar por AMBIENTE, exportar por PRODUTO. Essa tradução é o valor
+   central do módulo: o profissional pensa em cômodo, a loja busca item.
+
+   A lista é um documento jsonb: salvar é UM update. Ver
+   DECISAO-materiais.md — o SyncEngine só sincroniza create, então
+   linha-por-item não sobreviveria ao sinal do balcão da loja.
+
+   Fase 2 NÃO tem estimativa de preço. Isso é Fase 5, e é o que fica
+   atrás do Pro. */
+
+var _lista   = null;     /* registro do servidor */
+var _itens   = [];       /* [{v,material_id,nome_livre,ambiente,quantidade,unidade}] */
+var _ambs    = [];       /* ordem dos ambientes na tela */
+var _idx     = {};       /* material_id → material, para exportar */
+var _sujo    = false;
+var _salvando= false;
+var _tSalvar = null;
+
+function esc(s){ return FIELDO.UI.esc(s); }
+function el(id){ return document.getElementById(id); }
+
+/* ── navegação ─────────────────────────────────────────────── */
+function mostrar(tela){
+  ['telaListas','telaEditar','telaPrevia'].forEach(function(t){
+    el(t).hidden = (t !== tela);
+  });
+  window.scrollTo(0,0);
+}
+function voltar(){
+  if (!el('telaEditar').hidden || !el('telaPrevia').hidden){
+    salvarAgora().then(function(){ mostrar('telaListas'); carregarListas(); });
+  } else {
+    window.location.href = 'painel.html';
+  }
+}
+function voltarEditar(){ mostrar('telaEditar'); }
+
+/* ── tela 1 · listas ───────────────────────────────────────── */
+function carregarListas(){
+  el('listasSkel').hidden = false;
+  el('listasErro').hidden = true;
+  el('listasVazio').hidden = true;
+  el('listas').innerHTML = '';
+
+  FIELDO.Materiais.Listas.list(50).then(function(rows){
+    el('listasSkel').hidden = true;
+    if (!rows || !rows.length){ el('listasVazio').hidden = false; return; }
+
+    el('listas').innerHTML = rows.map(function(l){
+      var n = (l.itens || []).length;
+      var ambs = {};
+      (l.itens || []).forEach(function(i){ if(i.ambiente) ambs[i.ambiente]=1; });
+      var nAmb = Object.keys(ambs).length;
+      return '<div class="mt-card" style="cursor:pointer" data-abrir="' + esc(l.id) + '">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.8rem">' +
+          '<div style="flex:1;min-width:0">' +
+            '<div class="mt-lista-nome">' + esc(l.titulo) + '</div>' +
+            '<div class="mt-lista-sub">' +
+              (l.local ? esc(l.local) + ' · ' : '') +
+              n + (n === 1 ? ' item' : ' itens') +
+              (nAmb ? ' · ' + nAmb + (nAmb === 1 ? ' ambiente' : ' ambientes') : '') +
+            '</div>' +
+          '</div>' +
+          '<span class="mt-badge' + (l.status === 'cotada' ? ' cotada' : '') + '">' +
+            esc(l.status) + '</span>' +
+        '</div></div>';
+    }).join('');
+  }).catch(function(){
+    /* Erro mostra ERRO, não lista vazia. A auditoria pegou busca.html e
+       contratos.html mentindo justamente aqui: falha de rede parecia
+       "você não tem nada". */
+    el('listasSkel').hidden = true;
+    el('listasErro').hidden = false;
+  });
+}
+
+function novaLista(){
+  var t = prompt('Nome da obra:');
+  if (!t || !t.trim()) return;
+  FIELDO.Materiais.Listas.create({ titulo: t.trim(), itens: [] })
+    .then(function(l){ abrirLista(l.id); })
+    .catch(function(){ FIELDO.UI.toast('Não consegui criar agora'); });
+}
+
+function abrirLista(id){
+  FIELDO.Materiais.Listas.get(id).then(function(l){
+    if (!l) return FIELDO.UI.toast('Lista não encontrada');
+    _lista = l;
+    _itens = Array.isArray(l.itens) ? l.itens.slice() : [];
+    _ambs  = [];
+    _itens.forEach(function(i){
+      var a = i.ambiente || '';
+      if (_ambs.indexOf(a) === -1) _ambs.push(a);
+    });
+    if (!_ambs.length) _ambs = ['Sala'];
+    el('inpTitulo').value = l.titulo || '';
+    el('inpLocal').value  = l.local || '';
+    _sujo = false;
+    el('salvo').textContent = '';
+    renderAmbientes();
+    mostrar('telaEditar');
+  }).catch(function(){ FIELDO.UI.toast('Não consegui abrir agora'); });
+}
+
+/* ── tela 2 · ambientes ────────────────────────────────────── */
+function renderAmbientes(){
+  el('ambientes').innerHTML = _ambs.map(function(amb, ai){
+    var doAmb = _itens.filter(function(i){ return (i.ambiente || '') === amb; });
+    return '<div class="amb">' +
+      '<div class="amb-hd">' +
+        '<input class="amb-nome" value="' + esc(amb) + '" data-amb="' + ai + '" ' +
+               'aria-label="Nome do ambiente"/>' +
+        '<span class="amb-qtd">' + doAmb.length + '</span>' +
+        '<button class="item-x" data-delamb="' + ai + '" aria-label="Remover ambiente">✕</button>' +
+      '</div>' +
+      '<div class="amb-body">' +
+        (doAmb.length ? doAmb.map(function(it){
+          var pos = _itens.indexOf(it);
+          var nome = it.material_id && _idx[it.material_id]
+            ? _idx[it.material_id].nome
+            : (it.nome_livre || 'Item');
+          return '<div class="item">' +
+            '<div class="item-nome' + (it.material_id ? '' : ' item-livre') + '">' +
+              esc(nome) + ' <span class="item-un">' + esc(it.unidade || 'un') + '</span></div>' +
+            '<div class="qtd">' +
+              '<button data-menos="' + pos + '" aria-label="Menos">−</button>' +
+              '<input type="number" inputmode="decimal" min="0" step="1" ' +
+                     'value="' + esc(it.quantidade) + '" data-qtd="' + pos + '" aria-label="Quantidade"/>' +
+              '<button data-mais="' + pos + '" aria-label="Mais">+</button>' +
+            '</div>' +
+            '<button class="item-x" data-del="' + pos + '" aria-label="Remover item">✕</button>' +
+          '</div>';
+        }).join('')
+        : '<div style="font-size:.76rem;color:var(--subtle);padding:.5rem 0">' +
+          'Busque um material acima e toque para adicionar aqui.</div>') +
+      '</div></div>';
+  }).join('');
+}
+
+/* Delegação: os elementos são recriados a cada render, então listener
+   por elemento acumularia. Um listener no documento, registrado uma vez. */
+document.addEventListener('click', function(ev){
+  var b = ev.target.closest ? ev.target.closest('[data-abrir],[data-mais],[data-menos],[data-del],[data-delamb]') : null;
+  if (!b) return;
+  if (b.dataset.abrir)  return abrirLista(b.dataset.abrir);
+  if (b.dataset.mais)   return mudarQtd(+b.dataset.mais, 1);
+  if (b.dataset.menos)  return mudarQtd(+b.dataset.menos, -1);
+  if (b.dataset.del)    return removerItem(+b.dataset.del);
+  if (b.dataset.delamb) return removerAmbiente(+b.dataset.delamb);
+});
+document.addEventListener('input', function(ev){
+  var t = ev.target;
+  if (t.dataset && t.dataset.qtd !== undefined){
+    var n = parseFloat(String(t.value).replace(',', '.'));
+    _itens[+t.dataset.qtd].quantidade = isNaN(n) || n < 0 ? 0 : n;
+    marcarSujo();
+  }
+  if (t.dataset && t.dataset.amb !== undefined){
+    var ai = +t.dataset.amb, novo = t.value;
+    var antigo = _ambs[ai];
+    _itens.forEach(function(i){ if ((i.ambiente || '') === antigo) i.ambiente = novo; });
+    _ambs[ai] = novo;
+    marcarSujo();
+  }
+});
+
+function mudarQtd(pos, d){
+  var q = (Number(_itens[pos].quantidade) || 0) + d;
+  _itens[pos].quantidade = q < 0 ? 0 : q;
+  marcarSujo(); renderAmbientes();
+}
+function removerItem(pos){ _itens.splice(pos,1); marcarSujo(); renderAmbientes(); }
+function removerAmbiente(ai){
+  var amb = _ambs[ai];
+  var n = _itens.filter(function(i){ return (i.ambiente||'') === amb; }).length;
+  if (n && !confirm('Remover "' + amb + '" e seus ' + n + ' itens?')) return;
+  _itens = _itens.filter(function(i){ return (i.ambiente||'') !== amb; });
+  _ambs.splice(ai,1);
+  if (!_ambs.length) _ambs = ['Sala'];
+  marcarSujo(); renderAmbientes();
+}
+function novoAmbiente(){
+  var nomes = ['Cozinha','Quarto','Banheiro','Área','Varanda','Garagem','Corredor','Externo'];
+  var novo = nomes.filter(function(n){ return _ambs.indexOf(n) === -1; })[0]
+             || ('Ambiente ' + (_ambs.length + 1));
+  _ambs.push(novo); marcarSujo(); renderAmbientes();
+}
+
+/* ── busca no catálogo ─────────────────────────────────────── */
+function buscar(){
+  var termo = el('inpBusca').value;
+  FIELDO.Materiais.buscar(termo, 30).then(function(achados){
+    achados.forEach(function(m){ _idx[m.id] = m; });
+    var html = achados.map(function(m){
+      var attrs = Object.keys(m.atributos || {}).map(function(k){
+        return m.atributos[k];
+      }).join(' · ');
+      return '<div class="res-item" data-add="' + esc(m.id) + '">' +
+        '<div class="res-nome">' + esc(m.nome) + '</div>' +
+        '<div class="res-meta">' + esc(m.unidade) + (attrs ? '  ·  ' + esc(attrs) : '') + '</div>' +
+      '</div>';
+    }).join('');
+    if (termo.trim()){
+      html += '<div class="res-novo" data-livre="1">+ Adicionar "' + esc(termo.trim()) + '" mesmo assim</div>';
+    }
+    el('res').innerHTML = html;
+    el('res').hidden = !html;
+  }).catch(function(){
+    el('res').innerHTML = '<div class="res-item" style="color:var(--muted)">' +
+      'Catálogo indisponível. Você ainda pode digitar o item à mão.</div>';
+    el('res').hidden = false;
+  });
+}
+
+document.addEventListener('click', function(ev){
+  var r = ev.target.closest ? ev.target.closest('[data-add],[data-livre]') : null;
+  if (r){
+    if (r.dataset.add) addCatalogo(r.dataset.add);
+    else addLivre(el('inpBusca').value.trim());
+    return;
+  }
+  /* clique fora fecha o resultado */
+  if (!ev.target.closest || !ev.target.closest('.busca-wrap')) el('res').hidden = true;
+});
+
+function ambienteAtivo(){ return _ambs[_ambs.length - 1] || 'Sala'; }
+
+function addCatalogo(id){
+  var m = _idx[id];
+  var amb = ambienteAtivo();
+  /* Mesmo item no mesmo ambiente: soma em vez de duplicar linha. */
+  var ja = _itens.filter(function(i){
+    return i.material_id === id && (i.ambiente||'') === amb;
+  })[0];
+  if (ja){ ja.quantidade = (Number(ja.quantidade)||0) + 1; }
+  else {
+    _itens.push({ v:1, material_id:id, nome_livre:null, ambiente:amb,
+                  quantidade:1, unidade: m ? m.unidade : 'un',
+                  preco_unit:null, preco_fonte:null });
+  }
+  el('inpBusca').value = '';
+  el('res').hidden = true;
+  marcarSujo(); renderAmbientes();
+}
+
+function addLivre(nome){
+  if (!nome) return;
+  /* Item fora do catálogo NÃO trava o usuário — e vira candidato a
+     entrar no catálogo depois. Só não gera histórico de preço. */
+  _itens.push({ v:1, material_id:null, nome_livre:nome, ambiente:ambienteAtivo(),
+                quantidade:1, unidade:'un', preco_unit:null, preco_fonte:null });
+  el('inpBusca').value = '';
+  el('res').hidden = true;
+  marcarSujo(); renderAmbientes();
+}
+
+/* ── salvar (debounce obrigatório) ─────────────────────────── */
+/* 80 itens ≈ 16 KB por gravação. Salvar a cada tecla queimaria a
+   franquia de dados de quem está em 3G na obra. */
+function marcarSujo(){
+  _sujo = true;
+  el('salvo').textContent = 'alterado…';
+  clearTimeout(_tSalvar);
+  _tSalvar = setTimeout(salvarAgora, 1200);
+}
+
+function salvarAgora(){
+  if (!_lista || !_sujo || _salvando) return Promise.resolve();
+  _salvando = true;
+  var campos = {
+    titulo: el('inpTitulo').value.trim() || 'Sem nome',
+    local:  el('inpLocal').value.trim() || null,
+    itens:  _itens,
+  };
+  return FIELDO.Materiais.Listas.salvar(_lista.id, campos)
+    .then(function(){
+      _sujo = false; _salvando = false;
+      el('salvo').textContent = 'salvo';
+      setTimeout(function(){ if(!_sujo) el('salvo').textContent = ''; }, 2500);
+    })
+    .catch(function(){
+      _salvando = false;
+      /* Falha alto: sem rede, o usuário precisa SABER que não salvou —
+         senão fecha o app achando que está guardado. */
+      el('salvo').textContent = '⚠ não salvou — sem conexão';
+    });
+}
+
+/* ── tela 3 · prévia agrupada ──────────────────────────────── */
+function textoAtual(){
+  return FIELDO.Materiais.textoCotacao(
+    { titulo: el('inpTitulo').value.trim(), local: el('inpLocal').value.trim(),
+      observacoes: _lista && _lista.observacoes },
+    _itens, _idx);
+}
+
+function verLista(){
+  if (!_itens.length) return FIELDO.UI.toast('A lista está vazia');
+  el('previa').textContent = textoAtual();
+  mostrar('telaPrevia');
+}
+function exportar(){ verLista(); }
+
+function enviarWhats(){
+  salvarAgora();
+  window.open(FIELDO.Pix ? 'https://wa.me/?text=' + encodeURIComponent(textoAtual())
+                         : 'https://wa.me/?text=' + encodeURIComponent(textoAtual()), '_blank');
+}
+
+/* ── PDF ───────────────────────────────────────────────────────
+   Mesmo caminho de orcamento.html (v4.4 M3): HTML autônomo + print
+   nativo. Zero dependência (jsPDF + html2canvas seriam ~250 KB),
+   funciona offline, e o texto sai SELECIONÁVEL no PDF — o vendedor
+   consegue copiar item por item pro sistema dele, que é o que faz a
+   cotação voltar rápido. Com html2canvas viraria imagem. */
+function buildListaHTML(){
+  var E = FIELDO.UI.esc;
+  var titulo = el('inpTitulo').value.trim() || 'Lista de material';
+  var local  = el('inpLocal').value.trim();
+  var grupos = FIELDO.Materiais.agruparPorProduto(_itens, _idx);
+
+  var hoje = new Date();
+  var data = ('0'+hoje.getDate()).slice(-2) + '/' +
+             ('0'+(hoje.getMonth()+1)).slice(-2) + '/' + hoje.getFullYear();
+
+  function qtd(n){
+    return (n % 1 === 0) ? String(n) : String(n).replace('.', ',');
+  }
+
+  /* Linhas por produto — é assim que a loja procura */
+  var linhas = grupos.map(function(g){
+    return '<tr>' +
+      '<td class="q">' + E(qtd(g.quantidade)) + '</td>' +
+      '<td class="u">' + E(g.unidade) + '</td>' +
+      '<td class="n">' + E(g.nome) + '</td>' +
+      '<td class="p"></td>' +
+    '</tr>';
+  }).join('');
+
+  /* Conferência por ambiente: some no envio pra loja, mas é o que o
+     profissional usa pra separar o material na obra. */
+  var porAmb = _ambs.map(function(amb){
+    var doAmb = _itens.filter(function(i){ return (i.ambiente||'') === amb; });
+    if (!doAmb.length) return '';
+    return '<div class="amb-bloco"><h3>' + E(amb) + '</h3><ul>' +
+      doAmb.map(function(it){
+        var nome = it.material_id && _idx[it.material_id]
+          ? _idx[it.material_id].nome : (it.nome_livre || 'Item');
+        return '<li><span class="mono">' + E(qtd(it.quantidade)) + ' ' +
+               E(it.unidade || 'un') + '</span> — ' + E(nome) + '</li>';
+      }).join('') + '</ul></div>';
+  }).join('');
+
+  return '<!DOCTYPE html><html lang="pt-BR"><head>' +
+    '<meta charset="UTF-8"/>' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1.0"/>' +
+    '<title>' + E(titulo) + ' · Lista de material · Fieldo</title>' +
+    '<link rel="preconnect" href="https://fonts.googleapis.com"/>' +
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>' +
+    '<style>' +
+      /* Tipografia Fieldo: Fraunces nos títulos, DM Sans no corpo,
+         DM Mono nos números — a mesma hierarquia do relatório e do
+         orçamento, pra loja e cliente reconhecerem de onde veio. */
+      ':root{--paper:#f5f2ec;--ink:#1a1a1f;--muted:#6b6459;--subtle:#9a9186;' +
+        '--gold:#a8842c;--gold-d:#8a6d20;--line:#ddd6c9}' +
+      '*{box-sizing:border-box;margin:0;padding:0}' +
+      'body{font-family:"DM Sans",system-ui,sans-serif;background:var(--paper);' +
+        'color:var(--ink);line-height:1.6;padding:28px 22px 40px;max-width:760px;margin:0 auto}' +
+      '.mono{font-family:"DM Mono",ui-monospace,monospace}' +
+
+      '.hd{display:flex;align-items:center;gap:9px;margin-bottom:26px}' +
+      /* v10.34 · era um "F" itálico dentro de um badge escuro (identidade
+         antiga, nunca chegou a virar a estrela porque este cabeçalho é
+         montado à mão neste documento impresso à parte). Agora é o mesmo
+         traço oficial usado no resto do site, sem badge de fundo. */
+      '.mark{width:22px;height:22px;display:flex;align-items:center;' +
+        'justify-content:center;flex-shrink:0;color:var(--ink)}' +
+      '.brand{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:1rem;color:var(--ink)}' +
+      '.brand em{font-style:normal;color:var(--gold)}' +
+      '.hd-r{margin-left:auto;font-family:"DM Mono",monospace;font-size:.64rem;' +
+        'letter-spacing:.06em;color:var(--subtle);text-transform:uppercase;text-align:right}' +
+
+      'h1{font-family:Fraunces,Georgia,serif;font-weight:300;font-size:1.7rem;' +
+        'line-height:1.2;margin-bottom:5px}' +
+      'h1 em{font-style:italic;color:var(--gold-d)}' +
+      '.sub{font-size:.83rem;color:var(--muted);margin-bottom:22px}' +
+
+      'table{width:100%;border-collapse:collapse;margin-bottom:8px}' +
+      'thead th{font-family:"DM Mono",monospace;font-size:.6rem;letter-spacing:.09em;' +
+        'text-transform:uppercase;color:var(--subtle);text-align:left;font-weight:500;' +
+        'padding:0 6px 7px;border-bottom:1px solid var(--line)}' +
+      'td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.87rem}' +
+      'td.q{font-family:"DM Mono",monospace;font-weight:500;text-align:right;width:44px;white-space:nowrap}' +
+      'td.u{font-family:"DM Mono",monospace;font-size:.72rem;color:var(--muted);width:38px}' +
+      'td.n{line-height:1.45}' +
+      'td.p{width:88px;border-bottom:1px solid var(--line)}' +
+      'thead th.p{text-align:right}' +
+
+      '.nota{font-size:.76rem;color:var(--muted);line-height:1.65;' +
+        'margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}' +
+
+      '.amb-bloco{margin-top:16px;break-inside:avoid}' +
+      '.amb-bloco h3{font-family:"DM Mono",monospace;font-size:.63rem;letter-spacing:.09em;' +
+        'text-transform:uppercase;color:var(--gold-d);font-weight:500;margin-bottom:5px}' +
+      '.amb-bloco ul{list-style:none;padding-left:0}' +
+      '.amb-bloco li{font-size:.8rem;padding:2.5px 0;color:var(--ink)}' +
+      '.amb-bloco .mono{font-size:.74rem;color:var(--muted)}' +
+      '.sec{font-family:Fraunces,Georgia,serif;font-size:1.05rem;font-weight:300;' +
+        'margin:30px 0 2px;padding-top:22px;border-top:1px solid var(--line)}' +
+      '.sec-sub{font-size:.76rem;color:var(--muted);margin-bottom:6px}' +
+
+      '.pe{margin-top:34px;text-align:center;font-family:"DM Mono",monospace;' +
+        'font-size:.6rem;letter-spacing:.07em;color:var(--subtle)}' +
+
+      '.bar{position:sticky;bottom:0;display:flex;gap:8px;padding:14px 0 4px;' +
+        'background:var(--paper);margin-top:24px}' +
+      '.btn{flex:1;padding:12px;border:none;border-radius:10px;font-family:inherit;' +
+        'font-size:.85rem;font-weight:500;cursor:pointer;background:var(--surface-ink);color:#fff}' +
+
+      '@media print{' +
+        'body{background:#fff;padding:0;max-width:none}' +
+        '.bar{display:none}' +
+        '@page{margin:16mm}' +
+        'tr{break-inside:avoid}' +
+      '}' +
+    '</style></head><body>' +
+
+    '<div class="hd">' +
+      '<div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" ' +
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/>' +
+        '<circle cx="11.8" cy="4" r="1.2" fill="#b8880d" stroke="none"/>' +
+        '</svg></div>' +
+      '<span class="brand">Field<em>o</em></span>' +
+      '<div class="hd-r">Lista de material<br>' + E(data) + '</div>' +
+    '</div>' +
+
+    '<h1>' + E(titulo) + '</h1>' +
+    '<div class="sub">' + (local ? E(local) + ' · ' : '') +
+      grupos.length + (grupos.length === 1 ? ' produto' : ' produtos') + '</div>' +
+
+    '<table><thead><tr>' +
+      '<th style="text-align:right">Qtd</th><th>Un</th><th>Material</th>' +
+      '<th class="p">Preço un.</th>' +
+    '</tr></thead><tbody>' + linhas + '</tbody></table>' +
+
+    '<div class="nota">Pode me passar o preço de cada item? A coluna da direita ' +
+      'está em branco justamente para isso.</div>' +
+
+    (porAmb
+      ? '<div class="sec">Conferência por <em>ambiente</em></div>' +
+        '<div class="sec-sub">Para separar o material na obra — a loja não precisa desta parte.</div>' +
+        porAmb
+      : '') +
+
+    '<div class="pe">Gerado pelo Fieldo</div>' +
+
+    '<div class="bar"><button class="btn" onclick="window.print()">Baixar PDF / Imprimir</button></div>' +
+    '</body></html>';
+}
+
+function baixarPDF(){
+  if (!_itens.length) return FIELDO.UI.toast('A lista está vazia');
+  salvarAgora();
+
+  var html = buildListaHTML();
+  /* Auto-dispara o print depois do load: as fontes do Google precisam de
+     um instante, e imprimir antes delas sairia em Times New Roman. */
+  var auto = '<' + 'script>window.addEventListener("load",function(){' +
+             'setTimeout(function(){try{window.print();}catch(e){}},700);});<\/script>';
+  var w = window.open('', '_blank');
+  if (!w) return FIELDO.UI.toast('Libere o pop-up para gerar o PDF');
+  w.document.write(html.replace('</body></html>', auto + '</body></html>'));
+  w.document.close();
+}
+
+function copiarTexto(){
+  var t = textoAtual();
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t)
+      .then(function(){ FIELDO.UI.toast('Copiado'); })
+      .catch(function(){ FIELDO.UI.toast('Copie manualmente da tela'); });
+  } else {
+    FIELDO.UI.toast('Copie manualmente da tela');
+  }
+}
+
+/* ── início ────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function(){
+  if (!FIELDO.Auth.isLoggedIn()){ window.location.href = 'entrar.html'; return; }
+  /* Aquece o catálogo no primeiro acesso: 76 linhas, ~20 KB, e a partir
+     daí a busca funciona sem rede. */
+  FIELDO.Materiais.catalogo().then(function(todos){
+    todos.forEach(function(m){ _idx[m.id] = m; });
+  }).catch(function(){});
+  carregarListas();
+});
+
+/* Última barreira: sair com alteração pendente não pode perder dado
+   em silêncio. */
+window.addEventListener('beforeunload', function(e){
+  if (_sujo){ e.preventDefault(); e.returnValue = ''; }
+});
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

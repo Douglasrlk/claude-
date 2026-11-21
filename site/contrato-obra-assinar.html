@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta name="theme-color" content="#f5f2ec"/>
+  <title>Contrato da obra · Fieldo</title>
+  <!-- v12.40 · página do CLIENTE para ler e assinar o contrato de obra.
+       Dados pessoais, link individual: fora do índice (mesma regra de
+       relatorio.html e locacao/contrato-assinar.html). O token vem no
+       fragmento (#t=...), que não vai para servidor nem para log. -->
+  <meta name="robots" content="noindex,nofollow"/>
+  <meta name="referrer" content="no-referrer"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <style>
+    body { background: var(--bg); padding-bottom: 3rem; }
+    .as-main { max-width: 640px; margin: 0 auto; padding: 1.1rem 1rem 2rem; }
+    .as-brand { font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-d); margin: .4rem 0 1rem; }
+    .as-topo h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(1.45rem, 6vw, 1.9rem); line-height: 1.15; margin: 0 0 .35rem; }
+    .as-topo p { margin: 0 0 1rem; color: var(--text2); font-size: .92rem; line-height: 1.5; }
+    .as-box { background: var(--paper); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.05rem; margin-bottom: .9rem; }
+    .as-box h2 { font-size: .98rem; margin: 0 0 .7rem; font-weight: 600; display: flex; align-items: center; gap: .5rem; }
+    .as-passo { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--gold-bg);
+      border: 1px solid var(--gold-bd); color: var(--gold-d); font: 600 .75rem var(--sans); flex: none; }
+    .as-res { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem .9rem; font-size: .86rem; }
+    .as-res > div { min-width: 0; overflow-wrap: anywhere; }
+    .as-res b { display: block; font-size: .72rem; color: var(--muted); font-weight: 500; margin-bottom: .1rem; }
+    .as-res .inteira { grid-column: 1 / -1; }
+    .as-valor { font-size: 1.5rem; font-weight: 600; line-height: 1.15; font-variant-numeric: tabular-nums; }
+    .as-doc { background: #fff; color: #1c1a17; border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.05rem;
+      font-size: .87rem; line-height: 1.62; max-height: 60vh; overflow-y: auto; }
+    .as-doc .ctr-h1 { font-size: 1.02rem; text-align: center; margin: .2rem 0 .4rem; }
+    .as-doc .ctr-h2 { font-size: .92rem; margin: 1rem 0 .35rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+    .as-doc .ctr-h3 { font-size: .87rem; margin: .8rem 0 .25rem; }
+    .as-doc .ctr-p { margin: .3rem 0; } .as-doc .ctr-ul { margin: .3rem 0 .3rem 1.1rem; padding: 0; }
+    .as-meta { font-size: .74rem; color: var(--muted); line-height: 1.55; margin: .55rem 0 0; }
+    .as-meta code { font-family: var(--mono); font-size: .68rem; word-break: break-all; }
+    .as-integ { font-size: .8rem; margin: 0 0 .55rem; }
+    .as-msg { border-radius: 10px; padding: .75rem .85rem; font-size: .88rem; line-height: 1.5; margin-bottom: .9rem; }
+    .as-ok { background: var(--green-bg); border: 1px solid var(--green-bd); color: var(--green); }
+    .as-av { background: var(--amber-bg); border: 1px solid var(--amber-bd); color: var(--amber); }
+    .as-er { background: var(--red-bg); border: 1px solid var(--red-bd); color: var(--red); }
+    .as-canvas { width: 100%; height: 150px; border: 1px dashed var(--border2); border-radius: 8px; background: #fff; touch-action: none; display: block; }
+    .as-check { display: flex; gap: .6rem; align-items: flex-start; font-size: .86rem; line-height: 1.5; margin: .4rem 0 .9rem; }
+    .as-check input { margin-top: .25rem; width: 1.15rem; height: 1.15rem; flex: none; }
+    .as-acts { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .6rem; }
+    .as-lnk { background: none; border: 0; padding: .4rem 0; font: 500 .84rem var(--sans); color: var(--gold-d); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .as-recusar { color: var(--red); }
+    .as-ass { list-style: none; margin: 0; padding: 0; }
+    .as-ass li { display: flex; justify-content: space-between; gap: .75rem; padding: .5rem 0; border-top: 1px solid var(--border); font-size: .84rem; }
+    .as-ass li:first-child { border-top: 0; }
+    .as-ass span { color: var(--muted); font-size: .78rem; text-align: right; }
+    @media print {
+      body * { visibility: hidden; }
+      #asDoc, #asDoc * { visibility: visible; }
+      #asDoc { position: absolute; left: 0; top: 0; max-height: none; overflow: visible; border: 0; }
+    }
+  </style>
+</head>
+<body>
+<main class="as-main">
+  <div class="as-brand">Fieldo · Contrato de obra</div>
+  <div id="app" aria-live="polite"><div class="as-box"><p class="as-meta">Carregando o contrato…</p></div></div>
+</main>
+<script src="db.js"></script>
+<script src="locacao/contrato-doc.js"></script>
+<script src="locacao/assinatura-pad.js"></script>
+<script src="locacao/contrato-pdf.js"></script>
+<script src="obra-contrato-doc.js"></script>
+<script src="db.obra.contratos.js"></script>
+<script>
+(function () {
+  'use strict';
+  var app = document.getElementById('app');
+  function falha(msg) { app.innerHTML = '<div class="as-msg as-er" role="alert">' + msg + '</div>'; }
+  if (typeof FIELDO === 'undefined' || !FIELDO.ObraContratos || typeof FieldoContratoDoc === 'undefined' || typeof ObraContratoDoc === 'undefined') {
+    falha('A página não carregou por completo. Verifique a conexão e recarregue.');
+    return;
+  }
+  var C = FIELDO.ObraContratos, Doc = FieldoContratoDoc;
+  function e(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  var m = /[#&]t=([^&]+)/.exec(location.hash || '');
+  var token = m ? decodeURIComponent(m[1]) : '';
+  if (!token) { falha('Link incompleto. Abra o link exatamente como recebeu ou peça um novo ao profissional.'); return; }
+
+  var dados = null, pad = null;
+
+  function carregar() {
+    app.innerHTML = '<div class="as-box"><p class="as-meta">Carregando o contrato…</p></div>';
+    C.porToken(token).then(function (r) {
+      if (!r || !r.ok) { falha(e(C.MSG[r && r.error] || 'Não foi possível abrir este contrato.') + '<br>Se precisar, fale com o profissional que enviou o link.'); return; }
+      dados = r; render();
+    }).catch(function () {
+      app.innerHTML = '<div class="as-msg as-er" role="alert">Sem conexão com o servidor. Verifique a internet.</div>' +
+        '<button type="button" class="btn btn--primary" id="asTentar">Tentar de novo</button>';
+      document.getElementById('asTentar').onclick = carregar;
+    });
+  }
+
+  function render() {
+    var c = dados.contrato, res = dados.resumo || {}, ass = dados.assinaturas || [];
+    var assinado = c.status === 'assinado';
+    var h = '';
+    if (assinado) {
+      h += '<div class="as-msg as-ok"><strong>Contrato assinado pelas duas partes</strong> em ' + e(Doc.fmtDataHora(c.concluido_em)) +
+           '. Guarde o PDF: ele traz o termo de assinaturas com as evidências.</div>';
+    } else if (dados.pode_assinar) {
+      h += '<div class="as-topo"><h1>Contrato da obra para assinar</h1>' +
+        '<p>' + e(res.contratada || 'O profissional') + ' já assinou. Confira o resumo, leia o contrato e assine no fim da página.</p></div>';
+    }
+
+    h += '<section class="as-box" aria-labelledby="asT1"><h2 id="asT1">' + (dados.pode_assinar ? '<span class="as-passo">1</span>' : '') + 'Resumo</h2><div class="as-res">' +
+      '<div class="inteira"><b>Obra</b>' + e(res.obra) + '</div>' +
+      '<div class="inteira"><b>Valor total</b><span class="as-valor">' + e(Doc.brl(res.valor_total) || '—') + '</span></div>' +
+      '<div><b>Início</b>' + e(Doc.fmtData(res.inicio)) + '</div><div><b>Término previsto</b>' + e(Doc.fmtData(res.termino_previsto)) + '</div>' +
+      '<div class="inteira"><b>Profissional (contratada)</b>' + e(res.contratada) + '</div>' +
+      '<div class="inteira"><b>Cliente (contratante)</b>' + e(res.contratante) + '</div>' +
+      '<div class="inteira"><b>Contrato</b>' + e(c.numero) + ' · versão ' + e(c.versao) + '</div>' +
+      '</div></section>';
+
+    h += '<section class="as-box" aria-labelledby="asT2"><h2 id="asT2">' + (dados.pode_assinar ? '<span class="as-passo">2</span>' : '') + 'Contrato completo</h2>' +
+      '<p class="as-integ" id="asInteg">Conferindo integridade…</p>' +
+      '<div class="as-doc" id="asDoc" tabindex="0" aria-label="Texto do contrato">' + Doc.toHtml(c.documento_texto) + '</div>' +
+      '<p class="as-meta">Código de integridade (SHA-256): <code>' + e(c.documento_hash) + '</code></p>' +
+      '<div class="as-acts">' + (assinado
+        ? '<button type="button" class="btn btn--primary btn--sm" id="asPdf">Baixar PDF assinado</button>' +
+          '<a class="as-lnk" href="verificar.html?hash=' + encodeURIComponent(c.documento_hash) + '" target="_blank" rel="noopener">Conferir na página Verificar</a>'
+        : '<button type="button" class="as-lnk" id="asImprimir">Imprimir ou salvar uma cópia</button>') +
+      '</div></section>';
+
+    if (ass.length) {
+      var P = { contratada: 'Profissional (contratada)', contratante: 'Cliente (contratante)' };
+      h += '<section class="as-box" aria-labelledby="asT4"><h2 id="asT4">Assinaturas</h2><ul class="as-ass">' +
+        ass.map(function (a) { return '<li><div><strong>' + e(a.nome) + '</strong><br><small>' + e(P[a.parte] || a.parte) + '</small></div><span>' + e(Doc.fmtDataHora(a.assinado_em)) + '</span></li>'; }).join('') +
+        '</ul></section>';
+    }
+
+    if (dados.pode_assinar) {
+      h += '<section class="as-box" aria-labelledby="asT3"><h2 id="asT3"><span class="as-passo">3</span>Assinar</h2>' +
+        '<div class="field-group" style="margin-bottom:.8rem"><label class="field-label" for="asNome">Seu nome completo <span class="required">*</span></label>' +
+        '<input class="field-input" id="asNome" autocomplete="name" value="' + e(res.contratante || '') + '"/></div>' +
+        '<div class="field-group" style="margin-bottom:.8rem"><label class="field-label" for="asDocN">Confirme seu CPF ou CNPJ <span class="required">*</span></label>' +
+        '<input class="field-input" id="asDocN" inputmode="numeric" autocomplete="off" placeholder="' + e(res.documento_dica ? 'O do contrato termina em ' + res.documento_dica : '') + '"/></div>' +
+        '<label class="as-check"><input type="checkbox" id="asAceite"/><span>' + e(ObraContratoDoc.ACEITE_CONTRATANTE) + '</span></label>' +
+        '<div class="field-label">Desenhe sua assinatura (opcional)</div>' +
+        '<canvas class="as-canvas" id="asPad" aria-label="Área para desenhar a assinatura"></canvas>' +
+        '<div class="as-acts"><button type="button" class="as-lnk" id="asLimpar">Limpar desenho</button></div>' +
+        '<div id="asErro"></div>' +
+        '<button type="button" class="btn btn--primary btn--lg" style="width:100%;margin-top:.7rem" id="asAssinar">Assinar contrato</button>' +
+        '<p class="as-meta">Ao assinar, registramos data e hora, a versão e o código do documento, seu nome e documento, o endereço IP e o navegador, para comprovar o aceite (LGPD, art. 7º, V e VI).</p>' +
+        '<div class="as-acts"><button type="button" class="as-lnk as-recusar" id="asRecusar">Não concordo com o contrato</button></div>' +
+        '</section>';
+    }
+    app.innerHTML = h;
+
+    /* o texto mostrado é o registrado? (mesmo SHA-256 do servidor) */
+    Doc.sha256(c.documento_texto).then(function (hx) {
+      var ok = hx === c.documento_hash, el = document.getElementById('asInteg');
+      el.innerHTML = ok
+        ? '<span style="color:var(--green)">✓ Integridade conferida: este é exatamente o texto registrado.</span>'
+        : '<span style="color:var(--red)">Atenção: o texto não corresponde ao código registrado. Não assine e fale com o profissional.</span>';
+      if (!ok) { var b = document.getElementById('asAssinar'); if (b) b.disabled = true; }
+    }).catch(function () { document.getElementById('asInteg').textContent = 'Seu navegador não permite conferir a integridade aqui.'; });
+
+    var bi = document.getElementById('asImprimir'); if (bi) bi.onclick = function () { window.print(); };
+    var bp = document.getElementById('asPdf'); if (bp) bp.onclick = baixarPdf;
+    if (dados.pode_assinar) {
+      pad = AssinaturaPad(document.getElementById('asPad'));
+      document.getElementById('asLimpar').onclick = function () { pad.limpar(); };
+      document.getElementById('asAssinar').onclick = assinar;
+      document.getElementById('asRecusar').onclick = recusar;
+    }
+  }
+
+  function erro(msg) {
+    document.getElementById('asErro').innerHTML = '<div class="as-msg as-er" role="alert" style="margin:.6rem 0 0">' + e(msg) + '</div>';
+  }
+
+  function assinar() {
+    var nome = document.getElementById('asNome').value.trim();
+    var doc = document.getElementById('asDocN').value.trim();
+    if (nome.length < 3) return erro('Informe seu nome completo.');
+    if (!Doc.docValido(doc)) return erro('Informe um CPF ou CNPJ válido.');
+    if (!document.getElementById('asAceite').checked) return erro('Marque a confirmação de leitura e aceite.');
+    var btn = document.getElementById('asAssinar');
+    btn.disabled = true; btn.textContent = 'Registrando assinatura…';
+    C.assinarCliente(token, nome, doc, pad.png())
+      .then(function () { window.scrollTo(0, 0); carregar(); })
+      .catch(function (err) {
+        btn.disabled = false; btn.textContent = 'Assinar contrato';
+        erro(err && err.code ? err.message : 'Sem conexão. Sua assinatura não foi registrada; tente de novo.');
+      });
+  }
+
+  function recusar() {
+    var motivo = prompt('Se quiser, diga o motivo para o profissional (opcional):', '');
+    if (motivo === null) return;
+    if (!confirm('Confirmar que você NÃO concorda com este contrato?')) return;
+    C.recusar(token, motivo).then(function () {
+      app.innerHTML = '<div class="as-msg as-av">Você recusou este contrato. A recusa ficou registrada e o profissional pode enviar uma nova versão.</div>';
+    }).catch(function (err) { erro(err && err.code ? err.message : 'Sem conexão. Tente de novo.'); });
+  }
+
+  function baixarPdf() {
+    var b = document.getElementById('asPdf');
+    b.disabled = true; b.textContent = 'Gerando PDF…';
+    C.gerarPdf(dados.contrato, dados.assinaturas || []).then(function (blob) {
+      var url = URL.createObjectURL(blob), a = document.createElement('a');
+      a.href = url; a.download = 'contrato-obra-' + dados.contrato.numero + '-v' + dados.contrato.versao + '.pdf';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      b.disabled = false; b.textContent = 'Baixar PDF assinado';
+    }).catch(function () {
+      b.disabled = false; b.textContent = 'Baixar PDF assinado';
+      alert('Não foi possível gerar o PDF. Verifique a conexão e tente de novo.');
+    });
+  }
+
+  carregar();
+})();
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

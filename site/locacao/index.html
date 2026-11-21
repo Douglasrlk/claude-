@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#f5f2ec"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Locação · Fieldo</title>
+  <!-- v10.11 · fora do índice por decisão de foco.
+       Mesma situação do Zelo: vertical com 3 locadoras e 1 locação, landing órfã. A página continua no ar e continua abrindo
+       para quem receber o link — o que ela não faz é competir por
+       rastreio com os perfis, que são o produto. Reverter é apagar
+       esta meta. -->
+  <meta name="robots" content="noindex,follow"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../fieldo.css"/>
+  <link rel="manifest" href="./manifest.json"/>
+  <!-- v12.19c · ícone próprio da Locação (caminhão em movimento); antes usava o ✓ do Fieldo -->
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png"/>
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-title" content="Locação"/>
+  <style>
+    /* ── Mesmo layout de onboarding do Fieldo (entrar.html),
+       reaproveitado 1:1 — só o conteúdo dos steps muda. ── */
+    body { background: var(--bg); }
+
+    .ob-wrap {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.25rem;
+      position: relative;
+      z-index: 1;
+    }
+    .ob-wrap::after {
+      content: '';
+      position: fixed;
+      top: -120px; right: -120px;
+      width: 420px; height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(154,114,24,.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ob-box { width: 100%; max-width: 420px; position: relative; z-index: 1; }
+    /* v12.6 · no celular o conteúdo começava a ~200 px do topo; e a tela
+       não mostrava o que a locadora ganha antes de pedir o cadastro. */
+    @media (max-width: 560px) { .ob-wrap { justify-content: flex-start; padding-top: 2.75rem; } .ob-logo { margin-bottom: 1.75rem; } }
+    .ob-ganhos { list-style: none; margin: 0 0 1.5rem; padding: 0; display: grid; gap: .55rem; }
+    .ob-ganhos li { display: grid; grid-template-columns: 1.4rem minmax(0,1fr); gap: .5rem; font-size: .9rem; line-height: 1.45; color: var(--text2); }
+    .ob-ganhos li::before { content: "✓"; color: var(--green); font-weight: 600; }
+    .ob-ganhos strong { color: var(--ink); font-weight: 600; }
+
+    .ob-logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 2.5rem; }
+    .ob-logo-mark {
+      width: 56px; height: 56px;
+      background: var(--gold);
+      border-radius: 15px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem;
+      box-shadow: 0 8px 32px rgba(154,114,24,.25);
+      animation: fadeUp .4s ease both;
+    }
+    .ob-logo-name {
+      font-family: var(--serif); font-size: 1.6rem; font-weight: 300;
+      color: var(--ink); animation: fadeUp .4s .08s ease both;
+    }
+    .ob-logo-name em { font-style: italic; color: var(--gold); }
+
+    .ob-step { display: none; animation: fadeUp .3s ease both; }
+    .ob-step.active { display: block; }
+
+    .ob-eyebrow {
+      font-family: var(--mono); font-size: .58rem; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--gold);
+      display: flex; align-items: center; gap: .55rem; margin-bottom: .5rem;
+    }
+    .ob-eyebrow::before { content: ''; display: inline-block; width: 14px; height: 1px; background: var(--gold); }
+    .ob-title {
+      font-family: var(--serif); font-size: clamp(1.8rem, 6vw, 2.4rem);
+      font-weight: 300; line-height: 1.08; color: var(--ink);
+      margin-bottom: .5rem; letter-spacing: -.02em;
+    }
+    .ob-title em { font-style: italic; color: var(--gold); }
+    .ob-sub { font-size: .86rem; color: var(--muted); line-height: 1.7; margin-bottom: 1.75rem; }
+
+    .ob-success { text-align: center; padding: 1rem 0; }
+    .ob-success-seal {
+      width: 96px; height: 96px; background: #9a7318; border-radius: 26px; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem; animation: bounceIn .4s var(--ez) both;
+      box-shadow: 0 10px 32px rgba(154,114,24,.28);
+    }
+    /* v12.19c · caminhão em movimento (o mesmo desenho do ícone do app) */
+    .tk { width: 40px; height: auto; display: block; overflow: visible; }
+    .ob-success-seal .tk { width: 70px; }
+    .tk .tk-corpo, .tk .tk-rodas { animation: tkBalanco .9s ease-in-out infinite; transform-origin: center; }
+    .tk .tk-rodas { animation-delay: .12s; }
+    .tk .tk-linhas line { animation: tkVento 1.1s ease-in-out infinite; }
+    .tk .tk-linhas line:nth-child(2) { animation-delay: .18s; }
+    .tk .tk-linhas line:nth-child(3) { animation-delay: .36s; }
+    .tk--chega { animation: tkChega .9s var(--ez) .15s both; }
+    @keyframes tkBalanco { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    @keyframes tkVento { 0% { transform: translateX(14px); opacity: .25; } 50% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(-14px); opacity: .25; } }
+    @keyframes tkChega { 0% { transform: translateX(-130%); } 100% { transform: translateX(0); } }
+    @media (prefers-reduced-motion: reduce) {
+      .tk .tk-corpo, .tk .tk-rodas, .tk .tk-linhas line, .tk--chega { animation: none; }
+    }
+    @keyframes bounceIn { 0% { transform: scale(.5); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+    .ob-success-name { font-family: var(--serif); font-size: 1.5rem; font-weight: 300; font-style: italic; color: var(--ink); margin-bottom: .35rem; }
+    .ob-success-sub { font-family: var(--mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--green); margin-bottom: 1.5rem; }
+    .ob-success-desc { font-size: .85rem; color: var(--muted); line-height: 1.7; margin-bottom: 2rem; max-width: 300px; margin-left: auto; margin-right: auto; }
+
+    .ob-progress { display: flex; align-items: center; justify-content: center; gap: .4rem; margin-bottom: 2.5rem; }
+    .ob-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--paper4); transition: background .3s, transform .3s; }
+    .ob-dot.active { background: var(--gold); transform: scale(1.4); }
+    .ob-dot.done { background: var(--green-l); }
+
+    .ob-back {
+      display: flex; align-items: center; gap: .4rem; font-family: var(--mono); font-size: .72rem;
+      color: var(--muted); background: none; border: none; cursor: pointer; padding: 0;
+      margin-bottom: 1.5rem; transition: color var(--t);
+    }
+    .ob-back:hover { color: var(--text); }
+
+    .field-error { font-family: var(--mono); font-size: .65rem; color: var(--red); margin-top: .35rem; display: none; }
+    .field-error.visible { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="ob-wrap">
+  <div class="ob-box">
+
+    <!-- Logo -->
+    <div class="ob-logo">
+      <div class="ob-logo-mark">
+        <svg class="tk" viewBox="80 160 360 190" aria-hidden="true" focusable="false"><g class="tk-linhas" stroke="#f5f2ec" stroke-width="18" stroke-linecap="round"><line x1="122" y1="204" x2="166" y2="204"/><line x1="92" y1="242" x2="166" y2="242"/><line x1="128" y1="280" x2="166" y2="280"/></g><g class="tk-corpo"><rect x="186" y="176" width="156" height="118" rx="14" fill="#f5f2ec"/><path d="M352 210h36a10 10 0 0 1 7.6 3.5l26 30.5a10 10 0 0 1 2.4 6.5v33.5a10 10 0 0 1-10 10h-62z" fill="#f5f2ec"/><path d="M366 226h20l20 24h-40z" fill="#9a7318"/></g><g class="tk-rodas"><circle cx="236" cy="300" r="34" fill="#9a7318"/><circle cx="372" cy="300" r="34" fill="#9a7318"/><circle cx="236" cy="300" r="25" fill="#f5f2ec"/><circle cx="372" cy="300" r="25" fill="#f5f2ec"/><circle cx="236" cy="300" r="9" fill="#9a7318"/><circle cx="372" cy="300" r="9" fill="#9a7318"/></g></svg>
+      </div>
+      <div class="ob-logo-name">Fieldo <em>Locação</em></div>
+    </div>
+
+    <!-- Progress dots -->
+    <div class="ob-progress">
+      <div class="ob-dot active" id="dot0"></div>
+      <div class="ob-dot" id="dot1"></div>
+      <div class="ob-dot" id="dot2"></div>
+    </div>
+
+    <!-- ════════════════════════════════
+         STEP 1 — Boas-vindas
+    ════════════════════════════════ -->
+    <div class="ob-step active" id="step1">
+      <div class="ob-eyebrow">Bem-vindo</div>
+      <h1 class="ob-title">Alugue seus<br><em>equipamentos</em></h1>
+      <p class="ob-sub">
+        Coloque betoneira, andaime, gerador — o que você aluga — numa
+        vitrine com preço, foto e WhatsApp direto. Controle as locações
+        e faça contratos assinados pelo celular. Grátis para começar.
+      </p>
+
+      <ul class="ob-ganhos">
+        <li><span><strong>Vitrine com foto e diária</strong> num link para mandar aos clientes</span></li>
+        <li><span><strong>Pedido direto no seu WhatsApp</strong>, com o nome do equipamento</span></li>
+        <li><span><strong>Locações, atrasos e contratos</strong> assinados pelo celular, num lugar só</span></li>
+      </ul>
+
+      <button class="btn btn--primary btn--full btn--lg" id="btnComecar" onclick="comecar()">
+        Criar minha vitrine
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+
+      <!-- v12.19 · "Já tenho conta": e-mail e senha (mesma conta do Fieldo,
+           conta-acesso) ou o código de 16 caracteres -->
+      <div style="margin-top:1.6rem;padding-top:1.2rem;border-top:1px solid var(--border);text-align:center">
+        <div style="font-size:.9rem;color:var(--text2);margin-bottom:.6rem">Já tenho conta</div>
+        <button type="button" class="btn btn--ghost btn--full" onclick="irStep(1.7)">Entrar com e-mail e senha</button>
+        <a href="#" onclick="irStep(1.5);return false" style="display:inline-block;margin-top:.8rem;font-size:.86rem;color:var(--gold-text);text-decoration:underline">
+          Entrar com o código de recuperação
+        </a>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════
+         STEP 1.5 — Recuperação (mesmo padrão do Fieldo/Zelo)
+    ════════════════════════════════ -->
+    <div class="ob-step" id="step1_5">
+      <button class="ob-back" onclick="irStep(1)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Voltar
+      </button>
+      <div class="ob-eyebrow">Recuperação</div>
+      <h1 class="ob-title">Seu código de<br><em>recuperação</em></h1>
+      <p class="ob-sub">Os 16 caracteres que a Locação mostrou quando você criou sua vitrine.</p>
+
+      <div class="field-group">
+        <label class="field-label" for="inpRecovery">Código</label>
+        <input class="field-input" id="inpRecovery" type="text" inputmode="text"
+               autocapitalize="characters" autocomplete="one-time-code" spellcheck="false"
+               maxlength="19" placeholder="XXXX-XXXX-XXXX-XXXX"
+               style="font-family:var(--mono);letter-spacing:.12em;text-align:center"/>
+        <div class="field-hint">Letras e números, sem I, L, O ou U.</div>
+      </div>
+
+      <button class="btn btn--primary btn--full btn--lg" id="btnRecuperar" onclick="recuperar()">
+        Recuperar minha vitrine
+      </button>
+    </div>
+
+    <!-- STEP 1.7 — Entrar com e-mail e senha (v12.19) -->
+    <div class="ob-step" id="step1_7">
+      <button class="ob-back" onclick="irStep(1)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Voltar
+      </button>
+      <div class="ob-eyebrow">Entrar</div>
+      <h1 class="ob-title">Bem-vindo<br><em>de volta</em></h1>
+      <p class="ob-sub">Use o e-mail e a senha que você criou em Meu perfil → Acesso à conta.</p>
+      <div class="field-group" style="margin-bottom:1rem">
+        <label class="field-label" for="inpLoginEmail">E-mail</label>
+        <input class="field-input" id="inpLoginEmail" type="email" inputmode="email" autocomplete="email" style="font-size:16px"/>
+      </div>
+      <div class="field-group" style="margin-bottom:1.25rem">
+        <label class="field-label" for="inpLoginSenha">Senha</label>
+        <input class="field-input" id="inpLoginSenha" type="password" autocomplete="current-password" style="font-size:16px"/>
+      </div>
+      <button class="btn btn--primary btn--full btn--lg" id="btnLoginEmail" onclick="entrarEmail()">Entrar</button>
+      <p class="ob-sub" style="margin:1.2rem 0 0;text-align:center;font-size:.82rem">Esqueceu a senha?
+        <a href="https://wa.me/5512988406425?text=Esqueci%20a%20senha%20da%20minha%20conta%20na%20Loca%C3%A7%C3%A3o%20do%20Fieldo" target="_blank" rel="noopener" style="color:var(--gold-text);text-decoration:underline">Fale com o suporte</a>.</p>
+      <p class="ob-sub" style="margin:.4rem 0 0;text-align:center;font-size:.82rem">Ainda não criou e-mail e senha?
+        <a href="#" onclick="irStep(1.5);return false" style="color:var(--gold-text);text-decoration:underline">Use o código de recuperação</a>.</p>
+    </div>
+
+    <!-- ════════════════════════════════
+         STEP 2 — Dados da locadora
+    ════════════════════════════════ -->
+    <div class="ob-step" id="step2">
+      <div class="ob-eyebrow">Sua vitrine</div>
+      <h1 class="ob-title">Seus<br><em>dados</em></h1>
+      <p class="ob-sub">É o que aparece pro cliente quando ele encontra seus equipamentos.</p>
+
+      <div class="field-group" style="margin-bottom:1rem">
+        <label class="field-label">Nome da locadora <span class="required">*</span></label>
+        <input class="field-input" id="inpNome" type="text" placeholder="Ex.: Silva Locações" autocomplete="organization" style="font-size:16px"/>
+      </div>
+
+      <div class="field-group" style="margin-bottom:1rem">
+        <label class="field-label">WhatsApp <span class="required">*</span></label>
+        <input class="field-input" id="inpWhatsapp" type="tel" placeholder="(12) 99999-9999" autocomplete="tel" style="font-size:16px"/>
+        <div class="field-hint">Com DDD. É o botão de contato da sua vitrine.</div>
+      </div>
+
+      <div class="field-group" style="margin-bottom:1.25rem">
+        <label class="field-label">Cidade <span class="required">*</span></label>
+        <input class="field-input" id="inpCidade" type="text" placeholder="Ex.: Caraguatatuba – SP" autocomplete="address-level2" style="font-size:16px"/>
+      </div>
+
+      <!-- v12.36 · aceite dos Termos e da Política (LGPD), obrigatório e gravado no banco -->
+      <div class="field-group" style="margin-bottom:1rem">
+        <label for="chkAceite" style="display:flex;gap:.6rem;align-items:flex-start;font-size:.9rem;line-height:1.45;cursor:pointer">
+          <input type="checkbox" id="chkAceite" style="margin-top:3px;width:20px;height:20px;flex-shrink:0"/>
+          <span>Tenho 18 anos ou mais e aceito os <a href="/termos" target="_blank" rel="noopener" style="text-decoration:underline;color:inherit;font-weight:600">Termos de Uso</a> e a <a href="/privacidade" target="_blank" rel="noopener" style="text-decoration:underline;color:inherit;font-weight:600">Política de Privacidade</a>.</span>
+        </label>
+      </div>
+
+      <div class="field-error" id="locadoraError" style="margin-bottom:.75rem;font-family:var(--sans);font-size:.85rem">
+        Preencha o nome, o WhatsApp com DDD e a cidade.
+      </div>
+
+      <button class="btn btn--primary btn--full btn--lg" id="btnCriarVitrine" onclick="criarVitrine()">
+        Criar minha vitrine
+        <span class="btn__spin" id="spinCriar"></span>
+      </button>
+    </div>
+
+    <!-- ════════════════════════════════
+         STEP 3 — Sucesso
+    ════════════════════════════════ -->
+    <div class="ob-step" id="step3">
+      <div class="ob-success">
+        <!-- v12.19c · era um ✓ grande; agora o caminhão chegando -->
+        <div class="ob-success-seal" role="img" aria-label="Vitrine criada">
+          <svg class="tk tk--chega" viewBox="80 160 360 190" aria-hidden="true" focusable="false"><g class="tk-linhas" stroke="#f5f2ec" stroke-width="18" stroke-linecap="round"><line x1="122" y1="204" x2="166" y2="204"/><line x1="92" y1="242" x2="166" y2="242"/><line x1="128" y1="280" x2="166" y2="280"/></g><g class="tk-corpo"><rect x="186" y="176" width="156" height="118" rx="14" fill="#f5f2ec"/><path d="M352 210h36a10 10 0 0 1 7.6 3.5l26 30.5a10 10 0 0 1 2.4 6.5v33.5a10 10 0 0 1-10 10h-62z" fill="#f5f2ec"/><path d="M366 226h20l20 24h-40z" fill="#9a7318"/></g><g class="tk-rodas"><circle cx="236" cy="300" r="34" fill="#9a7318"/><circle cx="372" cy="300" r="34" fill="#9a7318"/><circle cx="236" cy="300" r="25" fill="#f5f2ec"/><circle cx="372" cy="300" r="25" fill="#f5f2ec"/><circle cx="236" cy="300" r="9" fill="#9a7318"/><circle cx="372" cy="300" r="9" fill="#9a7318"/></g></svg>
+        </div>
+        <div class="ob-success-name" id="successName">Bem-vindo!</div>
+        <div class="ob-success-sub">Vitrine criada · Locação</div>
+
+        <!-- v12.19b · igual ao app do profissional (v12.12): no lugar do
+             código, a locadora cria e-mail e senha. O código continua sendo
+             gerado e anexado por baixo, como reserva; só aparece se o acesso
+             por e-mail não puder ser salvo ou se ela não tiver e-mail. -->
+        <div class="callout" id="blocoAcesso" style="text-align:left;margin:1.25rem 0">
+          <div class="callout-label">Crie seu acesso</div>
+          <p style="font-size:.84rem;color:var(--muted);line-height:1.6;margin:.3rem 0 .8rem">
+            É com ele que você entra em outro celular ou no computador.
+          </p>
+          <div class="field-group" style="margin-bottom:.7rem">
+            <label class="field-label" for="acessoEmail">E-mail</label>
+            <input class="field-input" id="acessoEmail" type="email" autocomplete="username" inputmode="email" placeholder="seu@email.com" style="font-size:16px"/>
+          </div>
+          <div class="field-group" style="margin-bottom:.4rem">
+            <label class="field-label" for="acessoSenha">Senha</label>
+            <input class="field-input" id="acessoSenha" type="password" autocomplete="new-password" placeholder="Pelo menos 8 caracteres" style="font-size:16px"/>
+          </div>
+          <label style="display:flex;gap:.5rem;align-items:center;font-size:.82rem;color:var(--muted);margin-bottom:.8rem;cursor:pointer">
+            <input type="checkbox" onchange="document.getElementById('acessoSenha').type=this.checked?'text':'password'"/> Mostrar senha
+          </label>
+          <div class="field-error" id="acessoErro" style="margin-bottom:.6rem;font-family:var(--sans);font-size:.85rem"></div>
+          <button class="btn btn--primary btn--full" id="btnSalvarAcesso" onclick="salvarAcesso()">Salvar e continuar</button>
+          <p style="margin:.9rem 0 0;text-align:center;font-size:.82rem">
+            <a href="#" onclick="usarCodigo();return false" style="color:var(--muted);text-decoration:underline">Não tenho e-mail: usar um código de recuperação</a>
+          </p>
+        </div>
+
+        <!-- Reserva: o código só aparece se o acesso por e-mail falhar ou se a pessoa pedir. -->
+        <div class="callout" id="blocoCodigo" style="text-align:left;margin:1.25rem 0;display:none">
+          <div class="callout-label">Guarde este código</div>
+          <div id="recoveryCode" style="font-family:var(--mono);font-size:1.05rem;
+               letter-spacing:.14em;color:var(--ink);word-break:break-all;
+               margin:.6rem 0;font-weight:500">••••-••••-••••-••••</div>
+          <p style="font-size:.78rem;color:var(--muted);line-height:1.6;margin:0">
+            É a forma de entrar em outro celular ou depois de limpar o navegador.
+            A Locação não guarda cópia dele. Dá para criar e-mail e senha depois, em Meu perfil.
+          </p>
+          <div style="display:flex;gap:.5rem;margin-top:.75rem">
+            <button class="btn btn--ghost btn--sm" style="flex:1" onclick="copiarCodigo()">Copiar</button>
+            <button class="btn btn--ghost btn--sm" style="flex:1" onclick="baixarCodigo()">Baixar .txt</button>
+          </div>
+        </div>
+
+        <label id="blocoSalvou" style="display:none;gap:.6rem;align-items:flex-start;text-align:left;
+                      font-size:.84rem;color:var(--muted);margin-bottom:1rem;cursor:pointer">
+          <input type="checkbox" id="chkSalvou" onchange="toggleSalvou()" style="margin-top:.2rem"/>
+          <span>Salvei meu código de recuperação em local seguro.</span>
+        </label>
+        <p class="ob-success-desc">
+          Agora são 5 passos rápidos: seus dados, o primeiro equipamento,
+          preços, a primeira locação e o primeiro contrato. O app mostra
+          um de cada vez.
+        </p>
+        <button class="btn btn--primary btn--full btn--lg" id="btnIrPainel" disabled onclick="irParaPainel()">
+          Começar
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /ob-box -->
+</div><!-- /ob-wrap -->
+
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script>window.FIELDO_APP_NS = 'loc';</script>
+<script src="../db.js" onerror="document.documentElement.innerHTML='&lt;div style=\'font-family:system-ui;padding:2rem;text-align:center\'&gt;&lt;h2 style=\'font-weight:500\'&gt;Falha ao carregar&lt;/h2&gt;&lt;p style=\'color:#666;line-height:1.6\'&gt;Verifique a conexão. Seus dados continuam salvos.&lt;/p&gt;&lt;button onclick=\'location.reload(true)\' style=\'padding:.8rem 1.5rem;border:0;border-radius:8px;background:#9a7218;color:#fff;font-size:.9rem\'&gt;Recarregar&lt;/button&gt;&lt;/div&gt;'"></script>
+<script src="../db.locacao.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════════════
+   Locação · Onboarding — cria a locadora direto (sem camada
+   intermediária: diferente do Zelo, a locadora JÁ é a entidade
+   pública, não existe um "condomínio" por trás).
+════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  function falhaCritica(msg, err) {
+    if (err) console.error('[locacao-onboarding]', err);
+    var box = document.createElement('div');
+    box.setAttribute('role', 'alert');
+    box.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;' +
+      'background:#7a2020;color:#fff;padding:1rem 1.25rem;font-family:system-ui,sans-serif;' +
+      'font-size:.85rem;line-height:1.5';
+    var p = document.createElement('div');
+    p.textContent = msg;
+    var b = document.createElement('button');
+    b.textContent = 'Recarregar';
+    b.style.cssText = 'margin-top:.7rem;width:100%;padding:.7rem;border:0;border-radius:8px;' +
+      'background:#fff;color:#7a2020;font-weight:600;font-family:inherit;font-size:.85rem';
+    b.onclick = function () { location.reload(true); };
+    box.appendChild(p); box.appendChild(b);
+    document.body.appendChild(box);
+  }
+
+  if (typeof FIELDO === 'undefined' || !FIELDO.Auth || !FIELDO.Auth.Session) {
+    falhaCritica('O app não carregou por completo. Verifique a conexão e recarregue — seus dados continuam salvos.');
+    return;
+  }
+  if (typeof FIELDO_LOCACAO === 'undefined' || !FIELDO_LOCACAO.Locadoras) {
+    falhaCritica('Módulo da Locação não carregou. Verifique a conexão e recarregue.');
+    return;
+  }
+
+  window.addEventListener('error', function (ev) {
+    if (window.__locErroMostrado) return;
+    window.__locErroMostrado = true;
+    falhaCritica('Ocorreu um erro nesta tela. Recarregue para tentar de novo.', ev.error || ev.message);
+  });
+
+  var Session = FIELDO.Auth.Session;
+  var state = { code: null };
+
+  if (FIELDO.Auth.isLoggedIn()) {
+    location.replace('./painel.html' + (location.hash || ''));
+    return;
+  }
+
+  function irStep(n) {
+    ['step1', 'step1_5', 'step1_7', 'step2', 'step3'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('active', id === 'step' + String(n).replace('.', '_'));
+    });
+    /* as bolinhas acompanham o passo (antes ficavam sempre na primeira) */
+    var etapa = n >= 3 ? 2 : (n >= 2 ? 1 : 0);
+    [0, 1, 2].forEach(function (i) {
+      var d = document.getElementById('dot' + i);
+      if (d) { d.classList.toggle('active', i === etapa); d.classList.toggle('done', i < etapa); }
+    });
+    window.scrollTo(0, 0);
+  }
+  window.irStep = irStep;
+
+  function busy(btn, on, label) {
+    if (!btn) return;
+    btn.disabled = on;
+    btn.dataset.label = btn.dataset.label || btn.innerHTML;
+    btn.innerHTML = on ? (label || 'Aguarde…') : btn.dataset.label;
+  }
+
+  function toast(msg) {
+    if (FIELDO.UI && FIELDO.UI.toast) return FIELDO.UI.toast(msg);
+    alert(msg);
+  }
+
+  /* v12.19 · mensagens para quem está criando a vitrine, não para o
+     programador. O detalhe técnico continua no console. */
+  function explicarErro(err) {
+    console.error('[locacao-onboarding]', err);
+    if (location.protocol === 'file:') return 'Abra o app pelo endereço do site (fieldo-zelo.com.br/locacao), não pelo arquivo.';
+    if (navigator.onLine === false) return 'Sem internet. Confira o sinal e tente de novo.';
+    var code = String((err && (err.code || err.message)) || '');
+    if (/over_request_rate_limit|rate limit/i.test(code)) return 'Muitas tentativas seguidas. Espere um minuto e tente de novo.';
+    if (/Failed to fetch|NetworkError|Load failed|abort/i.test(code)) return 'A conexão falhou. Confira o sinal e tente de novo.';
+    return 'Não deu para criar sua vitrine agora. Tente de novo em instantes; se continuar, fale com o suporte.';
+  }
+
+  /* ── Passo 1: cria identidade anônima da Locação ───────────── */
+  window.comecar = function () {
+    var btn = document.getElementById('btnComecar');
+    busy(btn, true, 'Criando…');
+    Session.ensure()
+      .then(function () { busy(btn, false); irStep(2); })
+      .catch(function (err) {
+        busy(btn, false);
+        toast(explicarErro(err));
+      });
+  };
+
+  /* ── Recuperação em outro aparelho ─────────────────────────── */
+  var inpRec = document.getElementById('inpRecovery');
+  if (inpRec) {
+    inpRec.addEventListener('input', function () {
+      var raw = this.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 16);
+      this.value = (raw.match(/.{1,4}/g) || []).join('-');
+    });
+  }
+
+  window.recuperar = function () {
+    var btn  = document.getElementById('btnRecuperar');
+    var code = (inpRec.value || '').replace(/[^0-9A-Z]/gi, '').toUpperCase();
+    if (code.length !== 16) return toast('O código tem 16 caracteres.');
+
+    busy(btn, true, 'Recuperando…');
+    Session.recoverWithCode(code)
+      /* v8.4: me(true). A sessão acabou de trocar de usuário — sem forçar,
+         o cache do módulo devolveria a locadora ANTERIOR e a recuperação
+         "funcionaria" logando na conta errada. */
+      .then(function () { return FIELDO_LOCACAO.Locadoras.me(true); })
+      .then(function (locadora) {
+        if (!locadora) throw new Error('perfil_ausente');
+        FIELDO.Auth.setSession(locadora);
+        toast('Vitrine recuperada.');
+        location.href = './painel.html#inicio';
+      })
+      .catch(function (err) {
+        busy(btn, false);
+        console.error('[locacao-onboarding] recover', err);
+        if (err && err.message === 'perfil_ausente') { location.href = './painel.html#inicio'; return; }
+        toast(navigator.onLine === false ? 'Sem internet. Confira o sinal e tente de novo.' : 'Código não encontrado. Confira os 16 caracteres.');
+      });
+  };
+
+  /* ── v12.19 · entrar com e-mail e senha ────────────────────── */
+  window.entrarEmail = function () {
+    var btn = document.getElementById('btnLoginEmail');
+    var email = (document.getElementById('inpLoginEmail').value || '').trim().toLowerCase();
+    var senha = document.getElementById('inpLoginSenha').value || '';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return toast('Confira o e-mail.');
+    if (!senha) return toast('Digite a sua senha.');
+    if (!Session.loginEmailSenha) return toast('Esta opção não está disponível. Use o código de recuperação.');
+    busy(btn, true, 'Entrando…');
+    Session.loginEmailSenha(email, senha)
+      .then(function () { return FIELDO_LOCACAO.Locadoras.me(true); })
+      .then(function (l) {
+        if (l) FIELDO.Auth.setSession(l);
+        location.href = './painel.html#inicio';
+      })
+      .catch(function (err) {
+        busy(btn, false);
+        var m = String((err && (err.code || err.message)) || '');
+        toast(/invalid_credentials|Invalid login|invalid_grant/i.test(m) ? 'E-mail ou senha não conferem.' : explicarErro(err));
+      });
+  };
+
+  /* ── Passo 2: cria a locadora ───────────────────────────────── */
+  window.criarVitrine = function () {
+    var btn = document.getElementById('btnCriarVitrine');
+    var nome     = (document.getElementById('inpNome').value || '').trim();
+    var whatsapp = (document.getElementById('inpWhatsapp').value || '').trim();
+    var cidade   = (document.getElementById('inpCidade').value || '').trim();
+    var errEl    = document.getElementById('locadoraError');
+
+    if (!nome || whatsapp.replace(/\D/g, '').length < 10 || cidade.length < 3) {
+      if (errEl) { errEl.textContent = 'Preencha o nome, o WhatsApp com DDD e a cidade.'; errEl.classList.add('visible'); }
+      return;
+    }
+    /* v12.36 · sem o aceite marcado não cria conta */
+    var chkA = document.getElementById('chkAceite');
+    if (chkA && !chkA.checked) {
+      if (errEl) { errEl.textContent = 'Marque que tem 18 anos ou mais e aceita os Termos e a Política.'; errEl.classList.add('visible'); }
+      chkA.focus();
+      return;
+    }
+    if (errEl) errEl.classList.remove('visible');
+
+    /* v8.4: reaproveita o código já gerado se o usuário tocar duas vezes
+       (rede lenta, botão destravado pelo catch). Gerar de novo trocaria o
+       código DEPOIS de o primeiro já estar vinculado — e o usuário guardaria
+       um código que não abre nada. */
+    var code = state.code || Session.generateRecoveryCode();
+    state.code = code;
+    try {
+      var ns = window.FIELDO_APP_NS ? (window.FIELDO_APP_NS + '_') : '';
+      localStorage.setItem('fieldo_' + ns + 'recovery_code', code);
+    } catch (e) {}
+
+    busy(btn, true, 'Criando vitrine…');
+
+    Session.ensure()
+      .then(function () { return Session.attachRecoveryCode(code); })
+      /* v8.4: idempotente. Se a primeira tentativa falhou DEPOIS do INSERT
+         (rede caiu na resposta), a locadora JÁ existe — e um segundo INSERT
+         com o mesmo id = auth.uid() bate na PK, mostra "duplicate key" e
+         prende o usuário sem que ele entenda por quê. */
+      .then(function () { return FIELDO_LOCACAO.Locadoras.me(true); })
+      .then(function (l) {
+        if (l) return l;
+        return FIELDO_LOCACAO.Locadoras.create({ nome: nome, whatsapp: whatsapp, city: cidade });
+      })
+      .then(function () {
+        /* v12.36 · prova do aceite (pendente no aparelho se a rede falhar) */
+        try {
+          var L = window.FIELDO_LEGAL || {};
+          FIELDO.Aceite.registrar([
+            { documento: 'termos',      versao: L.termosVersao || '2026-11-11',      origem: 'cadastro_locadora' },
+            { documento: 'privacidade', versao: L.privacidadeVersao || '2026-11-11', origem: 'cadastro_locadora' },
+          ]);
+        } catch (eAc) { console.error('[cadastro] aceite não registrado:', eAc); }
+        document.getElementById('successName').textContent = nome;
+        document.getElementById('recoveryCode').textContent =
+          (code.match(/.{1,4}/g) || []).join('-');
+        busy(btn, false);
+        irStep(3);
+      })
+      .catch(function (err) {
+        busy(btn, false);
+        var msg = String((err && (err.code || err.message)) || 'erro');
+        if (/crypto_indisponivel/.test(msg)) {
+          toast('Abra o app pelo endereço com https:// para criar sua vitrine com segurança.');
+          return;
+        }
+        toast(explicarErro(err));
+      });
+  };
+
+  /* ── Passo 3: código de recuperação ────────────────────────── */
+  function codigoFormatado() {
+    return (state.code || '').match(/.{1,4}/g).join('-');
+  }
+
+  window.copiarCodigo = function () {
+    var txt = codigoFormatado();
+    (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject())
+      .then(function () { toast('Código copiado.'); })
+      .catch(function () { toast('Copie manualmente: ' + txt); });
+  };
+
+  window.baixarCodigo = function () {
+    var conteudo =
+      'FIELDO LOCAÇÃO — CÓDIGO DE RECUPERAÇÃO\n\n' + codigoFormatado() +
+      '\n\nGuarde este arquivo. É a única forma de recuperar seus dados\n' +
+      'em outro aparelho. A Locação não mantém cópia deste código.\n\n' +
+      'Gerado em ' + new Date().toLocaleString('pt-BR') + '\n';
+    var blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'locacao-codigo-recuperacao.txt';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  };
+
+  /* ── v12.19b · acesso por e-mail e senha logo depois de criar ── */
+  function mostrarCodigoReserva() {
+    document.getElementById('blocoCodigo').style.display = '';
+    document.getElementById('blocoSalvou').style.display = 'flex';
+  }
+  window.usarCodigo = function () {
+    document.getElementById('blocoAcesso').style.display = 'none';
+    mostrarCodigoReserva();
+  };
+  window.salvarAcesso = function () {
+    var btn = document.getElementById('btnSalvarAcesso');
+    var err = document.getElementById('acessoErro');
+    var email = (document.getElementById('acessoEmail').value || '').trim().toLowerCase();
+    var senha = document.getElementById('acessoSenha').value || '';
+    err.textContent = ''; err.classList.remove('visible');
+    function erro(t) { err.textContent = t; err.classList.add('visible'); }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return erro('Confira o e-mail.');
+    if (senha.length < 8) return erro('A senha precisa ter pelo menos 8 caracteres.');
+    if (!Session.definirAcesso) { erro('Não deu para criar o acesso agora. Guarde o código abaixo.'); return mostrarCodigoReserva(); }
+    busy(btn, true, 'Salvando…');
+    Session.definirAcesso(email, senha)
+      .then(function () {
+        var box = document.getElementById('blocoAcesso');
+        box.innerHTML = '<div class="callout-label">Acesso criado ✓</div>' +
+          '<p style="font-size:.88rem;line-height:1.6;margin:.3rem 0 0">Você entra com <strong></strong> e a senha que acabou de criar, em qualquer aparelho.</p>';
+        box.querySelector('strong').textContent = email;
+        document.getElementById('blocoCodigo').style.display = 'none';
+        document.getElementById('blocoSalvou').style.display = 'none';
+        document.getElementById('btnIrPainel').disabled = false;
+      })
+      .catch(function (e) {
+        busy(btn, false);
+        var c = e && e.code;
+        console.error('[locacao-onboarding] definir acesso', e);
+        if (c === 'email_em_uso') return erro('Este e-mail já está em outra conta do Fieldo. Use outro e-mail.');
+        if (c === 'email_invalido') return erro('Confira o e-mail.');
+        if (c === 'senha_curta' || c === 'senha_fraca') return erro('Escolha uma senha mais forte, com pelo menos 8 caracteres.');
+        /* servidor fora: não deixa a pessoa sem saída — mostra o código */
+        erro('Não deu para salvar o acesso agora. Guarde o código abaixo; depois crie o e-mail e senha em Meu perfil.');
+        mostrarCodigoReserva();
+      });
+  };
+  ['acessoEmail', 'acessoSenha'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', function (e) { if (e.key === 'Enter') window.salvarAcesso(); });
+  });
+  ['inpLoginEmail', 'inpLoginSenha'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', function (e) { if (e.key === 'Enter') window.entrarEmail(); });
+  });
+
+  window.toggleSalvou = function () {
+    var ok = document.getElementById('chkSalvou').checked;
+    document.getElementById('btnIrPainel').disabled = !ok;
+  };
+
+  window.irParaPainel = function () {
+    location.href = './painel.html#inicio';
+  };
+})();
+</script>
+
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

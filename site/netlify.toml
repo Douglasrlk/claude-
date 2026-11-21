@@ -1,0 +1,442 @@
+[build]
+  publish = "."
+
+# ═══════════════════════════════════════════════════════════════════
+# v10.20 · O 301 DO ENDEREÇO ANTIGO — E POR QUE ELE É O PRIMEIRO
+#
+# Esta declaração PRECISA vir antes de todas as outras, e a function
+# `dominio-canonico` PRECISA existir só aqui, sem `export const config`
+# dentro do arquivo dela.
+#
+# A ordem entre edge functions que casam o mesmo caminho é:
+#     2. declaradas no netlify.toml, na ordem deste arquivo
+#     4. declaradas inline, em ordem ALFABÉTICA de nome de arquivo
+#
+# E declarar nos DOIS lugares faz a Netlify fundir as configurações e
+# tratar como inline — rebaixando para a etapa 4. As cinco functions
+# abaixo têm config inline, então todas estão na 4. Se esta também
+# tivesse, cairia na mesma fila alfabética, entre canonical-origem e
+# explorar-seo, e o perfil-seo rodaria antes dela em /p/* — o 301 não
+# aconteceria justamente onde mais importa.
+#
+# Não acrescente `export const config` ao dominio-canonico.ts.
+# ═══════════════════════════════════════════════════════════════════
+[[edge_functions]]
+  path = "/*"
+  function = "dominio-canonico"
+  # v12.1 · auditoria 28/10/2026: arquivo estático não precisa passar por
+  # computação. Esta function rodava em TUDO — robots.txt levava ~1 s.
+  # O 301 do domínio antigo continua valendo para todas as páginas; um
+  # .css ou .png pedido no endereço antigo só não é redirecionado, o que
+  # não afeta busca nem visitante (as páginas já chegam pelo 301).
+  excludedPath = ["/*.css", "/*.js", "/*.png", "/*.jpg", "/*.jpeg", "/*.webp", "/*.svg", "/*.ico", "/*.woff2", "/icons/*", "/locacao/*.js", "/locacao/icons/*", "/zelo/*.js", "/vendor/*"]
+
+# v7.7: declaração explícita da Edge Function de SEO — além do "path"
+# já exportado dentro do próprio perfil-seo.ts. Os logs mostraram ZERO
+# execuções da function mesmo depois de publicada; declarar aqui
+# também, no netlify.toml, é a forma mais garantida de registro pelo
+# Netlify, principalmente após a mudança pra build via Git.
+[[edge_functions]]
+  path = "/perfil.html"
+  function = "perfil-seo"
+
+[[edge_functions]]
+  path = "/perfil"
+  function = "perfil-seo"
+
+# v10.1 · URL limpa do perfil.
+# A edge function roda ANTES do motor de redirects, então em /p/xxx ela
+# recebe o path original — por isso precisa estar declarada neste
+# caminho também, e por isso perfil-seo.ts aprendeu a ler o slug do
+# pathname além da query string.
+[[edge_functions]]
+  path = "/p/*"
+  function = "perfil-seo"
+
+# v10.1 · explorar.html renderizado no servidor.
+# Até a v10.0 o corpo servido desta página era "Carregando…" e os cards
+# vinham por JavaScript — um crawler saía dela sem um único link. Como
+# era a ÚNICA página que poderia apontar para os perfis, os 10 perfis
+# do site não recebiam link de lugar nenhum. Sitemap é sugestão; link
+# é voto.
+[[edge_functions]]
+  path = "/explorar.html"
+  function = "explorar-seo"
+
+# v10.8 · a URL limpa, que é a que o menu usa.
+# A function estava declarada só em /explorar.html. Medido em produção:
+# GET /explorar devolvia "Carregando…" com zero link de perfil, enquanto
+# GET /explorar.html devolvia os 16 cards renderizados. Todo link interno
+# do site aponta para a primeira. Mesmo padrão que perfil-seo já usa com
+# /perfil.html, /perfil e /p/*.
+[[edge_functions]]
+  path = "/explorar"
+  function = "explorar-seo"
+
+# v10.1 · sitemap gerado aqui, não mais no Supabase (ver comentário
+# longo em netlify/edge-functions/sitemap.ts). Motivo curto: a regra
+# que decide o noindex mora no perfil-seo.ts, neste repositório, e o
+# sitemap precisa obedecer à mesma regra. Duas fontes da verdade em
+# projetos diferentes já tinham divergido.
+[[edge_functions]]
+  path = "/sitemap.xml"
+  function = "sitemap"
+
+# v10.1 · canonical acompanha o domínio servido.
+# O plano é sair do netlify.app (Public Suffix List, autoridade zero).
+# No dia da migração, um canonical estático apontando para o domínio
+# antigo diria ao Google que a versão boa de cada página é a velha —
+# e ele obedece. Esta function tira essa armadilha do caminho.
+[[edge_functions]]
+  path = "/"
+  function = "canonical-origem"
+
+[[edge_functions]]
+  path = "/index.html"
+  function = "canonical-origem"
+
+# v12.35 · link de anúncio com a profissão (/?p=pintor): a prévia do
+# WhatsApp ganha a imagem e o título daquela profissão. Sem ?p= (ou com
+# profissão sem desenho), a function devolve na hora e a home segue igual.
+[[edge_functions]]
+  path = "/"
+  function = "home-anuncio"
+
+[[edge_functions]]
+  path = "/index.html"
+  function = "home-anuncio"
+
+# v9.7 · páginas de categoria × cidade: /eletricista-em-caraguatatuba
+#
+# O cliente busca "eletricista em Caraguatatuba" e o site não tinha
+# NENHUMA página sobre isso — o explorar.html é shell genérico
+# preenchido por JavaScript. Antes de autoridade de domínio, o
+# problema era que a página não existia.
+#
+# `pattern` (regex) e não `path`, porque o termo e a cidade variam.
+# Declarado aqui além do config.pattern dentro do próprio arquivo:
+# a v7.7 mostrou que a function pode não registrar com só um dos dois.
+[[edge_functions]]
+  pattern = "^/[a-z0-9-]+-em-[a-z0-9-]+/?$"
+  function = "lista-local"
+
+# v12.2 · vitrine pública da locadora: /l/edificar-caraguatatuba
+# Até aqui "Publicar" no painel da Locação não levava a página nenhuma.
+# Declarada aqui além do config inline, pelo mesmo motivo da v7.7.
+[[edge_functions]]
+  path = "/l/*"
+  function = "vitrine"
+
+# v12.28 · página da região (auditoria SEO/GEO, Fase 3)
+[[edge_functions]]
+  path = "/litoral-norte"
+  function = "regiao"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options        = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "geolocation=(self), camera=(self), microphone=()"
+
+# Cache: HTML sempre revalidado (senão o usuário fica preso numa versão antiga
+# do db.js e recebe erros de auth que já foram corrigidos — aconteceu na v5.0).
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+# v12.40 · leitor de PDF da página Verificar (pdf.js, Mozilla). Módulo ES:
+# precisa de Content-Type de JavaScript explícito para o import() aceitar.
+[[headers]]
+  for = "/vendor/pdfjs/*.mjs"
+  [headers.values]
+    Content-Type = "text/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=604800"
+
+# v12.41 · Fieldo Studio: empacotador MP4 (mp4-muxer 5.2.2, MIT). O nome do
+# arquivo carrega a versão, então pode ficar 7 dias em cache sem risco de
+# versão velha: trocar a versão = trocar o nome.
+[[headers]]
+  for = "/vendor/mp4-muxer/*"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/db.js"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+[[headers]]
+  for = "/fieldo.css"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+# v12.31 · estilo comum das páginas de quem contrata (Explorar, região,
+# profissão em cidade, Como contratar, Sobre). Mesma regra do fieldo.css.
+[[headers]]
+  for = "/publico.css"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+# codes.html foi REMOVIDO do projeto na v5.0: continha o segredo HMAC e a
+# senha de admin em texto claro. A emissão de licenças passou para a Edge
+# Function license-issue. Este bloqueio é defesa em profundidade, caso o
+# arquivo reapareça por engano num deploy futuro.
+[[redirects]]
+  from   = "/codes.html"
+  to     = "/"
+  status = 404
+  force  = true
+
+# admin.html NÃO contém segredo (a chave é digitada e validada no servidor),
+# então vazar o arquivo é inofensivo. Ainda assim fica bloqueado por padrão:
+# publicá-lo só entrega um formulário para força bruta contra a FIELDO_ADMIN_KEY.
+# Uso recomendado: abrir o arquivo local, direto do disco.
+# Para publicar mesmo assim, remova este bloco e use uma chave longa e aleatória.
+[[redirects]]
+  from   = "/admin.html"
+  to     = "/"
+  status = 404
+  force  = true
+
+# ── Service Worker DESATIVADO (v5.9) ────────────────────────────
+# sw.js virou kill-switch: se desregistra e limpa os caches.
+# Continua com no-store porque o navegador PRECISA baixar esta versão
+# nova para que a desinstalação aconteça. Manter publicado por algumas
+# semanas, até todos os aparelhos passarem por ele.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Service-Worker-Allowed = "/"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+# ── v7.8 · Zelo e Locação (apps novos, mesmo domínio) ────────────
+# "/*.html" e "/manifest.json" acima NÃO cobrem subpastas — "*" no
+# Netlify não atravessa "/". Sem isto, /zelo/index.html e
+# /locacao/manifest.json cairiam no cache padrão do Netlify em vez
+# de "no-cache, must-revalidate", reproduzindo o bug da v5.0 (usuário
+# preso em versão antiga do db.js) agora nos apps novos.
+[[headers]]
+  for = "/zelo/*"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+[[headers]]
+  for = "/locacao/*"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+# db.condo.js e db.locacao.js seguem a mesma regra do db.js — nunca
+# ficar em cache velho, senão alguém que também é síndico/locadora
+# recebe erro de auth já corrigido em versão anterior.
+[[headers]]
+  for = "/db.condo.js"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+[[headers]]
+  for = "/db.locacao.js"
+  [headers.values]
+    Cache-Control = "no-cache, must-revalidate"
+
+# Ícones mudam raramente e são imutáveis por nome
+[[headers]]
+  for = "/icons/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# ── v8.1 · sitemap.xml ───────────────────────────────────────────
+# A Edge Function "sitemap" já estava PUBLICADA no Supabase desde a v7,
+# gerando XML válido com 12 URLs e apontando para este domínio — mas não
+# havia rota para ela. Ou seja: o sitemap existia e ninguém, nem o Google,
+# conseguia chegar nele.
+#
+# v10.1 · ESTE PROXY FOI REMOVIDO. O sitemap agora é a edge function
+# declarada lá em cima, dentro deste repositório. O proxy servia um XML
+# que listava /perfil.html?slug=… enquanto o canonical do perfil passou
+# a apontar para /p/… — sitemap e canonical em desacordo é sinal
+# contraditório, e o Google desconfia dos dois. A function do Supabase
+# pode ser desativada; nada mais aponta pra ela.
+
+# ── v10.1 · RAIZ = LANDING PÚBLICA ───────────────────────────────
+# O achado mais grave da auditoria de indexação: `publish = "."` fazia
+# "/" servir index.html, que era o PAINEL do profissional, marcado
+# <meta name="robots" content="noindex">. O Googlebot entra em "/"
+# antes de qualquer outra coisa num domínio novo — e recebia "não me
+# indexe" na porta de entrada.
+#
+# A landing indexável já existia (comece.html) e estava num endereço
+# secundário, fora até do sitemap.
+#
+# A troca foi feita por RENOMEAÇÃO de arquivo, não por rewrite:
+#     comece.html -> index.html   (landing, agora é "/")
+#     index.html  -> painel.html  (dashboard)
+#
+# Um rewrite de "/" para "/comece.html" pareceria mais simples e teria
+# quebrado o painel: o Netlify redireciona /index.html para "/" por
+# conta própria (pretty URLs), então o dashboard cairia no rewrite e
+# ficaria inalcançável. Renomear não tem essa armadilha.
+
+# A URL antiga da landing continua respondendo. 301 e não 200 porque
+# aqui QUEREMOS mover o endereço — o conteúdo tem um lugar novo e
+# definitivo, e o 301 transfere para ele qualquer sinal que
+# /comece.html tenha acumulado.
+[[redirects]]
+  from   = "/comece.html"
+  to     = "/"
+  status = 301
+  force  = true
+
+# ── v10.1 · URL LIMPA DO PERFIL ──────────────────────────────────
+# /p/eletrica-caraguatatuba-0la8  em vez de
+# /perfil.html?slug=eletrica-caraguatatuba-0la8
+#
+# v10.2: a URL antiga recebe 301 para /p/:slug dentro da própria
+# Edge Function. Isso deixa uma única URL indexável e transfere os
+# sinais da forma antiga para a definitiva.
+# v10.3 · `_i=1` marca a requisição como INTERNA e é o que impede um
+# redirect infinito.
+#
+# A conta é esta: /p/:slug faz rewrite para /perfil.html?slug=…, e a
+# Edge Function responde 301 em /perfil.html?slug=…. As duas regras só
+# não se mordem porque o Netlify casa a Edge Function com o path
+# ORIGINAL e não a reexecuta depois do rewrite. É verdade hoje, está
+# confirmado em produção, e é um detalhe de plataforma — não um
+# contrato. Se um dia mudar, o site inteiro entra em loop.
+#
+# Com `_i=1`, a function desliga o 301 quando a requisição veio daqui.
+# O parâmetro nunca aparece na barra do visitante: o rewrite é interno,
+# a URL pública continua /p/:slug.
+[[redirects]]
+  from   = "/p/*"
+  to     = "/perfil.html?slug=:splat&_i=1"
+  status = 200
+  force  = true
+
+# Ícones agora existem de verdade (v8.1). Regra de cache já existia acima
+# para /icons/*; o favicon segue a mesma lógica — muda raramente.
+[[headers]]
+  for = "/favicon.ico"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# ── v9.2 · IMAGENS DA RAIZ ───────────────────────────────────────
+# A analytics de 789 requisições mostrou mock-profissional.jpg com 42
+# requisições e 2,45 MB — 58 KB CADA VEZ, ou seja, rebaixada a cada
+# visita. Sozinha pesava mais que fieldo.css + entrar.html +
+# index.html + relatorio.html somados.
+#
+# Causa: /icons/* e /favicon.ico tinham regra de cache; imagem solta na
+# raiz não tinha, e o padrão do Netlify revalida sempre.
+#
+# 7 dias como os ícones. São imagens decorativas com nome fixo — se
+# trocar o conteúdo, troque o nome do arquivo.
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/*.webp"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# ── v9.2 · BIBLIOTECAS ESTÁVEIS ──────────────────────────────────
+# qrcode_min.js e share-card.js apareceram na analytics com 8
+# requisições cada e nenhuma regra de cache. Diferente do db.js, eles
+# NÃO mudam a cada versão — são utilitário e vendor. Cachear não corre
+# o risco da v5.0 (usuário preso em versão velha do app), porque a
+# lógica de negócio não mora aqui.
+#
+# Se algum dia forem alterados, troque o nome do arquivo. É o único
+# jeito seguro com cache de 7 dias.
+[[headers]]
+  for = "/qrcode_min.js"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/share-card.js"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# ── v9.2 · robots.txt ────────────────────────────────────────────
+# Achado pela auditoria de manifesto: robots.txt é servido, o Google
+# busca, e não tinha política nenhuma. 1 hora — curto de propósito,
+# porque é o arquivo que você mexe quando quer mudar indexação e não
+# pode esperar 7 dias para valer.
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+# ── v10.1 · _verify fora do ar ───────────────────────────────────
+# publish = "." publica a pasta inteira, e _verify/ é o arnês de
+# verificação do checklist: emulador do pipeline, fixture com linhas
+# da view e o script de teste. Nada disso tem por que ser servido —
+# ficaria acessível em /_verify/fixture.json.
+# Fica no repositório porque é o que prova que a v10.1 faz o que diz;
+# só não fica na web.
+[[redirects]]
+  from   = "/_verify/*"
+  to     = "/"
+  status = 404
+  force  = true
+
+# ── v11.0 · código-fonte fora do ar (auditoria 11/10/2026, achado A2) ─
+# Mesmo motivo do _verify acima: publish = "." publica a pasta inteira.
+# O Project Snapshot de 19/09 registrou HTTP 200 nestes caminhos — o
+# código das edge functions, os services/ da Fase 1 do MCP e o
+# vercel.json. Nenhum tem segredo (a única chave embutida é a anon),
+# mas nenhum tem por que ser servido: entregam arquitetura e
+# comentários internos de graça.
+# As edge functions continuam funcionando: a Netlify as empacota a
+# partir do código no deploy; o caminho /netlify/... nunca foi usado
+# para executá-las.
+[[redirects]]
+  from   = "/netlify/*"
+  to     = "/"
+  status = 404
+  force  = true
+
+[[redirects]]
+  from   = "/services/*"
+  to     = "/"
+  status = 404
+  force  = true
+
+[[redirects]]
+  from   = "/vercel.json"
+  to     = "/"
+  status = 404
+  force  = true
+
+# v12.1 · auditoria 28/10/2026: as migrations SQL também estavam sendo
+# servidas (publish = "." publica a pasta inteira). Mesmo motivo do
+# bloco v11.0 acima.
+# v12.36 · guia interno de ligação do MCP: tem o nome do site no Netlify,
+# o id do projeto Supabase e decisões de configuração. Não é para o público.
+[[redirects]]
+  from   = "/_guia_conectar.html"
+  to     = "/"
+  status = 404
+  force  = true
+
+[[redirects]]
+  from   = "/supabase/*"
+  to     = "/"
+  status = 404
+  force  = true

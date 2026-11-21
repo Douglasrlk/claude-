@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#0e0e14"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Relatório de Serviço · Fieldo</title>
+  <!-- v10.11 · noindex nos documentos do cliente.
+       Esta página carrega nome do cliente, descrição do serviço, local,
+       valor e fotos — e no caso do avaliar.html o próprio token na URL.
+       Ela não tinha meta robots nenhuma e não está no Disallow: qualquer
+       link que vaze (alguém cola num grupo público, num fórum, numa
+       resposta de suporte) entra no índice com o dado do cliente dentro.
+
+       noindex e NÃO Disallow, de propósito, pelo mesmo motivo que o
+       robots.txt já documenta para /perfil.html?slug=: bloquear o
+       rastreio impede o Google de LER o noindex, e a URL pode acabar
+       indexada só pelo endereço. Deixar rastrear e mandar não indexar é
+       o que de fato tira a página do índice. -->
+  <meta name="robots" content="noindex,nofollow"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-title" content="Fieldo"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg:#f5f2ec;--paper:#f5f2ec;--paper2:#ede9df;--paper3:#e4dfd2;--paper4:#d8d2c4;
+      --ink:#0e0e14;--text:#1a1a24;--text2:#4a4855;/* v10.0 · estes 4 arquivos duplicam os tokens do fieldo.css num :root próprio. Mantidos em sincronia com o global — a auditoria de contraste mede as duas cópias. */
+      --muted:#625d57;--subtle:#625d57;--ghost:#c4bdb0;
+      /* v10.13 · o par de tokens de CONTRASTE, igual ao fieldo.css:
+         --on-gold é o texto que fica sobre preenchimento dourado e
+         --on-ink o que fica sobre painel escuro. Estas quatro telas
+         são autônomas (não carregam o fieldo.css) e sempre claras,
+         então aqui os dois têm os valores do tema claro. */
+      --on-gold:#ffffff;--on-ink:#f5f2ec;
+      --border:rgba(14,14,20,.09);--border2:rgba(14,14,20,.16);--border3:rgba(14,14,20,.26);
+      --gold:#856310;--gold-l:#b8880d;--gold-d:#7a5a10;
+      --gold-bg:rgba(154,114,24,.07);--gold-bd:rgba(154,114,24,.2);
+      --green:#1e5c38;--green-l:#2d7a4f;--green-bg:rgba(30,92,56,.07);--green-bd:rgba(30,92,56,.18);
+      --topbar-bg:#0e0e14;
+      --serif:'Fraunces',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;--mono:'DM Mono','Courier New',monospace;
+      --r:8px;--r-l:12px;--r-xl:18px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-font-smoothing:antialiased}
+    body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
+    body::before{
+      content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.04;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:180px;
+    }
+    a{color:inherit;text-decoration:none}
+
+    /* ── TOPBAR ── */
+    .topbar{
+      background:var(--topbar-bg);height:50px;
+      display:flex;align-items:center;padding:0 1.25rem;
+      border-bottom:1px solid rgba(255,255,255,.07);
+    }
+    .topbar-logo{display:flex;align-items:center;gap:.5rem;text-decoration:none}
+    .logo-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:#fff}.logo-icon svg{width:100%;height:100%}
+    .topbar-brand{font-family:var(--serif);font-size:.88rem;font-weight:600;color:rgba(255,255,255,.9);letter-spacing:-.01em}
+    .topbar-brand em{color:var(--gold-l);font-style:normal;font-weight:600}
+
+    /* ── LAYOUT ── */
+    .page{max-width:680px;margin:0 auto;padding:2rem 1.25rem 6rem;position:relative;z-index:1}
+
+    /* ── REPORT CARD ── */
+    .report-card{
+      background:var(--paper);border:1px solid var(--border2);
+      border-radius:var(--r-xl);overflow:hidden;
+      box-shadow:0 8px 40px rgba(14,14,20,.1);
+    }
+
+    /* Header do relatório */
+    .rc-header{
+      background:var(--topbar-bg);padding:1.5rem 1.75rem;
+      display:flex;align-items:center;gap:1rem;position:relative;overflow:hidden;
+    }
+    .rc-header::before{
+      content:'';position:absolute;inset:0;pointer-events:none;
+      background:radial-gradient(ellipse at 80% 0%,rgba(154,114,24,.12) 0%,transparent 60%);
+    }
+    .rc-logo{
+      width:46px;height:46px;border-radius:10px;background:var(--gold);
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;
+      border:2px solid rgba(154,114,24,.35);
+    }
+    .rc-logo img{width:100%;height:100%;object-fit:cover}
+    .rc-prof{}
+    .rc-prof-name{font-family:var(--serif);font-size:1rem;font-style:italic;color:rgba(255,255,255,.9)}
+    .rc-prof-spec{font-family:var(--mono);font-size:.6rem;color:rgba(255,255,255,.35);margin-top:.12rem}
+    .rc-fieldo-badge{
+      margin-left:auto;flex-shrink:0;
+      display:flex;align-items:center;gap:.3rem;
+      background:var(--gold-bg);border:1px solid var(--gold-bd);
+      border-radius:2rem;padding:.22rem .6rem;
+      font-family:var(--mono);font-size:.52rem;letter-spacing:.1em;
+      text-transform:uppercase;color:var(--gold-l);
+    }
+
+    /* Body */
+    .rc-body{padding:1.75rem}
+
+    .rc-label{
+      font-family:var(--mono);font-size:.55rem;letter-spacing:.18em;
+      text-transform:uppercase;color:var(--muted);margin-bottom:.25rem;
+    }
+    .rc-client{
+      font-family:var(--serif);font-size:1.6rem;font-weight:300;
+      color:var(--ink);margin-bottom:1.25rem;
+    }
+
+    .rc-meta-grid{
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+      gap:.85rem;padding:.85rem 0;
+      border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+      margin-bottom:1.25rem;
+    }
+    .rc-meta-lbl{font-family:var(--mono);font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.18rem}
+    .rc-meta-val{font-size:.85rem;color:var(--text);font-weight:400}
+
+    .rc-desc{font-size:.88rem;color:var(--text2);line-height:1.75;margin-bottom:1.25rem}
+
+    /* Fotos */
+    .rc-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:4px;margin-bottom:1.25rem;border-radius:var(--r);overflow:hidden}
+    .rc-photo{aspect-ratio:1;overflow:hidden}
+    .rc-photo img{width:100%;height:100%;object-fit:cover;display:block}
+    /* v7.8: a primeira foto vira destaque — é a prova visual do
+       trabalho, o que mais convence quem abre o link. O resto some
+       pra miniatura, em vez de tudo do mesmo tamanho competindo. */
+    .rc-photo-hero{aspect-ratio:4/3;border-radius:var(--r-l);overflow:hidden;margin-bottom:.4rem}
+    .rc-photo-hero img{width:100%;height:100%;object-fit:cover;display:block}
+
+    /* Avaliação */
+    .rc-rating-section{
+      background:var(--paper3);border-radius:var(--r-l);padding:1.25rem;
+      margin-bottom:1.25rem;text-align:center;
+    }
+    .rc-rating-title{font-family:var(--serif);font-size:1.1rem;font-weight:300;color:var(--ink);margin-bottom:.35rem}
+    .rc-rating-sub{font-size:.8rem;color:var(--muted);margin-bottom:1rem}
+    .rc-stars-row{display:flex;justify-content:center;gap:.5rem;margin-bottom:.75rem}
+    .rc-star{
+      font-size:2rem;color:var(--paper4);cursor:pointer;
+      transition:color .15s,transform .15s;user-select:none;
+    }
+    .rc-star:hover,.rc-star.active{color:var(--gold-l);transform:scale(1.1)}
+    .rc-star.done{pointer-events:none}
+    .rc-rating-btn{
+      background:var(--gold);color:var(--on-gold);border:none;cursor:pointer;
+      font-family:var(--sans);font-size:.88rem;font-weight:500;
+      padding:.7rem 1.75rem;border-radius:var(--r);
+      transition:background .2s;display:none;
+    }
+    .rc-rating-btn.visible{display:inline-block}
+    .rc-rating-btn:hover{background:var(--gold-d)}
+    .rc-rating-done{font-family:var(--mono);font-size:.75rem;color:var(--green);display:none}
+    .rc-rating-done.visible{display:block}
+    .rc-card-spin{
+      display:none;width:11px;height:11px;border-radius:50%;margin-left:.4rem;
+      border:2px solid rgba(255,255,255,.4);border-top-color:#fff;
+      animation:rc-card-spin .7s linear infinite;vertical-align:middle;
+    }
+    .rc-card-spin.on{display:inline-block}
+    @keyframes rc-card-spin{to{transform:rotate(360deg)}}
+
+    /* Pix */
+    .rc-pix{
+      background:var(--gold-bg);border:1px solid var(--gold-bd);
+      border-radius:var(--r-l);padding:1rem 1.25rem;
+      display:flex;align-items:center;justify-content:space-between;gap:1rem;
+      margin-bottom:1.25rem;
+    }
+    .rc-pix-left{}
+    .rc-pix-lbl{font-family:var(--mono);font-size:.55rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-d);margin-bottom:.2rem}
+    .rc-pix-key{font-family:var(--mono);font-size:.82rem;color:var(--gold-d);word-break:break-all}
+    .rc-pix-copy{
+      background:var(--gold);color:var(--on-gold);border:none;cursor:pointer;
+      font-family:var(--mono);font-size:.68rem;padding:.45rem .9rem;
+      border-radius:var(--r);white-space:nowrap;flex-shrink:0;transition:background .2s;
+    }
+    .rc-pix-copy:hover{background:var(--gold-d)}
+
+    /* ── v5.3: cobrança com valor ─────────────────────────────── */
+    .rc-pix--cobrar{flex-direction:column;align-items:stretch;gap:0}
+    .rc-pix-head{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem;margin-bottom:.85rem}
+    .rc-pix-val{font-family:var(--serif);font-size:1.35rem;color:var(--gold-d);line-height:1}
+    .rc-pix-cta{width:100%;background:var(--gold);color:var(--on-gold);border:none;border-radius:9px;
+      padding:.85rem 1rem;font-family:inherit;font-size:.88rem;font-weight:600;cursor:pointer;
+      min-height:48px;transition:background .18s}
+    .rc-pix-cta:hover{background:var(--gold-d)}
+    .rc-pix-cta--ok{background:#2d7d46}
+    .rc-pix-hint{font-size:.7rem;color:var(--gold-d);opacity:.82;text-align:center;
+      margin-top:.6rem;line-height:1.5}
+    .rc-pix-alt{margin-top:.7rem}
+    .rc-pix-alt summary{font-size:.68rem;color:var(--gold-d);opacity:.75;cursor:pointer}
+    .rc-pix-alt .rc-pix-key{margin-top:.4rem}
+    /* Pago: verde, sem pedir pagamento */
+    .rc-pix--pago{background:rgba(45,125,70,.07);border-color:rgba(45,125,70,.22)}
+    .rc-pix--pago .rc-pix-lbl,.rc-pix--pago .rc-pix-val{color:#1f5c33}
+    .rc-pix-badge{background:#2d7d46;color:#fff;border-radius:20px;padding:.3rem .8rem;
+      font-size:.72rem;font-weight:600;white-space:nowrap}
+
+    /* ── v5.4: aprovação de orçamento ─────────────────────────── */
+    .ap-box{background:var(--paper);border:1.5px solid var(--gold-bd);border-radius:12px;
+      padding:1.25rem;margin-bottom:1.5rem}
+    .ap-title{font-family:var(--serif);font-size:1.05rem;color:var(--ink);margin-bottom:.35rem}
+    .ap-total{font-family:var(--mono);font-size:1.5rem;color:var(--gold-d);margin-bottom:1rem}
+    .ap-note,.ap-sign{width:100%;box-sizing:border-box;border:1px solid var(--border2);
+      border-radius:8px;padding:.7rem .85rem;font-family:inherit;font-size:.88rem;
+      background:var(--paper2);color:var(--ink);margin-bottom:.6rem;resize:vertical}
+    .ap-note:focus,.ap-sign:focus{outline:2px solid var(--gold);outline-offset:1px}
+    /* v10.8 · erro do campo de assinatura. Fica escondido por [hidden] e
+       aparece só quando alguém tenta aprovar sem escrever o nome. */
+    .ap-erro{font-size:.76rem;color:#a8322b;margin:-.25rem 0 .6rem;line-height:1.4}
+    .ap-erro[hidden]{display:none}
+    .ap-actions{display:flex;gap:.6rem;margin-top:.4rem}
+    .ap-btn{flex:1;border:none;border-radius:9px;padding:.9rem .75rem;font-family:inherit;
+      font-size:.88rem;font-weight:600;cursor:pointer;min-height:48px}
+    .ap-btn:disabled{opacity:.6;cursor:default}
+    /* Recusar é secundário de propósito: o caminho fácil deve ser aprovar,
+       mas recusar não pode ficar escondido. */
+    .ap-btn--no{flex:0 0 34%;background:transparent;border:1px solid var(--border2);color:var(--muted)}
+    .ap-btn--yes{background:var(--gold);color:var(--on-gold)}
+    .ap-btn--yes:hover:not(:disabled){background:var(--gold-d)}
+    .ap-hint{font-size:.7rem;color:var(--muted);text-align:center;margin-top:.7rem;line-height:1.5}
+    .ap-box--ok{background:rgba(45,125,70,.07);border-color:rgba(45,125,70,.3);text-align:center}
+    .ap-box--no{background:rgba(120,120,120,.06);border-color:var(--border2);text-align:center}
+    .ap-done{font-family:var(--serif);font-size:1.05rem;color:var(--ink)}
+    .ap-done-note{font-size:.8rem;color:var(--muted);margin-top:.35rem;line-height:1.5}
+    .ap-done-sign{font-family:var(--mono);font-size:.7rem;color:var(--muted);margin-top:.3rem}
+    .ap-wa{display:flex;align-items:center;justify-content:center;background:#1d7a46;color:#fff;
+      border-radius:9px;padding:.8rem 1rem;text-decoration:none;font-weight:500;
+      font-size:.85rem;margin-top:.9rem}
+
+    /* Hash / Selo */
+    .rc-seal{
+      background:var(--paper2);border:1px solid var(--border);
+      border-radius:var(--r);padding:.75rem 1rem;
+      display:flex;align-items:center;gap:.75rem;
+    }
+    .rc-seal-icon{width:30px;height:30px;border-radius:7px;background:var(--gold-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .rc-seal-body{flex:1;min-width:0}
+    .rc-seal-lbl{font-family:var(--mono);font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.15rem}
+    .rc-seal-hash{font-family:var(--mono);font-size:.62rem;color:var(--subtle);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .rc-seal-status{font-family:var(--mono);font-size:.55rem;letter-spacing:.08em;text-transform:uppercase;color:var(--green);flex-shrink:0}
+
+    /* CTA para técnicos */
+    .rc-footer{
+      margin-top:2rem;background:var(--paper2);border:1px solid var(--border);
+      border-radius:var(--r-xl);padding:1.5rem;text-align:center;
+    }
+    .rc-footer-title{font-family:var(--serif);font-size:1.2rem;font-weight:300;color:var(--ink);margin-bottom:.35rem}
+    .rc-footer-title em{font-style:italic;color:var(--gold)}
+    .rc-footer-sub{font-size:.8rem;color:var(--muted);margin-bottom:1rem;line-height:1.65}
+    .rc-footer-btn{
+      display:inline-flex;align-items:center;gap:.45rem;
+      background:var(--gold);color:var(--on-gold);border-radius:var(--r);
+      padding:.7rem 1.4rem;font-size:.85rem;font-weight:500;
+    }
+
+    /* Loading / erro */
+    .state-box{text-align:center;padding:4rem 2rem}
+    .state-glyph{font-family:var(--serif);font-size:3rem;font-style:italic;color:var(--paper4);margin-bottom:.75rem}
+    .state-title{font-family:var(--serif);font-size:1.4rem;font-weight:300;color:var(--ink);margin-bottom:.5rem}
+    .state-sub{font-size:.85rem;color:var(--muted);line-height:1.65}
+
+    .skel{
+      background:linear-gradient(90deg,var(--paper3) 25%,var(--paper4) 50%,var(--paper3) 75%);
+      background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r);
+    }
+    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .report-card{animation:fadeUp .3s ease both}
+
+    /* Toast */
+    #r-toast{
+      position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(8px);
+      background:var(--surface-ink);border:1px solid rgba(255,255,255,.08);
+      color:rgba(255,255,255,.9);font-family:var(--mono);font-size:.75rem;
+      padding:.55rem 1.1rem;border-radius:2rem;
+      opacity:0;transition:opacity .25s,transform .25s;
+      pointer-events:none;white-space:nowrap;z-index:999;
+    }
+    #r-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  
+    /* v6.3 · próximo passo depois da avaliação */
+    .rc-pos-acao{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+    .rc-pos-txt{font-size:.78rem;color:var(--muted);line-height:1.55;margin-bottom:.7rem}
+    /* v10.9 · bloco "Precisa de outro serviço?" — vem antes do rodapé
+       do Fieldo e é o único lugar do relatório que oferece algo ao
+       cliente. Borda dourada como as ações do profissional, não verde
+       de WhatsApp genérico: quem está sendo apresentado é ele. */
+    .rc-again{margin-top:2rem;padding:1.25rem;border:1px solid var(--gold-bd);
+      border-radius:var(--r-l);background:var(--gold-bg)}
+    .rc-again-title{font-family:var(--serif);font-size:1.05rem;color:var(--ink);
+      margin-bottom:.85rem;text-align:center}
+    .rc-again-wa{display:flex;align-items:center;justify-content:center;gap:.5rem;
+      background:#1d7a46;color:#fff;padding:.9rem 1rem;border-radius:9px;
+      text-decoration:none;font-weight:500;font-size:.9rem;min-height:48px;
+      margin-bottom:.6rem}
+    .rc-pos-link{display:block;padding:.75rem 1rem;border:1px solid var(--gold-bd);
+      border-radius:9px;color:var(--gold-text);text-decoration:none;font-size:.85rem;
+      font-weight:500;text-align:center}
+
+    /* v10.0 · alvos de toque. Estes arquivos têm CSS próprio e não
+       herdam as regras do fieldo.css. */
+    .topbar-back{min-height:44px;display:inline-flex;align-items:center;padding:0 8px;margin:0 -8px}
+    .topbar-logo{min-height:44px}
+    input,select{min-height:44px}
+    /* v12.16 · andamento da obra: o cliente vê o total combinado, cada
+       etapa lançada e quanto resta. Números alinhados à direita, com
+       algarismos de mesma largura, para a conta ler como extrato. */
+    .rc-obra{border:1px solid var(--gold-bd);border-radius:12px;padding:1rem 1rem .9rem;margin:0 0 1.25rem;background:var(--paper)}
+    .rc-obra-tit{font-family:var(--serif);font-size:1.05rem;color:var(--ink);line-height:1.25}
+    .rc-obra-sub{font-size:.8rem;color:var(--text2);margin:.15rem 0 .8rem}
+    .rc-obra-barra{height:8px;background:var(--paper3);border-radius:999px;overflow:hidden;margin-bottom:.35rem}
+    .rc-obra-barra span{display:block;height:100%;background:var(--gold)}
+    .rc-obra-barra--acima span{background:var(--amber)}
+    .rc-obra-pct{font-size:.75rem;color:var(--muted);margin-bottom:.75rem}
+    .rc-obra-tab{width:100%;border-collapse:collapse;font-size:.84rem;font-variant-numeric:tabular-nums}
+    .rc-obra-tab td{padding:.5rem .35rem;border-top:1px solid var(--border);vertical-align:top}
+    .rc-obra-tab td:first-child{color:var(--muted);white-space:nowrap;width:1%}
+    .rc-obra-tab td:last-child{text-align:right;white-space:nowrap;color:var(--ink)}
+    .rc-obra-tab .rc-obra-este td{background:var(--gold-bg);font-weight:600}
+    .rc-obra-et{color:var(--text);overflow-wrap:anywhere}
+    .rc-obra-et small{display:block;font-weight:400;font-size:.72rem;color:var(--muted);margin-top:.1rem}
+    .rc-obra-total{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;border-top:2px solid var(--border2);margin-top:.2rem;padding-top:.7rem}
+    .rc-obra-total span{font-size:.88rem;color:var(--text2)}
+    .rc-obra-total b{font-family:var(--serif);font-size:1.4rem;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+    .rc-obra-total--acima b{color:var(--amber)}
+    .rc-obra-linha{display:flex;justify-content:space-between;font-size:.8rem;color:var(--text2);margin-top:.3rem;font-variant-numeric:tabular-nums}
+
+    /* ══ v12.40 · relatório compacto (rr-*) — ver renderRelatorio ══
+       Uma superfície, seções separadas por espaço e linha fina; caixa
+       com fundo só para pagar. Só o relatório usa: body.rr-on. */
+    body.rr-on::before{display:none}
+    body.rr-on .page{padding:1rem 1rem 3rem}
+    .rr{background:var(--paper);border:1px solid var(--border);border-radius:var(--r-xl);padding:1.25rem 1.1rem 1rem}
+    .rr-prof{display:flex;align-items:center;gap:.7rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+    .rr-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0;overflow:hidden;background:var(--gold-bg);
+      border:1px solid var(--gold-bd);display:flex;align-items:center;justify-content:center;
+      font-weight:600;font-size:.85rem;color:var(--gold-d)}
+    .rr-avatar img{width:100%;height:100%;object-fit:cover}
+    .rr-prof-txt{flex:1;min-width:0}
+    .rr-prof-nome{font-weight:600;font-size:.95rem;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .rr-prof-sub{font-size:.78rem;color:var(--muted);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rr-chip{flex-shrink:0;font-size:.68rem;font-weight:600;padding:.25rem .55rem;border-radius:99px;
+      background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green);white-space:nowrap}
+    .rr-tipo{margin-top:1.1rem;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+    .rr-titulo{font-family:var(--serif);font-weight:400;font-size:1.45rem;line-height:1.2;letter-spacing:-.01em;margin:.3rem 0 .35rem;color:var(--text)}
+    .rr-ctx{font-size:.82rem;color:var(--text2);margin:0}
+    .rr-valor{margin-top:1rem;padding:.85rem 1rem;border-radius:var(--r-l);border:1px solid var(--border)}
+    .rr-valor--pagar{background:var(--gold-bg);border-color:var(--gold-bd)}
+    .rr-valor-linha{display:flex;align-items:center;justify-content:space-between;gap:.75rem}
+    .rr-valor-lbl{font-size:.74rem;color:var(--muted)}
+    .rr-valor-num{font-size:1.3rem;font-weight:600;color:var(--text);line-height:1.2}
+    .rr-chip--ok{font-size:.75rem}
+    .rr-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;min-height:46px;
+      margin-top:.75rem;padding:.7rem 1rem;border:0;border-radius:var(--r-l);font:inherit;font-size:.92rem;
+      font-weight:600;cursor:pointer;text-decoration:none;background:var(--gold);color:var(--on-gold)}
+    .rr-btn:hover{background:var(--gold-d)}
+    .rr-btn--wa{background:#1d7a46;color:#fff}.rr-btn--wa:hover{background:#17663a}
+    .rr-btn--sec{background:transparent;color:var(--gold-d);border:1px solid var(--gold-bd)}
+    .rr-btn--sec:hover{background:var(--gold-bg)}
+    .rr-btn.rc-pix-cta--ok{background:var(--green)}
+    .rr-dica{font-size:.76rem;line-height:1.45;color:var(--text2);margin-top:.55rem}
+    .rr-chave{display:inline}
+    .rr-chave summary{display:inline;cursor:pointer;color:var(--gold-d);font-weight:600;list-style:none}
+    .rr-chave summary::-webkit-details-marker{display:none}
+    .rr-chave span{display:block;margin-top:.35rem;font-family:var(--mono);font-size:.78rem;word-break:break-all;color:var(--text)}
+    .rr-fotos{margin-top:1rem}
+    .rr-foto-hero{position:relative;display:block;aspect-ratio:3/2;border-radius:var(--r-l);overflow:hidden;background:var(--paper2);cursor:zoom-in}
+    .rr-ampliar{position:absolute;right:.5rem;bottom:.5rem;display:flex;align-items:center;gap:.35rem;padding:.3rem .6rem;border-radius:99px;
+      background:rgba(14,14,20,.66);color:#fff;font-size:.72rem;font-weight:500;pointer-events:none}
+    .rr-tiras a{cursor:zoom-in}
+    .rr-foto-hero img,.rr-tiras img{width:100%;height:100%;object-fit:cover;display:block}
+    .rr-tiras{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:4px}
+    .rr-tiras a{display:block;aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--paper2)}
+    .rr-sec{margin-top:1.1rem;padding-top:1.1rem;border-top:1px solid var(--border)}
+    .rr-desc{font-size:.9rem;line-height:1.6;color:var(--text2);margin:0}
+    .rr-local{display:flex;gap:.4rem;align-items:flex-start;font-size:.82rem;color:var(--muted);margin:.6rem 0 0;line-height:1.4}
+    .rr-local svg{flex-shrink:0;margin-top:.15rem}
+    .rr-det .rr-desc + .rr-local{margin-top:.75rem}
+    .rr-h2{font-size:.95rem;font-weight:600;margin:0;text-align:center;color:var(--text)}
+    .rr-aval{text-align:center}
+    .rr-estrelas{display:flex;justify-content:center;gap:.25rem;margin:.5rem 0 0}
+    .rr-estrelas .rc-star{width:48px;height:48px;border:0;background:none;padding:0;cursor:pointer;
+      font-size:2rem;line-height:1;color:#8f8676;transition:color .12s,transform .12s}  /* 3,2:1 no --paper: alvo de toque precisa ser visível */
+    .rr-estrelas .rc-star.active,.rr-estrelas .rc-star:hover{color:var(--gold-l);transform:none}
+    .rr-estrelas .rc-star:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:8px}
+    .rr-aval .rc-rating-btn{display:none}
+    .rr-aval .rc-rating-btn.visible{display:flex}
+    .rr-aval .rc-rating-done{font-family:var(--sans);font-size:.85rem;margin-top:.5rem}
+    .rr-aval-feita{display:flex;flex-direction:column;align-items:center;gap:.2rem;font-size:.85rem;color:var(--text2)}
+    .rr-estrelas-fixas{font-size:1.3rem;color:var(--gold-l);letter-spacing:.1em}
+    .rr-estrelas-fixas i{font-style:normal;color:var(--paper4)}
+    .rr-denovo .rr-btn--wa{margin-top:0}
+    .rr-link{display:block;text-align:center;margin-top:.7rem;font-size:.85rem;font-weight:600;color:var(--gold-d)}
+    .rr-rodape{margin-top:1.1rem;padding-top:.9rem;border-top:1px solid var(--border);text-align:center}
+    .rr-rodape p{font-size:.74rem;line-height:1.5;color:var(--muted);margin:.15rem 0}
+    .rr-rodape a{color:var(--gold-d);font-weight:600}
+    .rr-selo{display:flex;align-items:center;justify-content:center;gap:.35rem}
+    .rr-selo svg{color:var(--green)}
+    .rr-selo-cod{font-family:var(--mono);font-size:.62rem !important;color:var(--muted);word-break:break-all;margin-top:.2rem !important}
+    @media print{body.rr-on .topbar,.rr-btn,.rr-aval,.rr-denovo,.rr-ampliar,.rr-chave summary{display:none !important}.rr{border:0;padding:0}.rr-selo-cod{font-size:8pt !important;color:#333}body.rr-on{background:#fff}}
+    @media(min-width:560px){.rr{padding:1.75rem 1.75rem 1.25rem}.rr-titulo{font-size:1.7rem}}
+
+    /* ══ v12.40 · resumo da obra para o cliente (ro-*) ══ */
+    .ro{margin-top:1rem;padding:1rem;border-radius:var(--r-l);border:1px solid var(--border2);background:var(--paper)}
+    .ro-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem}
+    .ro-cab-txt{min-width:0}
+    .ro-tit{font-size:.98rem;font-weight:600;margin:0;line-height:1.3;color:var(--text)}
+    .ro-sub{font-size:.76rem;color:var(--muted);margin-top:.1rem}
+    .ro-chip-and{background:var(--gold-bg);border-color:var(--gold-bd);color:var(--gold-text,#6a4e0e)}
+    .ro-chip-dev{background:#fbefe4;border-color:#ecc9a6;color:#8a4a12}
+    .ro-nums{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:.9rem}
+    .ro-lbl{font-size:.74rem;color:var(--muted)}
+    .ro-num{font-size:1.35rem;font-weight:600;line-height:1.2;color:var(--text);font-variant-numeric:tabular-nums}
+    .ro-num--pago{color:var(--green)}
+    .ro-num--zero{color:var(--green)}
+    .ro-barra{display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--paper3);margin-top:.8rem}
+    .ro-barra i{display:block;height:100%}
+    .ro-b-pago{background:var(--green-l)}
+    .ro-b-dev{background:#d38a3f}
+    .ro-leg{list-style:none;margin:.6rem 0 0;padding:0;display:flex;flex-direction:column;gap:.3rem}
+    .ro-leg li{display:flex;align-items:center;gap:.45rem;font-size:.8rem;color:var(--text2)}
+    .ro-leg b{margin-left:auto;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+    .ro-pt{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--paper3);border:1px solid var(--border3)}
+    .ro-pt--pago{background:var(--green-l);border-color:var(--green-l)}
+    .ro-pt--dev{background:#d38a3f;border-color:#d38a3f}
+    .ro-comb{display:flex;justify-content:space-between;gap:.75rem;font-size:.8rem;color:var(--muted);margin-top:.55rem;padding-top:.55rem;border-top:1px dashed var(--border2)}
+    .ro-comb b{font-weight:500;color:var(--text2);font-variant-numeric:tabular-nums}
+    .ro-ct{display:flex;gap:.45rem;align-items:flex-start;margin-top:.55rem;font-size:.8rem;color:var(--green);line-height:1.45}
+    .ro-ct a{color:var(--gold-d);font-weight:600}
+    .ro-ct--pend{color:var(--text2)}
+    .ro-alerta{margin:.6rem 0 0;font-size:.78rem;line-height:1.45;color:#8a4a12;background:#fbefe4;border-radius:8px;padding:.5rem .65rem}
+    .ro-etapa{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-top:.9rem;padding-top:.85rem;border-top:1px solid var(--border)}
+    .ro-etapa-v{font-size:1.05rem;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+    .ro-etapas{margin-top:.8rem;border-top:1px solid var(--border);padding-top:.6rem}
+    .ro-etapas summary{cursor:pointer;font-size:.84rem;font-weight:600;color:var(--gold-d);list-style:none;min-height:32px;display:flex;align-items:center}
+    .ro-etapas summary::-webkit-details-marker{display:none}
+    .ro-etapas summary::after{content:'▾';margin-left:.35rem;font-size:.75rem;transition:transform .15s}
+    .ro-etapas[open] summary::after{transform:rotate(180deg)}
+    .ro-etapas ul{list-style:none;margin:.3rem 0 0;padding:0}
+    .ro-etapas li{display:grid;grid-template-columns:2.6rem 1fr auto;gap:.5rem;align-items:start;padding:.5rem 0;border-top:1px solid var(--border);font-size:.82rem}
+    .ro-etapas li:first-child{border-top:0}
+    .ro-e-data{color:var(--muted);font-variant-numeric:tabular-nums}
+    .ro-e-tit{color:var(--text);line-height:1.35;overflow-wrap:anywhere}
+    .ro-e-tit em{font-style:normal;color:var(--muted);font-size:.75rem}
+    .ro-e-v{text-align:right;font-weight:600;color:var(--text);white-space:nowrap;font-variant-numeric:tabular-nums}
+    .ro-e-v small{display:block;font-weight:500;font-size:.7rem;color:#8a4a12}
+    .ro-e-v small.ro-ok{color:var(--green)}
+    .ro-este .ro-e-tit{font-weight:600}
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="/" class="topbar-logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+    <span class="topbar-brand">Field<em>o</em></span>
+  </a>
+</header>
+
+<div class="page">
+  <div id="content">
+    <!-- skeleton -->
+    <div class="report-card" id="skeleton">
+      <div style="background:var(--topbar-bg);padding:1.5rem 1.75rem;display:flex;align-items:center;gap:1rem">
+        <div class="skel" style="width:46px;height:46px;border-radius:10px;flex-shrink:0"></div>
+        <div style="flex:1"><div class="skel" style="height:14px;width:55%;margin-bottom:6px"></div><div class="skel" style="height:10px;width:35%"></div></div>
+      </div>
+      <div style="padding:1.75rem">
+        <div class="skel" style="height:10px;width:30%;margin-bottom:8px"></div>
+        <div class="skel" style="height:28px;width:65%;margin-bottom:20px"></div>
+        <div class="skel" style="height:10px;width:100%;margin-bottom:6px"></div>
+        <div class="skel" style="height:10px;width:80%;margin-bottom:6px"></div>
+        <div class="skel" style="height:10px;width:90%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="r-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="db.js" onerror="document.documentElement.innerHTML='&lt;div style=\'font-family:system-ui;padding:2rem;text-align:center\'&gt;&lt;h2 style=\'font-weight:500\'&gt;Falha ao carregar&lt;/h2&gt;&lt;p style=\'color:#666;line-height:1.6\'&gt;Verifique a conexão. Seus dados continuam salvos.&lt;/p&gt;&lt;button onclick=\'location.reload(true)\' style=\'padding:.8rem 1.5rem;border:0;border-radius:8px;background:#9a7218;color:#fff;font-size:.9rem\'&gt;Recarregar&lt;/button&gt;&lt;/div&gt;'"></script>
+<!-- v7.6: card de compartilhamento (Stories) — movido de perfil.html
+     pra cá. Antes ficava um botão permanente no meio do perfil,
+     desconectado de qualquer momento específico. Aqui ele nasce
+     exatamente no fim do ciclo relatório→avaliação: o profissional
+     abre o relatório DEPOIS que o cliente avaliou, e é aí que faz
+     sentido convidar a divulgar. Só o dono vê; cliente nunca vê. -->
+<script src="qrcode_min.js" defer></script>
+<script src="share-card.js" defer></script>
+<script src="galeria.js" defer></script>
+<script>
+/* Atalhos para uso interno (mantém compatibilidade com código existente) */
+var SUPABASE_URL = FIELDO.config.REST_URL;
+var H = { 'apikey': FIELDO.config.ANON_KEY, 'Authorization': 'Bearer ' + FIELDO.config.ANON_KEY };
+
+var _ratingSelected = 0;
+var _reportId       = null;
+var _token          = null;
+var _profId         = null;
+var _ultimoReport   = null;   /* v7.6: guardado pro gatilho do card de compartilhamento */
+var _ultimoProf     = null;
+
+/* ── Params ── */
+var params   = new URLSearchParams(window.location.search);
+var reportId = params.get('id');
+var token    = params.get('token'); /* link direto de avaliação */
+var orcId    = params.get('orc');   /* link público de orçamento */
+/* v5.4: token de aprovação. Ver o orçamento é público (is_public);
+   DECIDIR exige o token, que só vai no link enviado ao cliente. */
+var orcToken = params.get('t');
+
+document.addEventListener('DOMContentLoaded', function() {
+  if (orcId) {
+    /* Acesso público a orçamento — sem necessidade de auth */
+    carregarOrcamentoPublico(orcId);
+    return;
+  }
+  if (reportId) {
+    /* Acesso por ID requer sessão (visualização do profissional) */
+    if (!FIELDO.Auth.isLoggedIn()) {
+      window.location.href = 'entrar.html';
+      return;
+    }
+    carregarPorId(reportId);
+  } else if (token) {
+    /* Acesso por token é público (cliente avaliando) */
+    carregarPorToken(token);
+  } else {
+    renderErro('Link inválido', 'Este link de relatório não contém um identificador válido.');
+  }
+});
+
+function carregarOrcamentoPublico(id) {
+  /* v4.4 M2: resolver bidirecional.
+     1) Tenta achar report vinculado (linked_budget_id=ID OU budgets.linked_report_id).
+        Se achar → renderiza o relatório conclusivo do serviço.
+     2) Senão → renderiza o orçamento com aviso "Em andamento".
+
+     v11.0 · a busca do relatório vinculado passou para a RPC
+     relatorio_do_orcamento(id). Filtrar a tabela direto por
+     linked_budget_id exigia expor essa coluna — e o nome, o endereço e
+     o valor do cliente junto — a qualquer visitante. A chave agora é o
+     próprio id do orçamento, o mesmo link que o cliente já recebeu, e
+     a RPC cobre os dois sentidos do vínculo (report → orçamento e
+     orçamento → report) e só devolve relatórios públicos. */
+  FIELDO.rest.rpc('relatorio_do_orcamento', { p_budget_id: id }, { anon: true })
+  .then(function (res) {
+    var rel = Array.isArray(res) ? res[0] : res;
+    return (rel && rel.id) ? [rel] : [];
+  })
+  .then(function (reports) {
+    if (reports && reports.length) {
+      /* Há um relatório conclusivo. Reusa o fluxo padrão de exibição. */
+      _reportId = reports[0].id;
+      _profId   = reports[0].professional_id;
+      return _renderReport(reports[0]);
+    }
+    /* Nenhum report vinculado ainda. Mostra orçamento "em andamento". */
+    return FIELDO.Budgets.getById(id).then(function (orc) {
+      if (!orc) {
+        renderErro('Orçamento não encontrado', 'Este link expirou ou foi removido.');
+        return;
+      }
+      return FIELDO.Professionals.getById(orc.professional_id).then(function (prof) {
+        return _comPix(prof || {}).then(function (prof2) {
+          renderOrcamento(orc, prof2, { emAndamento: true });
+        });
+      });
+    });
+  })
+  .catch(function (e) {
+    console.error('[Fieldo] resolver orçamento público:', e);
+    /* Fallback: tenta apenas o orçamento */
+    FIELDO.Budgets.getById(id).then(function (orc) {
+      if (!orc) {
+        renderErro('Orçamento não encontrado', 'Este link expirou ou foi removido.');
+        return;
+      }
+      return FIELDO.Professionals.getById(orc.professional_id).then(function (prof) {
+        return _comPix(prof || {}).then(function (prof2) {
+          renderOrcamento(orc, prof2, { emAndamento: true });
+        });
+      });
+    }).catch(function () {
+      renderErro('Não foi possível carregar', 'Tente novamente em instantes.');
+    });
+  });
+}
+
+/* v10.32 · correção de segurança: pix_key/pix_tipo/include_pix saíram
+   do GRANT direto de `anon` na tabela professionals (baixava a chave
+   Pix — às vezes o CPF — de todo mundo numa chamada só). Esta página
+   ainda precisa mostrar o Pix de UM profissional específico (o dono
+   do relatório/orçamento que o cliente está vendo), então busca à
+   parte pela função pública, um de cada vez, e mescla no objeto prof
+   antes de renderizar — resto do código nem percebe a diferença. */
+function _comPix(prof) {
+  if (!prof || !prof.id) return Promise.resolve(prof);
+  return FIELDO.Professionals.getPixPublico(prof.id).then(function (pix) {
+    if (pix) {
+      prof.pix_key = pix.pix_key;
+      prof.pix_tipo = pix.pix_tipo;
+      prof.include_pix = pix.include_pix;
+    }
+    return prof;
+  }).catch(function () { return prof; });
+}
+
+/* v4.4 M2: helper para renderizar report a partir do row carregado por orc-resolver.
+   Reusa exatamente o pipeline original do carregarPorId/carregarPorToken
+   (renderRelatorio aceita r, prof). */
+function _renderReport(report) {
+  return api('/professionals?id=eq.' + report.professional_id + '&limit=1')
+    .then(function (profRows) {
+      var prof = profRows[0] || {};
+      _profId = prof.id || null;
+      return _comPix(prof).then(function (prof2) { renderRelatorio(report, prof2); });
+    });
+}
+
+function _dm(s) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s || '')); return m ? m[3] + '/' + m[2] : ''; }
+function renderOrcamento(orc, prof, opts) {
+  opts = opts || {};
+  /* Reaproveita a área existente do relatório com pequenas adaptações */
+  var titulo = orc.titulo || 'Proposta de serviço';
+  var cliente = orc.client_name || orc.cliente || '';
+  var itens = orc.itens || orc.items || [];
+  var total = orc.total || 0;
+  var subtotal = orc.subtotal || 0;
+  var desconto = orc.desconto || 0;
+
+  /* v4.4 M1/M2: helpers de leitura compat com 3 formatos de item
+     ({descricao,valor} novo, {desc,val} legado, {descricao,qtd,preco} antigo) */
+  function _d(it){ return String(it && (it.descricao || it.desc) || '—'); }
+  function _v(it){
+    if (it && typeof it.valor !== 'undefined') return parseFloat(it.valor) || 0;
+    if (it && typeof it.val   !== 'undefined') return parseFloat(it.val)   || 0;
+    if (it && typeof it.qtd !== 'undefined' && typeof it.preco !== 'undefined') {
+      return (parseFloat(it.qtd)||0) * (parseFloat(it.preco)||0);
+    }
+    return 0;
+  }
+
+  document.title = 'Orçamento · ' + cliente + ' · Fieldo';
+
+  /* Esconde elementos específicos de relatório/avaliação se houver */
+  var ratingArea = document.getElementById('ratingArea');
+  if (ratingArea) ratingArea.style.display = 'none';
+
+  /* v4.4 M2: aviso "Serviço em andamento" quando o resolver caiu aqui
+     porque ainda não existe report vinculado ao orçamento. */
+  var avisoAndamento = opts.emAndamento
+    ? '<div style="background:#fff8e6;border:1px solid #f3d987;border-radius:10px;padding:.85rem 1.1rem;margin-bottom:1.25rem;display:flex;gap:.7rem;align-items:flex-start">' +
+        '<div style="font-size:1.1rem;flex-shrink:0;line-height:1">⏳</div>' +
+        '<div>' +
+          '<div style="font-family:Georgia,serif;font-size:.95rem;color:#7a5a10;line-height:1.4">Acompanhamento do serviço</div>' +
+          '<div style="font-size:.78rem;color:#8a7050;margin-top:.2rem;line-height:1.5">Em andamento. Quando o serviço for concluído, este link mostrará o relatório completo.</div>' +
+        '</div>' +
+      '</div>'
+    : '';
+
+  /* ── v5.4: decisão do cliente ─────────────────────────────────
+     Só aparece com token válido E status pendente. Sem token, o
+     orçamento continua sendo apenas visualizável, como antes. */
+  var podeDecidir = !!orcToken && orc.status === 'pendente';
+  var jaDecidido  = (orc.status === 'aprovado' || orc.status === 'recusado');
+
+  var decisaoHTML = '';
+  if (podeDecidir) {
+    decisaoHTML =
+      '<div class="ap-box" id="apBox">' +
+        '<div class="ap-title">Você aprova este orçamento?</div>' +
+        '<div class="ap-total">' + esc(FIELDO.UI.brl(total)) + '</div>' +
+        /* v10.8 · o nome subiu para o topo e passou a ser obrigatório
+           para aprovar. Era o último campo, opcional, com placeholder
+           "Seu nome (para registro)" — e aprovar sem preencher gravava
+           client_signature vazio. Um aceite sem quem aceitou não é
+           registro de nada, que é justamente o que o orçamento existe
+           para ser. Recusar continua sem exigir nome: quem diz não não
+           precisa assinar. */
+        '<input class="ap-sign" id="apAssin" type="text" maxlength="60" ' +
+          'autocomplete="name" placeholder="Seu nome completo"/>' +
+        '<div class="ap-erro" id="apErro" hidden>Escreva seu nome para aprovar.</div>' +
+        '<textarea class="ap-note" id="apNota" rows="2" maxlength="300" ' +
+          'placeholder="Observação para o profissional (opcional)"></textarea>' +
+        '<div class="ap-actions">' +
+          '<button class="ap-btn ap-btn--no"  id="apRecusar">Recusar</button>' +
+          '<button class="ap-btn ap-btn--yes" id="apAprovar">Aprovar orçamento</button>' +
+        '</div>' +
+        '<div class="ap-hint">A resposta é definitiva e o profissional é avisado na hora.</div>' +
+      '</div>';
+  } else if (jaDecidido) {
+    decisaoHTML =
+      '<div class="ap-box ap-box--' + (orc.status === 'aprovado' ? 'ok' : 'no') + '">' +
+        '<div class="ap-done">' + (orc.status === 'aprovado' ? '✓ Orçamento aprovado' : '✕ Orçamento recusado') + '</div>' +
+        (orc.approval_note ? '<div class="ap-done-note">' + esc(orc.approval_note) + '</div>' : '') +
+        (orc.client_signature ? '<div class="ap-done-sign">por ' + esc(orc.client_signature) + '</div>' : '') +
+      '</div>';
+  }
+
+  /* ── v10.15 · ONDE ISTO É ESCRITO, E COM QUE CLASSES ───────────
+     Esta função escrevia em `document.querySelector('.r-wrap')`, com
+     `|| document.body` de reserva. A `.r-wrap` NUNCA existiu neste
+     arquivo — a única ocorrência do nome era esta busca. Então a
+     reserva era o caminho real, sempre: `document.body.innerHTML = …`
+     apagava a barra do topo e a `.page` (max-width 680px, centragem,
+     respiro) e jogava o orçamento colado na borda da tela.
+
+     Junto vinha o segundo defeito: `.r-prof`, `.r-prof-av`,
+     `.r-prof-info`, `.r-prof-name`, `.r-prof-spec`, `.r-eyebrow` e
+     `.r-title` são classes do fieldo.css, e esta tela é autônoma — não
+     carrega o fieldo.css. Sete classes sem uma regra sequer: o título
+     saía em DM Sans 32px, sem serifa, com 390px de largura.
+
+     As duas coisas juntas eram o "tudo fora do lugar" do print.
+
+     Agora escreve em #content, como TODOS os outros renders deste
+     arquivo (renderRelatorio na 999, renderErro na 1208), e usa o
+     vocabulário que esta página realmente define: o mesmo cartão
+     .report-card que o cliente já recebe no relatório. */
+  var container = document.getElementById('content');
+  if (!container) return;
+
+  var logoOrcHTML = prof.logo_url
+    ? '<img src="' + esc(prof.logo_url) + '" style="width:100%;height:100%;object-fit:cover"/>'
+    : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+  container.innerHTML =
+    '<div class="report-card">' +
+      '<div class="rc-header">' +
+        '<div class="rc-logo">' + logoOrcHTML + '</div>' +
+        '<div class="rc-prof">' +
+          '<div class="rc-prof-name">' + esc(prof.name || 'Profissional') + '</div>' +
+          '<div class="rc-prof-spec">' + esc(FIELDO.UI.subtitulo(prof)) + '</div>' +
+          /* v12.13 · CNPJ conferido na Receita, no documento que viaja */
+          ((prof.cnpj && prof.cnpj_situacao === 'ATIVA') ? '<div class="rc-prof-spec">CNPJ ' + esc(FIELDO.Credenciais.fmtCnpj(prof.cnpj)) + ' · ativo</div>' : '') +
+        '</div>' +
+        '<div class="rc-fieldo-badge">✓ Fieldo</div>' +
+      '</div>' +
+      '<div class="rc-body">' +
+
+    avisoAndamento +
+
+    '<div class="rc-label">Orçamento' + (orc.number ? ' · Nº ' + esc(orc.number) : '') + '</div>' +
+    '<div class="rc-client">' + esc(titulo) + '</div>' +
+
+    '<div style="background:rgba(154,114,24,.06);border-radius:10px;padding:.85rem 1rem;margin-bottom:1.25rem">' +
+      '<div style="font-family:monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#7a5a10;margin-bottom:.2rem">Cliente</div>' +
+      '<div style="font-size:1rem;color:#0e0e14">' + esc(cliente) + '</div>' +
+    '</div>' +
+
+    /* v11.1 · orc.descricao existe desde sempre (campo "Descrição geral"
+       em orcamento.html, fDesc) e sempre foi gravado no banco — só nunca
+       tinha sido ligado aqui na tela que o CLIENTE vê. Quem preenchia
+       esse campo (pelo app ou, depois, pelo assistente de IA) achava que
+       o cliente estava lendo aquele texto, e não estava: ficava só no
+       banco, invisível pra quem devia ler. */
+    (orc.descricao
+      ? '<div style="margin-bottom:1.25rem">' +
+          '<div style="font-family:monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#6b6b7e;margin-bottom:.3rem">Descrição</div>' +
+          '<div style="font-size:.88rem;color:#2b2b35;line-height:1.6;white-space:pre-wrap">' + esc(orc.descricao) + '</div>' +
+        '</div>'
+      : '') +
+
+    (Array.isArray(itens) && itens.length
+      ? '<table style="width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:.85rem">' +
+          '<thead><tr>' +
+            '<th style="text-align:left;padding:.45rem .35rem;font-family:monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:#6b6b7e;border-bottom:1.5px solid #e5e5e5">Item</th>' +
+            '<th style="text-align:right;padding:.45rem .35rem;font-family:monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:#6b6b7e;border-bottom:1.5px solid #e5e5e5">Valor</th>' +
+          '</tr></thead><tbody>' +
+          itens.map(function (it) {
+            return '<tr>' +
+              '<td style="padding:.5rem .35rem;border-bottom:1px solid #f0f0f0">' + esc(_d(it)) + '</td>' +
+              '<td style="padding:.5rem .35rem;border-bottom:1px solid #f0f0f0;text-align:right;font-family:monospace">' + FIELDO.UI.brl(_v(it)) + '</td>' +
+            '</tr>';
+          }).join('') +
+        '</tbody></table>'
+      : '') +
+
+    '<div style="background:rgba(154,114,24,.06);border:1px solid rgba(154,114,24,.18);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem">' +
+      (subtotal > 0 ? '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:.2rem 0"><span>Subtotal</span><span style="font-family:monospace">'+FIELDO.UI.brl(subtotal)+'</span></div>' : '') +
+      (desconto > 0 ? '<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:.2rem 0;color:#2d7a4f"><span>Desconto</span><span style="font-family:monospace">- '+FIELDO.UI.brl(desconto)+'</span></div>' : '') +
+      '<div style="display:flex;justify-content:space-between;font-family:Georgia,serif;font-size:1.25rem;color:#7a5a10;border-top:1px solid rgba(154,114,24,.2);margin-top:.4rem;padding-top:.6rem"><span>Total</span><span style="font-family:monospace">'+FIELDO.UI.brl(total)+'</span></div>' +
+    '</div>' +
+
+    /* v10.8 · Prazo e Validade subiram para ANTES da decisão.
+       Estavam depois: a tela perguntava "você aprova?" e só embaixo do
+       botão dizia em quanto tempo o serviço fica pronto e até quando o
+       preço vale. São as duas informações que decidem a resposta, e o
+       cliente tinha de rolar para além do ponto de decisão para achá-las. */
+    (orc.prazo ? '<div style="margin-bottom:1rem"><div style="font-family:monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#6b6b7e;margin-bottom:.2rem">Prazo</div><div>' + esc(orc.prazo) + '</div></div>' : '') +
+    (orc.validade ? '<div style="margin-bottom:1rem"><div style="font-family:monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#6b6b7e;margin-bottom:.2rem">Validade</div><div>' + esc(orc.validade) + '</div></div>' : '') +
+
+    /* v11.1 · mesmo caso de orc.descricao acima: pagamento, garantia e
+       observações são campos reais do formulário (fPagamento, fGarantia,
+       fObs em orcamento.html), sempre gravados, nunca mostrados aqui.
+       Ficam na mesma família visual de Prazo/Validade — são a mesma
+       categoria de informação (condição que ajuda o cliente a decidir),
+       por isso entram ANTES de decisaoHTML, pelo mesmo motivo do v10.8
+       documentado ali em cima. */
+    (orc.pagamento ? '<div style="margin-bottom:1rem"><div style="font-family:monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#6b6b7e;margin-bottom:.2rem">Forma de pagamento</div><div>' + esc(orc.pagamento) + '</div></div>' : '') +
+    (orc.garantia ? '<div style="margin-bottom:1rem"><div style="font-family:monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#6b6b7e;margin-bottom:.2rem">Garantia</div><div>' + esc(orc.garantia) + '</div></div>' : '') +
+    (orc.observacoes ? '<div style="margin-bottom:1rem"><div style="font-family:monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#6b6b7e;margin-bottom:.2rem">Observações</div><div style="white-space:pre-wrap">' + esc(orc.observacoes) + '</div></div>' : '') +
+
+    decisaoHTML +
+
+    /* v10.8 · a chave Pix só aparece DEPOIS de aprovado.
+       Antes vinha em todo orçamento, inclusive pendente e recusado:
+       o documento pedia pagamento de um serviço que o cliente ainda não
+       tinha aceitado — e, no recusado, de um serviço que não vai acontecer.
+       Cobrar antes do aceite é o tipo de detalhe que faz o cliente
+       desconfiar do profissional, não do app. */
+    (prof.pix_key && orc.status === 'aprovado'
+      ? '<div style="background:rgba(154,114,24,.08);border:1px solid rgba(154,114,24,.22);border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem">' +
+      '<div style="font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#7a5a10;margin-bottom:.18rem">Pagamento via Pix · ' + esc(prof.pix_tipo||'') + '</div>' +
+      '<div style="font-family:monospace;font-size:.85rem;color:#7a5a10;word-break:break-all">' + esc(prof.pix_key) + '</div>' +
+    '</div>' : '') +
+
+    /* v5.5.1: o regex estava escrito /\\D/g — procura uma barra invertida
+       seguida de "D", não "não-dígito". O telefone ia sem limpar
+       ("(12) 99999-8888") e a URL saía inválida: o WhatsApp abria em
+       branco, sem número e sem mensagem.
+       Também prefixava "55" cegamente, duplicando em quem já salvou
+       o número com o DDI. */
+    /* v10.8 · era "Falar pelo WhatsApp", idêntico ao botão que aparece
+       dentro da caixa depois de aprovar. A mensagem que este link já
+       carregava é "recebi seu orçamento e tenho uma dúvida" — o rótulo
+       agora diz isso. */
+    (waLink(prof) ? '<a href="'+esc(waLink(prof))+'" target="_blank" rel="noopener" style="background:#1d7a46;color:#fff;padding:.85rem 1.25rem;border-radius:8px;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.5rem;font-weight:500;margin-top:1rem">Tirar uma dúvida no WhatsApp</a>' : '') +
+
+      '</div>' +   /* fecha .rc-body */
+    '</div>' +     /* fecha .report-card — o rodapé fica FORA do cartão,
+                      igual ao relatório (ver a linha 999). */
+
+    /* v9.1: o orçamento não tinha convite nenhum — só o crédito de
+       rodapé. É o documento que o cliente recebe no momento de MAIOR
+       atenção (ele está decidindo), e era o único que não respondia
+       "que app é esse". Mesmo texto do relatório, mesma origem
+       rastreável, marcada como 'orcamento' para dar pra separar os
+       dois na analytics. */
+    '<div class="rc-footer" style="margin-top:2rem">' +
+      '<div class="rc-footer-title">Este orçamento foi feito no <em>Fieldo</em>.</div>' +
+      '<p class="rc-footer-sub">Orçamento em PDF, com seu nome e sua chave Pix dentro. É grátis para começar.</p>' +
+      '<a href="entrar.html?de=orcamento" class="rc-footer-btn">Fazer o meu</a>' +
+    '</div>' +
+    '<div style="text-align:center;font-family:monospace;font-size:.65rem;color:#6b6b7e;margin-top:2rem;letter-spacing:.05em">Gerado por Fieldo · fieldo-zelo.com.br</div>';
+
+  /* Handlers registrados após o innerHTML — nada de dado dentro de
+     atributo onclick. */
+  if (podeDecidir) bindDecisao(orc, prof, total);
+}
+
+/* ── v5.5.1: link de WhatsApp, um único lugar ────────────────────
+   Havia três formas diferentes de montar wa.me espalhadas pelo código,
+   e uma delas com o regex quebrado. Centralizado para o bug não voltar.
+
+   Regras: só dígitos; DDI 55 apenas se ainda não houver; recusa número
+   curto demais em vez de gerar link inválido que "abre e não faz nada". */
+/* v5.5.2: delega para FIELDO.UI — uma implementação só no projeto. */
+function waNumero(bruto) { return FIELDO.UI.waNumero(bruto); }
+
+function waLink(prof, texto) {
+  var p = prof || {};
+  return FIELDO.UI.waLink(p.whatsapp || p.phone,
+    texto || 'Olá! Recebi seu orçamento e tenho uma dúvida.');
+}
+
+/* ── v5.4: decisão do cliente ──────────────────────────────────── */
+function bindDecisao(orc, prof, total) {
+  var box  = document.getElementById('apBox');
+  var bSim = document.getElementById('apAprovar');
+  var bNao = document.getElementById('apRecusar');
+  if (!box || !bSim || !bNao) return;
+
+  function enviar(decisao) {
+    var elNota  = document.getElementById('apNota');
+    var elAssin = document.getElementById('apAssin');
+    var elErro  = document.getElementById('apErro');
+    var nota   = (elNota  || {}).value || '';
+    var assin  = ((elAssin || {}).value || '').trim();
+
+    /* v10.8 · aprovar exige nome. Ver o comentário do campo lá em cima:
+       sem assinatura o aceite não identifica ninguém. */
+    if (decisao === 'aprovado' && assin.length < 2) {
+      if (elErro) elErro.hidden = false;
+      if (elAssin) { elAssin.focus(); }
+      return;
+    }
+    if (elErro) elErro.hidden = true;
+
+    /* v10.8 · aprovar também confirma, e mostra o valor.
+       Antes só recusar confirmava. A ação irreversível COM consequência
+       financeira era a única sem trava — um toque errado no celular
+       aprovava um orçamento de forma definitiva. A confirmação repete o
+       total de propósito: é a última chance de ler o número. */
+    var pergunta = decisao === 'aprovado'
+      ? 'Aprovar este orçamento de ' + FIELDO.UI.brl(total) + '? A resposta é definitiva.'
+      : 'Recusar este orçamento? A resposta é definitiva.';
+    if (!window.confirm(pergunta)) return;
+
+    bSim.disabled = true; bNao.disabled = true;
+    (decisao === 'aprovado' ? bSim : bNao).textContent = 'Enviando…';
+
+    FIELDO.Budgets.decide(orcToken, decisao, nota, assin)
+      .then(function () {
+        box.className = 'ap-box ap-box--' + (decisao === 'aprovado' ? 'ok' : 'no');
+        box.textContent = '';
+        var d = document.createElement('div');
+        d.className = 'ap-done';
+        d.textContent = decisao === 'aprovado' ? '✓ Orçamento aprovado' : '✕ Orçamento recusado';
+        box.appendChild(d);
+        var s = document.createElement('div');
+        s.className = 'ap-done-note';
+        s.textContent = decisao === 'aprovado'
+          ? 'O profissional foi avisado. Ele entrará em contato para agendar.'
+          : 'O profissional foi avisado da sua resposta.';
+        box.appendChild(s);
+        if (decisao === 'aprovado') avisarProfissional(prof, orc, total);
+      })
+      .catch(function (err) {
+        bSim.disabled = false; bNao.disabled = false;
+        bSim.textContent = 'Aprovar orçamento';
+        bNao.textContent = 'Recusar';
+        /* Se já foi decidido em outro dispositivo, recarrega em vez de
+           deixar a tela mentindo. */
+        if (err && err.code === 'ja_decidido') {
+          toast('Este orçamento já foi respondido');
+          setTimeout(function () { window.location.reload(); }, 1500);
+          return;
+        }
+        toast(err && err.message ? err.message : 'Não foi possível enviar');
+      });
+  }
+
+  bSim.addEventListener('click', function () { enviar('aprovado'); });
+  bNao.addEventListener('click', function () { enviar('recusado'); });
+}
+
+/* Abre o WhatsApp do profissional já com a mensagem de aprovação.
+   Não substitui notificação de verdade — mas fecha o ciclo hoje, sem
+   depender de push. */
+function avisarProfissional(prof, orc, total) {
+  var msg = 'Aprovei o orçamento' +
+    (orc.number ? ' Nº ' + orc.number : '') +
+    (total ? ' de ' + FIELDO.UI.brl(total) : '') + '. Podemos agendar?';
+  var url = waLink(prof, msg);
+  if (!url) return;
+  var a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank'; a.rel = 'noopener';
+  a.className = 'ap-wa';
+  /* v10.8 · rótulos distintos. Depois de aprovar a tela mostrava dois
+     botões verdes de WhatsApp, um dentro da caixa ("Avisar pelo
+     WhatsApp") e outro no rodapé ("Falar pelo WhatsApp") — mesma cor,
+     mesmo ícone, textos quase iguais e ações diferentes. Agora cada um
+     diz o que faz: este manda a mensagem de aprovação pronta. */
+  a.textContent = 'Avisar que aprovei';
+  var box = document.getElementById('apBox');
+  if (box) box.appendChild(a);
+}
+
+function api(path) {
+  var ir = function (nivel) { return fetch(SUPABASE_URL + FIELDO.colunasPublicas(path, nivel), { headers: H }); };
+  /* v12.26 · site publicado antes do SQL: reports.titulo_publico ainda não
+     existe. v12.30 · idem para as colunas novas de professionals (fases 3 e 5). */
+  var tentar = function (nivel) {
+    return ir(nivel).then(function (r) {
+      return (r.status === 400 && nivel < 2 && /^\/(reports|professionals)/.test(path)) ? tentar(nivel + 1) : r;
+    });
+  };
+  return tentar(0).then(function(r) {
+    return r.ok ? r.json() : Promise.reject(r.status);
+  });
+}
+
+/* v11.0 · dono primeiro, vitrine depois.
+   Até a v10 esta leitura era sempre anônima e recebia o relatório
+   inteiro — nome completo do cliente, endereço e valor — para qualquer
+   pessoa que abrisse o link vindo do perfil público.
+     1. Logado: lê com o JWT. A RLS só devolve se for o dono, e o dono
+        vê tudo, como sempre viu no painel.
+     2. Sem linha: leitura pública, que agora só traz o que a vitrine
+        mostra (nome curto, categoria, data, descrição, nota, fotos).
+        Valor e local não chegam, e os blocos de pagamento/local já
+        somem sozinhos quando o campo falta.
+   O token de avaliação NUNCA vem desta tela: quem avalia é o cliente,
+   pelo link com ?token=. Antes isso valia por acidente (o anon não lia
+   rating_token); agora é explícito, para o dono logado não ganhar o
+   botão de avaliar o próprio serviço. */
+function _lerRelatorioPorId(id) {
+  var publico = function () {
+    return api('/reports?id=eq.' + encodeURIComponent(id) + '&limit=1');
+  };
+  if (!FIELDO.Auth.isLoggedIn()) return publico();
+  return FIELDO.rest.get('/reports?id=eq.' + encodeURIComponent(id) + '&limit=1')
+    .then(function (rows) { return (rows && rows.length) ? rows : publico(); })
+    .catch(function () { return publico(); });
+}
+
+function carregarPorId(id) {
+  Promise.all([
+    _lerRelatorioPorId(id),
+  ]).then(function(results) {
+    var report = results[0][0];
+    if (!report) { renderErro('Relatório não encontrado', 'Este link pode ter expirado ou não existir.'); return; }
+    if (!report.client_name && report.cliente_curto) report.client_name = report.cliente_curto;
+    _reportId = report.id;
+    _token    = null;
+    /* Busca profissional */
+    return api('/professionals?id=eq.' + report.professional_id + '&limit=1').then(function(rows) {
+      var prof = rows[0] || {};
+      _profId = prof.id || null;
+      return _comPix(prof).then(function (prof2) { renderRelatorio(report, prof2); });
+    });
+  }).catch(function() {
+    renderErro('Erro ao carregar', 'Verifique sua conexão e tente novamente.');
+  });
+}
+
+function carregarPorToken(token) {
+  /* v6.1: via RPC. A consulta direta exigia que o `anon` pudesse LER a
+     coluna rating_token — e quem lê a coluna lista todos os tokens e
+     forja avaliação em qualquer relatório público. */
+  FIELDO.Reports.getByToken(token).then(function(report) {
+    if (!report) { renderErro('Link expirado', 'Este link de avaliação não é mais válido.'); return; }
+    _reportId = report.id;
+    _token    = token;
+    return api('/professionals?id=eq.' + report.professional_id + '&limit=1').then(function(profRows) {
+      var prof = profRows[0] || {};
+      _profId = prof.id || null;
+      return _comPix(prof).then(function (prof2) {
+        renderRelatorio(report, prof2);
+        /* v12.40 · sem rolagem automática: ela pulava a página para o meio
+           antes de o cliente ver o que recebeu. Valor e fotos agora vêm
+           no topo, e a avaliação logo depois. */
+      });
+    });
+  }).catch(function() {
+    renderErro('Erro ao carregar', 'Verifique sua conexão e tente novamente.');
+  });
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso + 'T00:00:00').toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  } catch(e) { return iso; }
+}
+/* v6.4: delega para FIELDO.UI.esc — implementação única no projeto.
+   Esta versão escapava & < > " mas NÃO a aspa simples. Em atributo
+   delimitado por aspa simples, um valor com ' escaparia do atributo.
+   O teste de equivalência entre páginas foi o que revelou. */
+function esc(s) { return FIELDO.UI.esc(s); }
+
+/* ── v12.40 · RESUMO DA OBRA PARA O CLIENTE (auditoria UX/UI de 18/11) ──
+   Achado principal: o número grande era "Resta da obra" = combinado −
+   lançado, ou seja, o que AINDA VAI SER FEITO. O cliente lia como "o que
+   falta pagar". Numa obra de R$ 10.000 com R$ 6.000 pagos e R$ 8.500 em
+   etapas, a tela dizia "Resta R$ 1.500" — e ele devia R$ 4.000.
+
+   O que o cliente quer saber, nesta ordem:
+     1. como está a obra (em andamento / concluída);
+     2. quanto já pagou e quanto falta pagar;
+     3. quanto desse "falta" já é devido (etapa feita e não paga);
+     4. pagar esta etapa.
+   O histórico das etapas existe, mas fica recolhido.
+
+   Contas (todas sobre o que obra_resumo devolve):
+     combinado = valor_total            lancado = soma das etapas
+     base      = maior(combinado, lancado)   ← etapa acima do combinado conta
+     pago      = etapas marcadas pagas
+     faltaPagar = base − pago
+     devidoAgora = lancado − pago         (feito e ainda não pago)
+     aFazer     = maior(0, combinado − lancado) */
+function obraCardHTML(ob, r, temPix) {
+  var brl = FIELDO.UI.brl;
+  var combinado = Number(ob.valor_total) || 0;
+  var lancado = Number(ob.lancado) || 0;
+  var pago = Math.min(Number(ob.pago) || 0, Math.max(combinado, lancado));
+  var base = Math.max(combinado, lancado);
+  var faltaPagar = Math.max(0, Math.round((base - pago) * 100) / 100);
+  var devidoAgora = Math.max(0, Math.round((lancado - pago) * 100) / 100);
+  var aFazer = Math.max(0, Math.round((combinado - lancado) * 100) / 100);
+  var acima = lancado > combinado && combinado > 0;
+  var concluida = ob.status === 'concluida';
+  var quitada = faltaPagar === 0 && base > 0;
+  var pc = function (v) { return base > 0 ? Math.max(0, Math.min(100, v / base * 100)) : 0; };
+  var itens = ob.itens || [];
+  var esteItem = itens.filter(function (it) { return it.este; })[0] || null;
+  var estaPaga = r.payment_status === 'pago' || (esteItem && esteItem.pago);
+  var valorEtapa = Number(r.valor) || (esteItem ? Number(esteItem.valor) || 0 : 0);
+
+  var status = concluida
+    ? '<span class="rr-chip rr-chip--ok">Concluída</span>'
+    : '<span class="rr-chip ro-chip-and">Em andamento</span>';
+  var datas = itens.length
+    ? itens.length + (itens.length === 1 ? ' etapa' : ' etapas') +
+      (itens.length > 1 ? ' · ' + esc(_dm(itens[0].data)) + ' a ' + esc(_dm(itens[itens.length - 1].data)) : '')
+    : '';
+
+  var html =
+    '<section class="ro" id="rrValor" aria-labelledby="roTit">' +
+      '<div class="ro-cab"><div class="ro-cab-txt"><h2 class="ro-tit" id="roTit">' + esc(ob.titulo || 'Obra') + '</h2>' +
+        (datas ? '<div class="ro-sub">' + datas + '</div>' : '') + '</div>' + status + '</div>' +
+
+      '<div class="ro-nums">' +
+        '<div><div class="ro-lbl">Já pago</div><div class="ro-num ro-num--pago">' + esc(brl(pago)) + '</div></div>' +
+        '<div><div class="ro-lbl">' + (quitada ? 'Falta pagar' : 'Falta pagar') + '</div>' +
+          '<div class="ro-num' + (quitada ? ' ro-num--zero' : '') + '">' + (quitada ? 'Nada' : esc(brl(faltaPagar))) + '</div></div>' +
+      '</div>' +
+
+      /* barra em 3 partes, sempre na mesma ordem da legenda */
+      '<div class="ro-barra" role="img" aria-label="' +
+        esc('Pago ' + brl(pago) + (devidoAgora ? ', feito e a pagar ' + brl(devidoAgora) : '') + (aFazer ? ', ainda vai ser feito ' + brl(aFazer) : '')) + '">' +
+        '<i class="ro-b-pago" style="width:' + pc(pago) + '%"></i>' +
+        '<i class="ro-b-dev" style="width:' + pc(devidoAgora) + '%"></i>' +
+      '</div>' +
+      '<ul class="ro-leg">' +
+        '<li><span class="ro-pt ro-pt--pago"></span>Pago<b>' + esc(brl(pago)) + '</b></li>' +
+        (devidoAgora ? '<li><span class="ro-pt ro-pt--dev"></span>Feito, a pagar<b>' + esc(brl(devidoAgora)) + '</b></li>' : '') +
+        (aFazer ? '<li><span class="ro-pt"></span>Ainda vai ser feito<b>' + esc(brl(aFazer)) + '</b></li>' : '') +
+      '</ul>' +
+      '<div class="ro-comb">Valor combinado da obra<b>' + esc(brl(combinado)) + '</b></div>' +
+      /* v12.40 · contrato da obra, quando houver */
+      (ob.contrato && ob.contrato.status === 'assinado'
+        ? '<div class="ro-ct"><span aria-hidden="true">✓</span><span>Contrato ' + esc(ob.contrato.numero) + (ob.contrato.versao > 1 ? ' v' + esc(ob.contrato.versao) : '') +
+          ' assinado em ' + esc(_dataCurta(String(ob.contrato.concluido_em || '').slice(0, 10))) +
+          ' · <a href="verificar.html?hash=' + encodeURIComponent(ob.contrato.documento_hash) + '" target="_blank" rel="noopener">Verificar</a></span></div>'
+        : ob.contrato && ob.contrato.status === 'aguardando_cliente'
+        ? '<div class="ro-ct ro-ct--pend"><span aria-hidden="true">…</span><span>Contrato ' + esc(ob.contrato.numero) + ' enviado, aguardando a sua assinatura pelo link que o profissional mandou.</span></div>'
+        : '') +
+      (acima
+        ? '<p class="ro-alerta">As etapas já somam ' + esc(brl(lancado - combinado)) + ' acima do valor combinado. Vale conversar com o profissional sobre esse acréscimo.</p>'
+        : '');
+
+  /* esta etapa: valor, situação e Pix */
+  if (valorEtapa > 0) {
+    html += '<div class="ro-etapa">' +
+      '<div class="ro-etapa-l"><div class="ro-lbl">Esta etapa' + (r.service_date ? ' · ' + esc(_dm(r.service_date)) : '') + '</div>' +
+        '<div class="ro-etapa-v">' + esc(brl(valorEtapa)) + '</div></div>' +
+      (estaPaga ? '<span class="rr-chip rr-chip--ok">✓ Paga</span>' : '<span class="rr-chip ro-chip-dev">A pagar</span>') +
+    '</div>' +
+    (!estaPaga && temPix
+      ? '<button type="button" class="rr-btn rr-btn--pix" id="btnPixRel">Pagar esta etapa com Pix</button>' +
+        '<div class="rr-dica">Copia o código com o valor de ' + esc(brl(valorEtapa)) + '. Cole no app do banco em Pix Copia e Cola.</div>'
+      : '');
+  }
+
+  /* histórico recolhido */
+  if (itens.length > 1) {
+    html += '<details class="ro-etapas"><summary>Ver as ' + itens.length + ' etapas</summary><ul>' +
+      itens.map(function (it) {
+        var v = Number(it.valor) || 0;
+        return '<li' + (it.este ? ' class="ro-este"' : '') + '>' +
+          '<span class="ro-e-data">' + esc(_dm(it.data)) + '</span>' +
+          '<span class="ro-e-tit">' + esc(String(it.titulo || 'Etapa').replace(/[.]+$/, '')) + (it.este ? ' <em>(este relatório)</em>' : '') + '</span>' +
+          '<span class="ro-e-v">' + esc(brl(v)) +
+            '<small class="' + (it.pago ? 'ro-ok' : '') + '">' + (it.pago ? 'paga' : (v > 0 ? 'a pagar' : 'sem valor')) + '</small></span>' +
+        '</li>';
+      }).join('') + '</ul></details>';
+  }
+  return html + '</section>';
+}
+
+/* ── v12.40 · RELATÓRIO COMPACTO (auditoria UX/UI de 18/11) ──────────
+   O relatório do cliente ocupava 2,5 telas de celular e tinha 7 caixas
+   com borda própria, uma dentro da outra (card → avaliação → Pix → selo,
+   e fora dele "precisa de outro serviço" e "feito no Fieldo"). A marca
+   Fieldo aparecia 3 vezes, o título repetia a primeira frase da
+   descrição, e o valor a pagar só vinha depois da avaliação — o cliente
+   rolava duas telas para achar o que tinha de FAZER.
+
+   Regras do novo desenho:
+     1. Uma superfície só. Seções separadas por espaço e uma linha fina,
+        não por caixa. Caixa com fundo só para a ação de pagar.
+     2. Ordem de quem recebe: o que foi feito → quanto é / pagar → fotos
+        → detalhes → avaliar → contratar de novo. Sem rolagem automática.
+     3. Nada técnico para o cliente: o hash do selo vira "Documento com
+        selo de autenticidade · Verificar".
+     4. Marca do Fieldo uma vez no topo e uma linha no fim.
+   O orçamento (renderOrcamento) continua no desenho antigo: as classes
+   novas são todas rr-* e não tocam nas rc-* que ele usa. */
+function _semTituloRepetido(desc, titulo) {
+  var n = function (s) {
+    return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  };
+  var t = n(String(titulo || '').replace(/[….]+$/, ''));
+  var d = String(desc || '').trim();
+  if (!t || !d) return d;
+  /* tira a primeira frase/linha quando ela É o título (o título nasce dela) */
+  var m = /^([^\n]*?[.!?])(\s+|$)|^([^\n]*)(\n|$)/.exec(d);
+  var primeira = m ? (m[1] || m[3] || '') : '';
+  if (primeira && n(primeira).indexOf(t) === 0) {
+    return d.slice(m[0].length).replace(/^\s+/, '');
+  }
+  return d;
+}
+
+function _iniciais(nome) {
+  var p = String(nome || '').trim().split(/\s+/).filter(Boolean);
+  if (!p.length) return 'F';
+  return (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase();
+}
+
+function _dataCurta(iso) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ''));
+  return m ? m[3] + '/' + m[2] + '/' + m[1] : '';
+}
+
+function renderRelatorio(r, prof) {
+  _ultimoReport = r;
+  _ultimoProf   = prof;
+  document.body.classList.add('rr-on');
+
+  /* v7.6: o card de compartilhamento é só para o dono (logado). */
+  var souDono = !!(FIELDO.Auth.getId() && FIELDO.Auth.getId() === prof.id);
+
+  var nomeProf = prof.name || prof.profissao || 'Profissional';
+  var primeiro = String(prof.name || '').split(' ')[0] || 'o profissional';
+  var avatar = prof.logo_url
+    ? '<img src="' + esc(prof.logo_url) + '" alt=""/>'
+    : '<span aria-hidden="true">' + esc(_iniciais(nomeProf)) + '</span>';
+  var cnpjOk = prof.cnpj && prof.cnpj_situacao === 'ATIVA';
+
+  var titulo = FIELDO.Profissoes.tituloServico(r.service_description || r.titulo_publico,
+    r.category_label || FIELDO.Profissoes.rotulo(r.niche || r.category_key));
+  var desc = _semTituloRepetido(r.service_description, titulo);
+
+  /* linha de contexto, como num recibo: data · para quem · categoria */
+  var ctx = [];
+  if (r.service_date) ctx.push(_dataCurta(r.service_date));
+  if (r.client_name) ctx.push('para ' + esc(r.client_name));
+  if (r.category_label || r.niche) ctx.push(esc(r.category_label || r.niche));
+
+  /* ── valor / pagamento ── */
+  var _brcodeRel = null;
+  if (prof.pix_key && prof.include_pix !== false && r.valor && r.payment_status !== 'pago') {
+    var _g = FIELDO.Pix.brcode({
+      key: prof.pix_key, tipo: prof.pix_tipo,
+      name: prof.name || prof.profissao || 'Profissional',
+      city: prof.city || 'Brasil',
+      amount: r.valor,
+      txid: String(r.client_name || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 12) || '***'
+    });
+    if (_g.ok) _brcodeRel = _g.code;
+  }
+  var valorHTML = '';
+  if (r.valor) {
+    var pago = r.payment_status === 'pago';
+    valorHTML =
+      '<section class="rr-valor' + (_brcodeRel ? ' rr-valor--pagar' : '') + '" id="rrValor" aria-label="Valor do serviço">' +
+        '<div class="rr-valor-linha">' +
+          '<div><div class="rr-valor-lbl">' + (pago ? 'Valor do serviço' : (_brcodeRel ? 'Valor a pagar' : 'Valor do serviço')) + '</div>' +
+          '<div class="rr-valor-num">' + esc(FIELDO.UI.brl(r.valor)) + '</div></div>' +
+          (pago ? '<span class="rr-chip rr-chip--ok">✓ Pago</span>' : '') +
+        '</div>' +
+        (_brcodeRel
+          ? '<button type="button" class="rr-btn rr-btn--pix" id="btnPixRel">Copiar código Pix</button>' +
+            '<div class="rr-dica">Cole no app do banco em Pix Copia e Cola: o valor já vai preenchido. ' +
+              '<details class="rr-chave"><summary>Usar a chave</summary><span>' + esc(prof.pix_key) + '</span></details></div>'
+          : '') +
+      '</section>';
+  }
+
+  /* ── fotos: a primeira grande, o resto numa faixa de miniaturas ── */
+  var photos = Array.isArray(r.photos) ? r.photos : [];
+  var fotosHTML = '';
+  if (photos.length) {
+    fotosHTML = '<section class="rr-fotos" aria-label="Fotos do serviço">' +
+      /* v12.40 · toque abre a galeria em tela cheia com zoom (galeria.js).
+         Sem JS o link continua abrindo a foto numa aba. */
+      '<a class="rr-foto-hero" data-galeria="servico" href="' + esc(photos[0]) + '" target="_blank" rel="noopener" aria-label="Ampliar foto 1 de ' + photos.length + '">' +
+        '<img src="' + esc(photos[0]) + '" alt="Foto 1 do serviço"/>' +
+        '<span class="rr-ampliar" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>' +
+          (photos.length > 1 ? 'Toque para ampliar · ' + photos.length + ' fotos' : 'Toque para ampliar') + '</span></a>' +
+      (photos.length > 1
+        ? '<div class="rr-tiras">' + photos.slice(1).map(function (u, i) {
+            return '<a data-galeria="servico" href="' + esc(u) + '" target="_blank" rel="noopener" aria-label="Ampliar foto ' + (i + 2) + ' de ' + photos.length + '"><img src="' + esc(u) + '" loading="lazy" alt="Foto ' + (i + 2) + ' do serviço"/></a>';
+          }).join('') + '</div>'
+        : '') +
+      '</section>';
+  }
+
+  /* ── detalhes ── */
+  var detHTML = '';
+  if (desc) detHTML += '<p class="rr-desc">' + esc(desc).replace(/\n/g, '<br>') + '</p>';
+  if (r.service_location) {
+    detHTML += '<p class="rr-local"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' +
+      '<span>' + esc(r.service_location) + '</span></p>';
+  }
+
+  /* ── avaliação (v6.1: só com token) ── */
+  var jaAvaliado = r.rating_used && r.rating;
+  var podeAvaliar = !!_token;
+  var ratingHTML = '';
+  if (jaAvaliado) {
+    ratingHTML =
+      '<section class="rr-sec rr-aval" id="ratingSection" aria-label="Avaliação">' +
+        '<div class="rr-aval-feita"><span class="rr-estrelas-fixas" aria-label="Nota ' + r.rating + ' de 5">' +
+          '★★★★★'.slice(0, r.rating) + '<i>' + '★★★★★'.slice(0, 5 - r.rating) + '</i></span>' +
+          '<span>Avaliação registrada. Obrigado!</span></div>' +
+        (souDono
+          ? '<button type="button" class="rr-btn rr-btn--sec" id="btnGerarCardRel" onclick="gerarCardRelatorio()">' +
+              'Gerar card com essa avaliação<span class="rc-card-spin" id="spinCardRel"></span></button>' +
+            /* v12.41 · e o vídeo, com a avaliação e o antes e depois */
+            ((r.photos && r.photos.length) ? '<a class="rr-btn rr-btn--sec" style="margin-top:.45rem;text-decoration:none;display:flex;justify-content:center" href="studio.html?r=' + encodeURIComponent(r.id) + '">Criar vídeo deste serviço</a>' : '')
+          : '') +
+      '</section>';
+  } else if (podeAvaliar) {
+    ratingHTML =
+      '<section class="rr-sec rr-aval" id="ratingSection" aria-labelledby="rrAvalTit">' +
+        '<h2 class="rr-h2" id="rrAvalTit">Como foi o serviço?</h2>' +
+        '<div class="rr-estrelas" id="starsRow" role="group" aria-label="Nota de 1 a 5">' +
+          [1, 2, 3, 4, 5].map(function (n) {
+            return '<button type="button" class="rc-star" data-n="' + n + '" aria-pressed="false" aria-label="' + n + (n === 1 ? ' estrela' : ' estrelas') + '" onclick="selecionarEstrela(' + n + ')">★</button>';
+          }).join('') +
+        '</div>' +
+        '<button type="button" class="rc-rating-btn rr-btn" id="btnAvaliar" onclick="enviarAvaliacao()">Enviar avaliação</button>' +
+        '<div class="rc-rating-done" id="ratingDone">Obrigado! Avaliação registrada ✓</div>' +
+      '</section>';
+  }
+
+  /* ── contratar de novo (v10.9) ── */
+  var wa = waLink(prof, 'Olá' + (prof.name ? ' ' + primeiro : '') +
+                        '! Recebi seu relatório e queria falar sobre outro serviço.');
+  var temPerfil = !!(prof.is_public && (prof.slug || prof.id));
+  var hrefPerfil = prof.slug
+    ? '/p/' + encodeURIComponent(prof.slug) + '?src=relatorio'
+    : 'perfil.html?id=' + encodeURIComponent(prof.id) + '&src=relatorio';
+  var denovoHTML = (wa || temPerfil)
+    ? '<section class="rr-sec rr-denovo" aria-label="Contratar de novo">' +
+        (wa ? '<a class="rr-btn rr-btn--wa" id="btnWaRelatorio" target="_blank" rel="noopener" href="' + esc(wa) + '">' +
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 2.11.55 4.1 1.52 5.83L0 24l6.34-1.51A11.96 11.96 0 0 0 12 24c6.63 0 12-5.37 12-12S18.63 0 12 0zm5.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.7.63.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.41-.08-.13-.28-.2-.57-.35z"/></svg>' +
+              'Chamar ' + esc(primeiro) + ' no WhatsApp</a>' : '') +
+        (temPerfil ? '<a class="rr-link" href="' + esc(hrefPerfil) + '">Ver outros trabalhos de ' + esc(primeiro) + ' →</a>' : '') +
+      '</section>'
+    : '';
+
+  document.getElementById('content').innerHTML =
+    '<article class="rr" aria-labelledby="rrTit">' +
+      '<header class="rr-prof">' +
+        '<div class="rr-avatar">' + avatar + '</div>' +
+        '<div class="rr-prof-txt">' +
+          '<div class="rr-prof-nome">' + esc(nomeProf) + '</div>' +
+          '<div class="rr-prof-sub">' + esc(FIELDO.UI.subtitulo(prof)) + '</div>' +
+        '</div>' +
+        (cnpjOk ? '<span class="rr-chip" title="CNPJ ' + esc(FIELDO.Credenciais.fmtCnpj(prof.cnpj)) + ' ativo na Receita Federal">CNPJ ativo</span>' : '') +
+      '</header>' +
+      '<div class="rr-tipo">Relatório de serviço</div>' +
+      '<h1 class="rr-titulo" id="rrTit">' + esc(titulo) + '</h1>' +
+      (ctx.length ? '<p class="rr-ctx">' + ctx.join(' · ') + '</p>' : '') +
+      valorHTML +
+      fotosHTML +
+      (detHTML ? '<section class="rr-sec rr-det" aria-label="O que foi feito">' + detHTML + '</section>' : '') +
+      ratingHTML +
+      denovoHTML +
+      '<footer class="rr-rodape">' +
+        '<div id="sealSection"></div>' +
+        (cnpjOk ? '<p>CNPJ ' + esc(FIELDO.Credenciais.fmtCnpj(prof.cnpj)) + ' · ativo na Receita Federal</p>' : '') +
+        '<p>Feito no <a href="entrar.html?de=relatorio">Fieldo</a> · Profissional? Faça o seu grátis</p>' +
+      '</footer>' +
+    '</article>';
+
+  /* v12.16 · obra: calculado no servidor a cada abertura */
+  /* v12.40 · relatório de obra: o resumo da obra (pago, falta pagar,
+     status) entra NO LUGAR do box de valor, logo abaixo do título —
+     é a primeira coisa que o cliente de obra procura. Sem obra, ou se a
+     RPC falhar, o box de valor da etapa continua lá. */
+  if (FIELDO.Obras && (token || FIELDO.Auth.isLoggedIn())) {
+    FIELDO.Obras.resumo(token ? { token: token } : { reportId: r.id }).then(function (ob) {
+      if (!ob) return;
+      var alvo = document.getElementById('rrValor');
+      var tmp = document.createElement('div');
+      tmp.innerHTML = obraCardHTML(ob, r, !!_brcodeRel);
+      var novo = tmp.firstChild;
+      if (alvo) alvo.parentNode.replaceChild(novo, alvo);
+      else {
+        var ctxEl = document.querySelector('.rr-ctx') || document.querySelector('.rr-titulo');
+        if (ctxEl) ctxEl.parentNode.insertBefore(novo, ctxEl.nextSibling);
+      }
+      var tipo = document.querySelector('.rr-tipo');
+      if (tipo) tipo.textContent = 'Relatório de etapa da obra';
+      var bp = document.getElementById('btnPixRel');
+      if (bp) bp.addEventListener('click', function () { copiarPix(_brcodeRel, bp); });
+    }).catch(function () {});
+  }
+
+  /* v11.0 · selo via RPC selo_por_ref (só hash, tipo e data) */
+  FIELDO.Hashes.getByRef(r.id).then(function (h) {
+    var el = document.getElementById('sealSection');
+    if (!el || !h || !h.hash) return;
+    el.innerHTML = '<p class="rr-selo"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>' +
+      'Documento com selo de autenticidade · <a href="verificar.html?hash=' + encodeURIComponent(h.hash) + '" target="_blank" rel="noopener">Verificar</a></p>' +
+      /* v12.40 · o código inteiro vai no documento: quem salvar ou imprimir
+         em PDF consegue conferir o arquivo na página Verificar. */
+      '<p class="rr-selo-cod">Código de autenticidade: ' + esc(h.hash) + '</p>';
+  }).catch(function () {});
+
+  /* v10.9 · clique no WhatsApp do relatório é contado (fire-and-forget) */
+  var _btnWaRel = document.getElementById('btnWaRelatorio');
+  if (_btnWaRel && prof && prof.id) {
+    _btnWaRel.addEventListener('click', function () {
+      try {
+        fetch(SUPABASE_URL + '/rpc/log_impact_event', {
+          method: 'POST',
+          headers: {
+            'apikey':        FIELDO.config.ANON_KEY,
+            'Authorization': 'Bearer ' + FIELDO.config.ANON_KEY,
+            'Content-Type':  'application/json',
+          },
+          body: JSON.stringify({
+            p_professional_id: prof.id,
+            p_event_type:      'whatsapp_click',
+            p_source:          'relatorio',
+            p_report_id:       r && r.id ? r.id : null,
+          }),
+          keepalive: true,
+        }).catch(function () {});
+      } catch (e) { /* telemetria nunca atrapalha o clique */ }
+    });
+  }
+
+  /* v6.10: listener do Pix registrado depois do innerHTML */
+  var btnPixRel = document.getElementById('btnPixRel');
+  if (btnPixRel) {
+    btnPixRel.addEventListener('click', function () { copiarPix(_brcodeRel, btnPixRel); });
+  }
+}
+
+/* ══ AVALIAÇÃO ══ */
+function selecionarEstrela(n) {
+  _ratingSelected = n;
+  document.querySelectorAll('.rc-star').forEach(function(s, i) {
+    s.classList.toggle('active', i < n);
+    s.setAttribute('aria-pressed', i === n - 1 ? 'true' : 'false');
+  });
+  var btn = document.getElementById('btnAvaliar');
+  if (btn) btn.classList.add('visible');
+}
+
+/* v7.6: gatilho do card de compartilhamento no fim do ciclo
+   relatório→avaliação. Usa os dados DESTE serviço específico (a nota
+   que acabou de vir, a foto deste trabalho) em vez da média geral do
+   perfil — mais honesto ("recebi 5★ nesse serviço") e mais simples,
+   já que esta página não carrega o agregado do perfil inteiro. */
+function gerarCardRelatorio() {
+  if (!_ultimoReport || !_ultimoProf || !window.FIELDO || !FIELDO.ShareCard) {
+    toast('Card indisponível no momento');
+    return;
+  }
+  var btn  = document.getElementById('btnGerarCardRel');
+  var spin = document.getElementById('spinCardRel');
+  btn.disabled = true;
+  if (spin) spin.classList.add('on');
+
+  var fotoDoServico = (_ultimoReport.photos && _ultimoReport.photos[0]) || _ultimoProf.logo_url || null;
+
+  FIELDO.ShareCard.generate({
+    variant:        'avaliacao',
+    professionalId: _ultimoProf.id || null,
+    name:      _ultimoProf.name || _ultimoProf.profissao || 'Profissional',
+    profissao: _ultimoProf.profissao || '',
+    city:      _ultimoProf.city || '',
+    photoUrl:  fotoDoServico,
+    score:     _ultimoReport.rating,
+    avals:     null,
+    slug:      _ultimoProf.slug || ''
+  }).then(function (blob) {
+    return FIELDO.ShareCard.share(blob, 'fieldo-avaliacao.png');
+  }).catch(function (err) {
+    console.error('[ShareCard]', err);
+    toast('Não foi possível gerar o card agora');
+  }).then(function () {
+    btn.disabled = false;
+    if (spin) spin.classList.remove('on');
+  });
+}
+
+function enviarAvaliacao() {
+  if (!_ratingSelected || !_token) return;
+  var btn = document.getElementById('btnAvaliar');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviando…'; }
+
+  FIELDO.Avaliacoes.submit(_token, _ratingSelected, null, null)
+    .then(function() {
+      document.querySelectorAll('.rc-star').forEach(function(s) { s.classList.add('done'); });
+      if (btn) btn.classList.remove('visible');
+      var done = document.getElementById('ratingDone');
+      if (done) done.classList.add('visible');
+      toast('Avaliação enviada! Obrigado ✓');
+    })
+    .catch(function(err) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Tentar novamente'; }
+      if (err && /já foi enviada/.test(err.message)) {
+        toast('Esta avaliação já foi registrada');
+      } else {
+        toast('Erro ao enviar. Tente novamente.');
+      }
+      console.error('[Fieldo] avaliacao:', err);
+    });
+}
+
+/* ══ PIX ══ */
+function copiarPix(texto, btn) {
+  /* Feedback no próprio botão: em obra, com sol na tela, o toast
+     passa despercebido. */
+  function ok() {
+    toast('Código Pix copiado ✓');
+    if (!btn) return;
+    var orig = btn.textContent;
+    btn.textContent = '✓ Copiado! Cole no seu banco';
+    btn.classList.add('rc-pix-cta--ok');
+    setTimeout(function () {
+      btn.textContent = orig;
+      btn.classList.remove('rc-pix-cta--ok');
+    }, 2600);
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(texto)
+      .then(ok)
+      .catch(function () { window.prompt('Copie o código Pix:', texto); });
+    return;
+  }
+
+  /* iOS antigo e WebViews sem Clipboard API */
+  var ta = document.createElement('textarea');
+  ta.value = texto;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  ta.setSelectionRange(0, 99999);
+  try { document.execCommand('copy'); ok(); }
+  catch (e) { window.prompt('Copie o código Pix:', texto); }
+  document.body.removeChild(ta);
+}
+
+/* ══ ERRO ══ */
+function renderErro(titulo, msg) {
+  document.getElementById('content').innerHTML =
+    '<div class="report-card">' +
+      '<div class="rc-body">' +
+        '<div class="state-box">' +
+          '<div class="state-glyph" aria-hidden="true">⬡</div>' +
+          '<div class="state-title">' + esc(titulo) + '</div>' +
+          '<p class="state-sub">' + esc(msg) + '</p>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+/* ══ TOAST ══ */
+function toast(msg) {
+  var el = document.getElementById('r-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 2800);
+}
+
+
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

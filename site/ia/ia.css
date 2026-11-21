@@ -1,0 +1,115 @@
+/* Fieldo · páginas públicas do assistente de IA (/ia/…) — v12.23
+   Mesma família visual da página inicial: papel creme, tinta quase
+   preta, dourado. Só tema claro, como a landing. Sem dependência de
+   fieldo.css (app) nem db.js: página de busca tem que ser leve. */
+:root {
+  --bg: #f0ece3;
+  --sup: #f7f4ee;
+  --ink: #15140f;
+  --muted: #625d57;
+  --line: #ddd5c6;
+  --gold: #856310;
+  --gold-l: #9a7218;
+  --gold-text: #6a4e0e;
+  --gold-bg: rgba(154,114,24,.08);
+  --ok: #2e6a44;
+  --serif: 'Noto Serif', Georgia, serif;
+  --sans: 'Roboto', system-ui, -apple-system, sans-serif;
+  --mono: 'DM Mono', ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { overflow-x: clip; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.65 var(--sans); }
+a { color: var(--gold-text); }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+.ia-wrap { max-width: 1040px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+
+/* topo */
+.ia-nav { border-bottom: 1px solid var(--line); background: var(--bg); position: sticky; top: 0; z-index: 10; }
+.ia-nav .ia-wrap { display: flex; align-items: center; gap: 16px; height: 60px; }
+.ia-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); font: 600 18px var(--serif); }
+.ia-logo svg { width: 22px; height: 22px; }
+.ia-logo b { color: var(--gold-l); font-weight: 600; }
+.ia-nav nav { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+.ia-nav nav a { text-decoration: none; color: var(--ink); font-size: 15px; }
+.ia-nav nav a.ia-nav-cta { background: var(--gold); color: #fff; padding: 9px 14px; border-radius: 8px; font-weight: 500; }
+@media (max-width: 640px) { .ia-nav nav a.so-pc { display: none; } }
+
+/* migalha */
+.ia-migalha { font: 13px var(--mono); color: var(--muted); padding-top: 18px; }
+.ia-migalha a { color: var(--muted); }
+
+/* abertura */
+.ia-hero { display: grid; gap: 28px; padding-block: 22px 38px; align-items: center; }
+@media (min-width: 900px) { .ia-hero.com-ilu { grid-template-columns: 1.1fr .9fr; } }
+.ia-olho { font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold-text); }
+.ia-hero h1 { font: 400 clamp(32px, 6.4vw, 50px)/1.1 var(--serif); letter-spacing: -.015em; margin: 10px 0 14px; text-wrap: balance; }
+.ia-hero h1 em { color: var(--gold-text); }
+.ia-lead { font-size: 19px; color: #3f3b35; max-width: 60ch; margin: 0 0 22px; }
+.ia-ctas { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.ia-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 0 22px; border-radius: 10px; background: var(--gold); color: #fff; font: 500 17px var(--sans); text-decoration: none; }
+.ia-btn.leve { background: transparent; color: var(--gold-text); border: 1.5px solid var(--gold-l); }
+.ia-nota { font-size: 14px; color: var(--muted); margin: 10px 0 0; }
+.ia-ilu svg.rabisco { width: 100%; max-width: 440px; height: auto; display: block; margin: 0 auto; overflow: visible; color: var(--ink); --rab-fundo: var(--bg); --rab-ouro: #9a7218; }
+/* v12.34 · seis profissões que se alternam; escondido até o script sortear (aparece sozinho em 2,5 s se ele não rodar) */
+.ia-ilu svg.rabisco:not(.rab-pronto) > g { animation: rabEspera .01s linear 2.5s both; }
+@keyframes rabEspera { from { opacity: 0; } to { opacity: 1; } }
+.ia-ilu svg.rabisco { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* v12.35 · nas páginas de uma profissão o desenho é fixo: nada para tocar */
+.ia-ilu svg.rabisco[data-fixa] { cursor: default; }
+.ia-ilu svg.rabisco { aspect-ratio: 332 / 260;
+  -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent 99%), linear-gradient(to left, transparent 0, #000 9%);
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+  mask-image: linear-gradient(to bottom, #000 80%, transparent 99%), linear-gradient(to left, transparent 0, #000 9%); }
+
+/* conversa de exemplo */
+.ia-chat { background: var(--sup); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: grid; gap: 12px; max-width: 640px; }
+.ia-chat-tit { font: 500 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.ia-msg { max-width: 88%; padding: 11px 14px; border-radius: 14px; font-size: 16px; line-height: 1.5; }
+.ia-msg.eu { justify-self: end; background: var(--ink); color: #f3eee2; border-bottom-right-radius: 4px; }
+.ia-msg.fiel { justify-self: start; background: #fff; border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.ia-msg .quem { display: block; font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; opacity: .7; margin-bottom: 3px; }
+.ia-acao { justify-self: start; font: 13px var(--mono); color: var(--ok); background: #e3eee6; border-radius: 8px; padding: 6px 10px; }
+.ia-cartao { justify-self: start; width: min(100%, 420px); background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px; font-size: 15px; }
+.ia-cartao h4 { margin: 0 0 8px; font: 600 15px var(--sans); }
+.ia-cartao table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.ia-cartao td { padding: 4px 0; border-bottom: 1px dashed var(--line); }
+.ia-cartao td:last-child { text-align: right; white-space: nowrap; }
+.ia-cartao tr.total td { font-weight: 600; border-bottom: 0; padding-top: 8px; }
+.ia-exemplo { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+
+/* seções */
+.ia-sec { padding-block: 34px; border-top: 1px solid var(--line); }
+.ia-sec h2 { font: 400 clamp(26px, 4.4vw, 34px)/1.2 var(--serif); margin: 0 0 14px; text-wrap: balance; }
+.ia-sec h3 { font: 600 18px var(--sans); margin: 22px 0 6px; }
+.ia-sec p, .ia-sec li { max-width: 68ch; }
+.ia-sec ul, .ia-sec ol { padding-left: 1.2em; }
+.ia-sec li { margin-bottom: 6px; }
+.ia-grade { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-top: 8px; }
+.ia-item { background: var(--sup); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+.ia-item h3 { margin-top: 0; }
+.ia-item p { margin: 0; font-size: 16px; color: #3f3b35; }
+.ia-limite { background: var(--gold-bg); border: 1px solid rgba(154,114,24,.22); border-radius: 12px; padding: 16px; }
+
+/* perguntas */
+.ia-faq details { border-bottom: 1px solid var(--line); padding: 14px 0; }
+.ia-faq summary { cursor: pointer; font: 500 17px var(--sans); list-style: none; }
+.ia-faq summary::-webkit-details-marker { display: none; }
+.ia-faq summary::after { content: "+"; float: right; color: var(--gold-text); font-weight: 400; }
+.ia-faq details[open] summary::after { content: "−"; }
+.ia-faq details p { margin: 10px 0 0; color: #3f3b35; }
+
+/* links relacionados */
+.ia-rel { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.ia-rel a { display: block; text-decoration: none; color: var(--ink); background: var(--sup); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+.ia-rel a span { display: block; font-size: 14px; color: var(--muted); margin-top: 2px; }
+
+/* chamada final */
+.ia-final { text-align: left; padding-block: 40px; border-top: 1px solid var(--line); }
+.ia-final h2 { font: 400 clamp(26px, 4.4vw, 34px)/1.2 var(--serif); margin: 0 0 10px; }
+
+.ia-rodape { border-top: 1px solid var(--line); padding-block: 26px 40px; font-size: 14px; color: var(--muted); }
+.ia-rodape nav { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-bottom: 10px; }
+.ia-rodape a { color: var(--muted); }

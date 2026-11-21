@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#f5f2ec"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Planos · Fieldo</title>
+  <meta name="robots" content="noindex"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-title" content="Fieldo"/>
+  <style>
+    .pl-state{background:var(--paper);border:1px solid var(--border);border-radius:var(--r-l);padding:1rem 1.15rem;margin-bottom:1.1rem}
+    .pl-state-row{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+    .pl-state-label{font-family:var(--mono);font-size:.63rem;letter-spacing:.09em;text-transform:uppercase;color:var(--subtle)}
+    .pl-state-val{font-size:.95rem;font-weight:500;color:var(--text);margin-top:.25rem}
+    .pl-badge{font-family:var(--mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;padding:.28rem .65rem;border-radius:2rem;white-space:nowrap}
+    .pl-badge.neutro{background:var(--paper3);color:var(--muted)}
+    .pl-badge.ok{background:var(--gold-bg);color:var(--gold-d);border:1px solid var(--gold-bd)}
+    .pl-badge.alerta{background:rgba(200,120,40,.1);color:#9a5f14;border:1px solid rgba(200,120,40,.28)}
+    .pl-state-note{font-size:.76rem;color:var(--muted);line-height:1.6;margin-top:.7rem}
+
+    .pl-card{background:var(--paper);border:1px solid var(--border);border-radius:var(--r-l);padding:1.2rem 1.25rem;margin-bottom:.9rem}
+    .pl-card.is-pro{border-color:var(--gold-bd);background:var(--gold-bg)}
+    .pl-head{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;margin-bottom:.2rem}
+    .pl-name{font-family:var(--serif);font-size:1.15rem;font-weight:300;color:var(--ink)}
+    .pl-name em{font-style:italic;color:var(--gold-d)}
+    .pl-price{font-family:var(--mono);font-size:1.05rem;font-weight:500;color:var(--ink);white-space:nowrap}
+    .pl-price small{font-size:.68rem;color:var(--muted);font-weight:400}
+    .pl-econ{font-family:var(--mono);font-size:.63rem;color:var(--gold-d);margin-top:.15rem}
+    .pl-list{list-style:none;padding:0;margin:.85rem 0 0}
+    .pl-list li{position:relative;padding-left:1.3rem;font-size:.82rem;color:var(--text);line-height:1.75}
+    .pl-list li::before{content:'';position:absolute;left:.15rem;top:.62rem;width:5px;height:5px;border-radius:50%;background:var(--gold)}
+    .pl-list.free li::before{background:var(--border2)}
+    .pl-cta{margin-top:1.05rem}
+    .pl-toggle{display:flex;gap:.4rem;background:var(--paper3);border:1px solid var(--border);border-radius:2rem;padding:.25rem;margin-bottom:1.1rem}
+    .pl-toggle button{flex:1;font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:.5rem;border:none;background:none;border-radius:2rem;color:var(--muted);cursor:pointer;transition:all .18s}
+    .pl-toggle button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(14,14,20,.08)}
+    .pl-fine{font-size:.72rem;color:var(--subtle);line-height:1.7;margin-top:1.4rem;text-align:center}
+    .pl-fine a{color:var(--gold-d)}
+  
+    /* v10.0 · alvos de toque. Estes arquivos têm CSS próprio e não
+       herdam as regras do fieldo.css. */
+    .topbar-back{min-height:44px;display:inline-flex;align-items:center;padding:0 8px;margin:0 -8px}
+    .topbar-logo{min-height:44px}
+    input,select{min-height:44px}
+  
+    /* v10.0 · alvo de toque de 44px. Medido nas 22 páginas em 360/390/430 com o overflow-x desligado. */
+    .pl-toggle,.pl-toggle button{min-height:44px}
+    .pl-fine a{min-height:44px;display:inline-flex;align-items:center;padding:0 4px;margin:0 -4px}
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="painel.html" class="topbar-logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      <span class="topbar-brand">Field<em>o</em></span>
+    </a>
+    <a href="painel.html" class="topbar-back" style="font-family:var(--mono);font-size:.7rem;color:rgba(255,255,255,.68);text-decoration:none">Voltar</a>
+  </div>
+</header>
+
+<div class="page">
+
+  <div class="page-eyebrow">Seu plano</div>
+  <h1 class="page-title">Ilimitado quando<br>o trabalho <em>apertar</em></h1>
+
+  <!-- Estado atual: primeira coisa da página de propósito. Quem já é Pro
+       não precisa ler uma página de venda — precisa ver que está em dia. -->
+  <div class="pl-state" id="estadoBox" hidden>
+    <div class="pl-state-row">
+      <div>
+        <div class="pl-state-label">Situação</div>
+        <div class="pl-state-val" id="estadoVal">—</div>
+      </div>
+      <span class="pl-badge neutro" id="estadoBadge">—</span>
+    </div>
+    <div class="pl-state-note" id="estadoNota" hidden></div>
+    <div class="pl-cta" id="estadoCta" hidden>
+      <a class="btn btn--primary btn--full" id="btnFatura" href="#" target="_blank" rel="noopener">
+        Pagar agora
+      </a>
+    </div>
+    <!-- v10.9 · só aparece quando há recorrência de verdade para cancelar
+         (status ativa ou atrasada). Sem isto a página prometia cancelamento
+         sem entregar nenhum jeito de fazer — Patch 3 de PATCHES-asaas.md. -->
+    <div class="pl-cta" id="estadoCancelWrap" hidden style="margin-top:.5rem">
+      <button type="button" class="btn btn--full" id="btnCancelar" onclick="cancelarAssinatura()"
+              style="background:none;border:1px solid var(--border2);color:var(--muted)">
+        Cancelar assinatura
+      </button>
+    </div>
+    <!-- v12.36 · direito de arrependimento (CDC art. 49; Decreto 7.962, art. 5º):
+         pedido pela mesma ferramenta em que a pessoa contratou. Aparece logo
+         depois de cancelar. O pedido entra em pedidos_titular (tipo
+         'arrependimento') e o reembolso é feito no painel do Asaas. -->
+    <div id="arrepBox" hidden style="margin-top:.8rem;padding:.9rem;border:1px solid var(--border2);border-radius:var(--r);font-size:.9rem;line-height:1.5">
+      <p style="margin:0 0 .6rem">Assinou há 7 dias ou menos? Você tem direito a receber de volta todo o valor pago.</p>
+      <button type="button" class="btn btn--full" id="btnArrep" onclick="pedirReembolso()">Pedir reembolso integral</button>
+      <p id="arrepMsg" role="status" aria-live="polite" style="margin:.6rem 0 0"></p>
+    </div>
+  </div>
+
+  <div class="pl-toggle" role="group" aria-label="Ciclo de cobrança">
+    <button type="button" class="on" id="tgMensal" onclick="escolherCiclo('mensal')" aria-pressed="true">Mensal</button>
+    <button type="button" id="tgAnual" onclick="escolherCiclo('anual')" aria-pressed="false">Anual · 2 meses grátis</button>
+  </div>
+
+  <!-- ── GRATUITO ── -->
+  <div class="pl-card">
+    <div class="pl-head">
+      <div class="pl-name">Gratuito</div>
+      <div class="pl-price">R$ 0</div>
+    </div>
+    <ul class="pl-list free">
+      <li>Perfil público que o Google pode encontrar</li>
+      <li>Até 5 relatórios de serviço por mês</li>
+      <li>Avaliações verificadas de cliente</li>
+      <li>PIX Copia e Cola no relatório</li>
+      <li>Registra serviço sem sinal, com o app aberto</li>
+    </ul>
+  </div>
+
+  <!-- ── PRO ── -->
+  <div class="pl-card is-pro">
+    <div class="pl-head">
+      <div class="pl-name"><em>Pro</em></div>
+      <div style="text-align:right">
+        <div class="pl-price" id="proPreco">R$ 35<small>/mês</small></div>
+        <div class="pl-econ" id="proEcon" hidden>equivale a R$ 29/mês</div>
+      </div>
+    </div>
+    <ul class="pl-list">
+      <li><strong>Relatórios ilimitados</strong> — sem teto mensal</li>
+      <li>Orçamentos ilimitados com aprovação do cliente</li>
+      <li>Temas visuais no relatório e no orçamento</li>
+      <li>Gestão de equipe e diárias (Contratos)</li>
+      <li>Card de divulgação sem marca do Fieldo</li>
+    </ul>
+    <!-- CPF/CNPJ: o Asaas exige para emitir a cobrança (obrigação fiscal
+         dele). Só aparece na hora de assinar, e o Fieldo NÃO guarda esse
+         número — ele vai direto pro Asaas. Ver comentário na Edge Function. -->
+    <div class="pl-cta" id="docWrap" hidden>
+      <label for="inpDoc" class="pl-state-label" style="display:block;margin-bottom:.35rem">
+        CPF ou CNPJ
+      </label>
+      <input class="field-input" id="inpDoc" type="text" inputmode="numeric"
+             autocomplete="off" placeholder="000.000.000-00"
+             aria-describedby="docHint" oninput="mascararDoc(this)"/>
+      <div id="docHint" style="font-size:.72rem;color:var(--subtle);line-height:1.6;margin-top:.4rem">
+        Exigido pelo Asaas para emitir a cobrança. O Fieldo não guarda seu documento.
+      </div>
+    </div>
+
+    <div class="pl-cta">
+      <button class="btn btn--primary btn--full btn--lg" id="btnAssinar" onclick="assinar()">
+        <span id="btnAssinarTxt">Assinar o Pro</span>
+        <span class="spin" id="spinAssinar"></span>
+      </button>
+    </div>
+  </div>
+
+  <p class="pl-fine">
+    Pix, boleto ou cartão, você escolhe na hora de pagar. O preço mostrado é o final: sem taxa de adesão nem cobrança extra.<br>
+    A assinatura renova sozinha a cada mês (ou a cada ano, no anual), pelo mesmo valor, até você cancelar. A fatura de cada renovação aparece aqui.<br>
+    Cancela quando quiser, aqui mesmo, sem multa. O plano vale até o fim do período pago.<br>
+    Desistiu em até 7 dias depois de assinar? Você recebe tudo de volta: cancele aqui e toque em "Pedir reembolso integral".<br>
+    Tem um código de ativação? <a href="ativar.html">Ative por aqui</a>.<br>
+    Ao assinar você concorda com os <a href="/termos#t-planos">Termos de Uso</a>.
+  </p>
+  <div class="pub-pe-legal" data-legal="rodape" style="margin:1.2rem 0 2rem"></div>
+
+</div>
+
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="db.js"></script>
+<script>
+/* v8.1 · Página de planos.
+
+   Duas fontes de verdade, deliberadamente:
+   - O ESTADO (sou pro? devo algo?) vem do servidor, sem cache. Plano é
+     dinheiro; mostrar "Pro" para quem parou de pagar é pior que uma
+     requisição a mais.
+   - O PREÇO exibido aqui é vitrine. Quem cobra é a Edge Function, que
+     tem a tabela de preços própria. Se divergirem, o servidor ganha —
+     e é por isso que o botão não manda valor nenhum. */
+var _ciclo = 'mensal';
+
+var PRECOS = {
+  mensal: { label: 'R$ 35<small>/mês</small>',  econ: null },
+  anual:  { label: 'R$ 348<small>/ano</small>', econ: 'equivale a R$ 29/mês' },
+};
+
+function esc(s) { return FIELDO.UI.esc(s); }
+function el(id) { return document.getElementById(id); }
+
+function escolherCiclo(c) {
+  _ciclo = c;
+  var m = el('tgMensal'), a = el('tgAnual');
+  m.classList.toggle('on', c === 'mensal');
+  a.classList.toggle('on', c === 'anual');
+  m.setAttribute('aria-pressed', c === 'mensal' ? 'true' : 'false');
+  a.setAttribute('aria-pressed', c === 'anual'  ? 'true' : 'false');
+
+  el('proPreco').innerHTML = PRECOS[c].label;
+  var econ = el('proEcon');
+  if (PRECOS[c].econ) { econ.textContent = PRECOS[c].econ; econ.hidden = false; }
+  else                { econ.hidden = true; }
+}
+
+function setLoading(on) {
+  var b = el('btnAssinar'), s = el('spinAssinar');
+  if (b) b.disabled = on;
+  if (s) s.classList.toggle('on', on);
+}
+
+/* ── estado atual ─────────────────────────────────────────── */
+function carregarEstado() {
+  if (!FIELDO.Auth.isLoggedIn()) return;   /* visitante vê só a vitrine */
+
+  FIELDO.Assinatura.status().then(function (a) {
+    var box = el('estadoBox');
+    if (!a) return;                        /* nunca assinou: nada a mostrar */
+
+    var r = FIELDO.Assinatura.rotulo(a);
+    box.hidden = false;
+
+    var ehPro = a.plano === 'pro';
+    el('estadoVal').textContent = ehPro ? 'Fieldo Pro' : 'Fieldo Gratuito';
+
+    /* v10.8 · a mesma mensagem aparecia duas vezes, lado a lado.
+       O valor e o selo ficam na MESMA linha e diziam a mesma coisa:
+
+         "Fieldo Gratuito"  [Plano gratuito]
+         "Fieldo Pro"       [Pro ativo]
+
+       Um selo que repete o rótulo ao lado não informa nada — só ocupa
+       o lugar onde deveria estar a informação que falta. Agora o selo
+       só aparece quando diz algo que o valor NÃO diz: pagamento
+       atrasado ou aguardando. Nos outros casos, sai da tela. */
+    var selo = el('estadoBadge');
+    var seloUtil = (a.status === 'atrasada' || a.status === 'pendente');
+    if (seloUtil) {
+      selo.textContent = r.texto;
+      selo.className = 'pl-badge ' + r.tom;
+      selo.hidden = false;
+    } else {
+      selo.hidden = true;
+    }
+
+    /* Data de expiração: usa o formatador do db.js para não repetir aqui
+       o bug de fuso que já existe em datas date-only.
+
+       v10.8 · a nota também repetia. Com status 'atrasada' o selo dizia
+       "Pagamento atrasado" e a linha de baixo abria com "Seu pagamento
+       está atrasado" — a terceira vez que a tela contava o mesmo fato.
+       A nota agora responde só o que o selo não responde: até quando o
+       Pro vale, e o que acontece depois. */
+    if (ehPro && a.plano_expira_em) {
+      var nota = el('estadoNota');
+      nota.textContent = (a.status === 'atrasada')
+        ? 'O Pro vale até ' + FIELDO.UI.fmtDate(a.plano_expira_em) +
+          '. Depois disso volta para o gratuito.'
+        : 'Renova em ' + FIELDO.UI.fmtDate(a.plano_expira_em) + '.';
+      nota.hidden = false;
+    }
+
+    /* Fatura em aberto: o caminho mais curto para o dinheiro entrar. */
+    if (a.invoice_url && (a.status === 'pendente' || a.status === 'atrasada')) {
+      el('btnFatura').href = a.invoice_url;
+      el('estadoCta').hidden = false;
+      el('btnAssinarTxt').textContent = 'Ver fatura em aberto';
+    } else if (a.status === 'ativa') {
+      el('btnAssinar').disabled = true;
+      el('btnAssinarTxt').textContent = 'Você já é Pro';
+    }
+
+    /* v10.9 · só existe algo para cancelar quando há recorrência viva no
+       Asaas — 'ativa', 'atrasada' ou 'pendente' (todas têm
+       asaas_subscription_id). 'cancelada', ou nunca ter assinado, não
+       mostram o botão: não há nada para desligar. */
+    var temRecorrencia = a.status === 'ativa' || a.status === 'atrasada' || a.status === 'pendente';
+    el('estadoCancelWrap').hidden = !temRecorrencia;
+
+    /* v12.36 · quem já cancelou e volta à página continua vendo o pedido
+       de reembolso. Quem confere se está dentro dos 7 dias é quem
+       atende o pedido, com a data do pagamento no Asaas. */
+    if (a.status === 'cancelada') { var ab = el('arrepBox'); if (ab) ab.hidden = false; }
+  });
+}
+
+/* ── v12.36 · direito de arrependimento ───────────────────── */
+function pedirReembolso() {
+  var b = el('btnArrep'), m = el('arrepMsg');
+  b.disabled = true;
+  m.textContent = 'Registrando…';
+  FIELDO.Titular.pedir('arrependimento', null,
+    'Cancelou pelo app em ' + new Date().toLocaleDateString('pt-BR') + ' e pede reembolso integral (CDC art. 49).')
+    .then(function (r) {
+      m.textContent = 'Pedido nº ' + (r && r.numero) + ' registrado. O reembolso é feito pelo mesmo meio do pagamento, e a gente confirma com você pelo WhatsApp.';
+    })
+    .catch(function (e) {
+      console.error('[planos] pedido de reembolso:', e);
+      b.disabled = false;
+      var L = window.FIELDO_LEGAL || {};
+      m.innerHTML = 'Não consegui registrar agora. Peça pelo e-mail <a href="mailto:' + (L.emailPrivacidade || 'privacidade@fieldo-zelo.com.br') + '">' + (L.emailPrivacidade || 'privacidade@fieldo-zelo.com.br') + '</a> ou pelo WhatsApp: o pedido vale do mesmo jeito.';
+    });
+}
+
+/* ── cancelar ─────────────────────────────────────────────── */
+/* Patch 3 de supabase/PATCHES-asaas.md. A página promete "cancela quando
+   quiser, sem multa" — este é o botão que cumpre isso. Confirmação nativa,
+   igual ao resto do app (contratos.html, painel.html): é uma ação que
+   desliga cobrança futura de verdade, merece uma pausa antes de agir. */
+function cancelarAssinatura() {
+  if (!window.confirm(
+    'Cancelar sua assinatura do Pro?\n\n' +
+    'Você continua Pro até o fim do período já pago — depois disso ' +
+    'volta para o plano gratuito. Nada é cobrado de novo.'
+  )) return;
+
+  var b = el('btnCancelar');
+  b.disabled = true;
+  b.textContent = 'Cancelando…';
+
+  FIELDO.Assinatura.cancelar().then(function (res) {
+    if (res && res.ok) {
+      var ate = res.plano_vale_ate ? FIELDO.UI.fmtDate(res.plano_vale_ate) : null;
+      FIELDO.UI.toast(ate
+        ? 'Assinatura cancelada. Seu Pro vale até ' + ate + '.'
+        : 'Assinatura cancelada.');
+      /* v12.36 · logo depois de cancelar, oferece o arrependimento */
+      var ab = el('arrepBox'); if (ab) ab.hidden = false;
+      return carregarEstado();
+    }
+
+    b.disabled = false;
+    b.textContent = 'Cancelar assinatura';
+
+    var msgs = {
+      unauthenticated:       'Sua sessão expirou. Entre de novo.',
+      nenhuma_assinatura:    'Não encontrei nenhuma assinatura para cancelar.',
+      falha_no_provedor:     'Não consegui cancelar agora — o provedor de pagamento não respondeu. Tente de novo em instantes.',
+      ambiente_nao_configurado: 'O cancelamento está fora do ar por configuração nossa, não sua. Fale com o suporte.',
+      server_misconfigured:     'O cancelamento está fora do ar por configuração nossa, não sua. Fale com o suporte.',
+      network:                'Sem conexão. Tente de novo.',
+    };
+    if (res && res.error) console.error('[planos] cancelamento falhou:', res.error, res.detail || '');
+    FIELDO.UI.toast(msgs[res && res.error] || 'Não foi possível cancelar agora. Fale com o suporte.');
+  });
+}
+
+/* ── documento ────────────────────────────────────────────── */
+/* Máscara conforme digita: até 11 dígitos vira CPF, acima vira CNPJ.
+   Só cosmético — quem valida de verdade é o servidor. */
+function mascararDoc(inp) {
+  var d = (inp.value || '').replace(/\D/g, '').slice(0, 14);
+  inp.value = d.length <= 11
+    ? d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+    : d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+       .replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+
+/* ── assinar ──────────────────────────────────────────────── */
+function assinar() {
+  if (!FIELDO.Auth.isLoggedIn()) {
+    FIELDO.UI.toast('Crie seu perfil primeiro');
+    setTimeout(function () { window.location.href = 'entrar.html'; }, 900);
+    return;
+  }
+
+  /* Primeiro toque revela o campo em vez de já cobrar. Pedir documento
+     antes da pessoa decidir assinar espanta — e ela ainda nem sabia que
+     ia precisar. */
+  var wrap = el('docWrap'), inp = el('inpDoc');
+  if (wrap.hidden) {
+    wrap.hidden = false;
+    inp.focus();
+    el('btnAssinarTxt').textContent = 'Continuar para o pagamento';
+    return;
+  }
+
+  var doc = (inp.value || '').replace(/\D/g, '');
+  if (doc.length !== 11 && doc.length !== 14) {
+    FIELDO.UI.toast('Digite um CPF (11 dígitos) ou CNPJ (14)');
+    inp.focus();
+    return;
+  }
+
+  setLoading(true);
+  try { FIELDO.Analytics.track('checkout_start', { ciclo: _ciclo }); } catch (e) {}
+  FIELDO.Assinatura.criar(_ciclo, doc).then(function (res) {
+    setLoading(false);
+
+    if (res && res.ja_ativa) {
+      FIELDO.UI.toast('Você já tem uma assinatura ativa');
+      return carregarEstado();
+    }
+    if (res && res.ok && res.invoice_url) {
+      /* Abre a fatura do Asaas. Sem cobrar dentro do app de propósito:
+         guardar dado de cartão aqui só criaria responsabilidade que não
+         precisamos ter. */
+      window.location.href = res.invoice_url;
+      return;
+    }
+
+    /* v10.8 · o caso mais perigoso, e que não estava tratado:
+       res.ok === true SEM invoice_url. A assinatura FOI criada no Asaas
+       e a fatura não voltou. Caía no genérico "não foi possível abrir o
+       pagamento. Nada foi cobrado" — uma frase falsa, porque existe
+       cobrança. E na tentativa seguinte a linha em `assinaturas` tem
+       status 'pendente' com invoice_url nulo, que não casa com o ramo de
+       reaproveitamento da Edge Function: cria uma SEGUNDA assinatura.
+       O caminho para o cliente receber duas cobranças começava aqui. */
+    if (res && res.ok && !res.invoice_url) {
+      console.error('[planos] assinatura criada sem invoice_url', res);
+      FIELDO.UI.toast('Sua assinatura foi criada, mas a fatura não abriu. ' +
+                      'NÃO tente de novo — fale com o suporte para receber o link.');
+      return carregarEstado();
+    }
+
+    /* Falha alto — nada de catch vazio. O usuário precisa saber que não
+       foi cobrado, senão paga duas vezes por insegurança. */
+    var FORA_DO_AR = 'O pagamento está fora do ar por configuração nossa, ' +
+                     'não sua. Nada foi cobrado — avise o suporte.';
+    var msgs = {
+      unauthenticated:      'Sua sessão expirou. Entre de novo.',
+      plano_invalido:       'Plano inválido. Recarregue a página.',
+      documento_invalido:   'CPF ou CNPJ inválido. Confira os números.',
+      perfil_nao_encontrado:'Complete seu perfil antes de assinar.',
+      network:              'Sem conexão. Nada foi cobrado — tente de novo.',
+      /* v10.8 · os três erros de servidor não tinham mensagem e caíam no
+         genérico. São exatamente os que o profissional vê hoje quando o
+         ASAAS_ENV ou as chaves não estão configurados nos secrets — e a
+         mensagem genérica manda ele tentar de novo para sempre, sem
+         nunca dizer que o problema não é dele. */
+      /* Os dois erros são a mesma coisa para quem está na tela — falta
+         de configuração no servidor — e por isso dizem a mesma frase.
+         Numa constante só para não divergirem numa edição futura. */
+      ambiente_nao_configurado: FORA_DO_AR,
+      server_misconfigured:     FORA_DO_AR,
+      server_error:             'O provedor de pagamento recusou a operação. Nada foi cobrado.',
+      /* Já preparado para o Patch 1 de supabase/PATCHES-asaas.md, que
+         cancela a assinatura anterior antes de criar outra. Enquanto o
+         patch não for aplicado, este erro nunca chega — e ter a
+         mensagem pronta evita que ele caia no genérico no dia em que
+         chegar. */
+      assinatura_anterior_ativa: 'Não consegui encerrar sua assinatura anterior. ' +
+                                 'Nada foi cobrado — fale com o suporte.',
+    };
+    if (res && res.error) console.error('[planos] assinatura falhou:', res.error, res.detail || '');
+    FIELDO.UI.toast(msgs[res && res.error] || 'Não foi possível abrir o pagamento. Nada foi cobrado.');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  escolherCiclo('mensal');
+  carregarEstado();
+});
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>
