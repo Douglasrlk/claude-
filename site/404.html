@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Página não encontrada · Fieldo</title>
+<meta name="robots" content="noindex"/>
+<link rel="icon" href="/icons/icon-192.png"/>
+<style>
+  /* v12.44 · página 404 própria. Antes o Netlify mostrava "Page not found"
+     em inglês, sem marca e sem caminho de volta. Autossuficiente de
+     propósito: não depende de fieldo.css nem de fonte externa. */
+  :root { --ink:#0e0e14; --paper:#f5f2ec; --gold:#9a7218; --line:rgba(14,14,20,.12); }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:400 17px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:56px 20px 48px; }
+  .marca { display:inline-flex; align-items:center; gap:10px; color:var(--ink); text-decoration:none; font:500 22px/1 Georgia,serif; }
+  .marca svg { width:28px; height:28px; }
+  .marca em { color:var(--gold); }
+  .cod { margin:48px 0 6px; font:500 13px/1 ui-monospace,Menlo,monospace; letter-spacing:.2em; color:var(--gold); }
+  h1 { margin:0 0 12px; font:500 clamp(28px,7vw,40px)/1.12 Georgia,serif; letter-spacing:-.01em; }
+  p { margin:0 0 28px; color:rgba(14,14,20,.72); }
+  ul { list-style:none; margin:0; padding:0; border-top:1px solid var(--line); }
+  li a { display:flex; justify-content:space-between; gap:12px; padding:16px 2px; border-bottom:1px solid var(--line); color:var(--ink); text-decoration:none; font-weight:600; }
+  li a span { color:rgba(14,14,20,.55); font-weight:400; }
+  li a:hover, li a:focus-visible { color:var(--gold); }
+</style>
+</head>
+<body>
+<main>
+  <a class="marca" href="/" aria-label="Fieldo, página inicial">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg>
+    <span>Field<em>o</em></span>
+  </a>
+  <div class="cod">ERRO 404</div>
+  <h1>Esta página não existe ou mudou de endereço.</h1>
+  <p>Se você recebeu este link de um profissional, peça a ele o link novo do perfil. Ou siga por aqui:</p>
+  <ul>
+    <li><a href="/explorar">Ver profissionais <span>→</span></a></li>
+    <li><a href="/litoral-norte">Profissionais por cidade <span>→</span></a></li>
+    <li><a href="/como-contratar">Como contratar <span>→</span></a></li>
+    <li><a href="/">Sou profissional: criar perfil grátis <span>→</span></a></li>
+  </ul>
+</main>
+</body>
+</html>

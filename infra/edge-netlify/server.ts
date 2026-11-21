@@ -17,10 +17,16 @@ const LOCAL_API = Deno.env.get("LOCAL_API_INTERNAL") ?? "http://gateway:8000";
 const STATIC_ORIGIN = Deno.env.get("STATIC_ORIGIN") ?? "http://gateway:8081";
 const LOCAL_ANON = Deno.env.get("ANON_KEY") ?? "";
 const PORT = Number(Deno.env.get("PORT") ?? "8787");
+const SITE_HOSTS = new Set(["localhost:8080", "127.0.0.1:8080", new URL(Deno.env.get("SITE_URL") ?? "http://localhost:8080").host]);
 
 const fetchOriginal = globalThis.fetch.bind(globalThis);
 globalThis.fetch = (input: Request | URL | string, init?: RequestInit) => {
   const req = input instanceof Request ? input : new Request(String(input), init);
+  /* fetch para o próprio site (ex.: lista-local buscando /404.html): na Netlify
+     é o domínio público; aqui o "público" é localhost:8080, que dentro do
+     contêiner não existe. Vai para o gateway estático. */
+  const alvo = new URL(req.url);
+  if (SITE_HOSTS.has(alvo.host)) return fetchOriginal(new Request(STATIC_ORIGIN + alvo.pathname + alvo.search, req));
   if (!req.url.startsWith(PROD_URL)) return fetchOriginal(req);
   const headers = new Headers(req.headers);
   if (headers.has("apikey")) headers.set("apikey", LOCAL_ANON);

@@ -26,7 +26,7 @@ pagamento são combinados direto entre cliente e profissional.
   passo a passo, o que cada informação do perfil quer dizer e perguntas
   frequentes de quem contrata.
 - Profissão + cidade — padrão de URL `https://fieldo-zelo.com.br/{profissao}-em-{cidade}`,
-  por exemplo `https://fieldo-zelo.com.br/eletricista-em-ubatuba`: lista os
+  por exemplo `https://fieldo-zelo.com.br/empreiteiro-em-caraguatatuba`: lista os
   profissionais de uma profissão que moram ou atendem a cidade. A página só
   existe quando há profissionais reais; com 1 profissional ela redireciona
   para o perfil dele, com 2 existe mas não é indexada, a partir de 3 é
@@ -41,7 +41,7 @@ pagamento são combinados direto entre cliente e profissional.
 - [Explorar profissionais](https://fieldo-zelo.com.br/explorar): todos os
   perfis públicos, com filtro por profissão.
 - Vitrine de locadora — padrão de URL `https://fieldo-zelo.com.br/l/{slug}`:
-  equipamentos para alugar (com preço por dia, semana ou mês, quando a
+  equipamentos para alugar (com preço por dia, semana, quinzena ou mês, quando a
   locadora informa) e contato da locadora.
 
 ## Como interpretar os dados de um perfil
@@ -79,6 +79,16 @@ pagamento são combinados direto entre cliente e profissional.
   [pedreiro](https://fieldo-zelo.com.br/ia/pedreiro/),
   [pintor](https://fieldo-zelo.com.br/ia/pintor/).
 - [Criar perfil](https://fieldo-zelo.com.br/entrar.html): cadastro grátis.
+
+## Planos e preços (para o profissional)
+
+- Grátis: R$ 0, sem cartão. Perfil público, orçamento, relatório com Pix e
+  avaliações, com até 5 relatórios de serviço por mês.
+- Pro: R$ 35 por mês, ou R$ 348 por ano (equivale a R$ 29 por mês).
+  Relatórios e orçamentos sem limite, contratos e diárias da equipe, temas
+  visuais e card de divulgação sem a marca do Fieldo. Pix, boleto ou cartão;
+  cancela quando quiser; reembolso integral se desistir em até 7 dias.
+- Para quem contrata o Fieldo é sempre grátis: não há cadastro nem taxa.
 
 ## Sobre o Fieldo
 

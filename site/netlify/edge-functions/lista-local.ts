@@ -737,10 +737,14 @@ export default async (request: Request, context: Context) => {
   /* 0 → não existe. 404 de verdade, não página vazia: página vazia
      indexada é pior que página nenhuma. */
   if (profs.length === 0) {
-    return new Response("Não encontrado", {
+    /* v12.44 · a mesma página 404 do site (com caminho de volta), não
+       "Não encontrado" em texto puro. Se ela não vier, cai no texto. */
+    const pagina404 = await fetch(new URL("/404.html", url.origin))
+      .then((r) => (r.ok ? r.text() : null)).catch(() => null);
+    return new Response(pagina404 ?? "Não encontrado", {
       status: 404,
       headers: {
-        "Content-Type": "text/plain; charset=utf-8",
+        "Content-Type": pagina404 ? "text/html; charset=utf-8" : "text/plain; charset=utf-8",
         "Netlify-CDN-Cache-Control": "public, s-maxage=60",
       },
     });

@@ -230,57 +230,71 @@ function jsonLd(loc: Locadora, equips: Equipamento[], canonical: string, wa: str
   if (wa) negocio.telephone = "+" + wa;
   if (loc.logo_url && /^https:\/\//.test(loc.logo_url)) negocio.image = loc.logo_url;
 
-  /* v12.3b · Search Console, 28/10: "Snippets do produto — 1 item
-   * inválido, erro crítico" em Betoneira 400l.
+  /* v12.44 · Search Console, 20/11: "Listagens do comerciante — o campo
+   * hasMerchantReturnPolicy não foi encontrado (em offers)".
    *
-   * A v12.2 montava Offer → itemOffered: Product. O Google lê o Product
-   * aninhado como item próprio e exige que ELE tenha offers, review ou
-   * aggregateRating; o preço estava um nível acima, na Offer. Agora a
-   * estrutura é a que o Google documenta: cada equipamento é um Product
-   * com a Offer dentro (preço da diária), ligado à locadora por
-   * offeredBy. Equipamento sem preço não entra: Product sem offers é
-   * exatamente o erro que motivou esta mudança.
+   * Histórico: a v12.2 usava Offer → itemOffered: Product e levou erro
+   * crítico de "Snippets do produto"; a v12.3b passou a Product com Offer
+   * dentro. Isso calou o erro, mas declarou a vitrine como LOJA: Product +
+   * Offer com preço é o que o Google chama de listagem de comerciante,
+   * "página onde o cliente compra o produto". Daí o pedido de política de
+   * devolução e de frete — que não existem num aluguel. Pior: a diária
+   * (R$ 179) podia aparecer na aba Shopping como preço de VENDA da
+   * betoneira.
    *
-   * availability fica de fora de propósito: a vitrine não sabe se o
-   * equipamento está livre hoje — isso é combinado no WhatsApp. */
-  const produtos = equips
+   * Inventar uma política de devolução para calar o aviso seria marcação
+   * falsa. O que a página oferece é um serviço de locação, e é assim que
+   * fica: cada equipamento é uma Offer de LOCAÇÃO (businessFunction
+   * LeaseOut, o termo do schema.org para alugar) cujo itemOffered é um
+   * Service, dentro do catálogo da locadora. Todos os períodos que a
+   * locadora cadastrou entram como UnitPriceSpecification. Sem Product,
+   * o Google não trata a página como loja (sai das listagens de
+   * comerciante e dos snippets de produto) e o dado continua legível
+   * para busca e para assistentes de IA.
+   *
+   * availability segue de fora: a vitrine não sabe se o equipamento está
+   * livre hoje — isso é combinado no WhatsApp. */
+  const ofertas = equips
     .map((e) => {
-      /* v12.42 · o menor período cadastrado (diária, senão semana, quinzena, mês) */
-      const p = precosDe(e)[0];
-      if (!p) return null;
-      const dia = p.valor;
+      const precos = precosDe(e);
+      if (!precos.length) return null;
       const urlItem = `${canonical}#${encodeURIComponent(e.slug || e.id)}`;
-      const produto: Record<string, unknown> = {
-        "@type": "Product",
-        "@id": urlItem,
-        name: [e.nome, marcaModelo(e)].filter(Boolean).join(" · "),
-        url: urlItem,
-        offers: {
-          "@type": "Offer",
-          url: urlItem,
-          price: dia.toFixed(2),
-          priceCurrency: "BRL",
-          priceSpecification: {
-            "@type": "UnitPriceSpecification",
-            price: dia.toFixed(2),
-            priceCurrency: "BRL",
-            ...(p.unitCode ? { unitCode: p.unitCode } : {}),
-            unitText: p.unitText,
-          },
-          offeredBy: { "@id": idLocadora },
-        },
+      const nome = [e.nome, marcaModelo(e)].filter(Boolean).join(" · ");
+      const servico: Record<string, unknown> = {
+        "@type": "Service",
+        name: `Aluguel de ${nome}`,
+        serviceType: "Aluguel de equipamento",
+        provider: { "@id": idLocadora },
       };
-      if (e.descricao) produto.description = e.descricao;
-      if ((e.marca || "").trim()) produto.brand = { "@type": "Brand", name: e.marca!.trim() };
-      if ((e.modelo || "").trim()) produto.model = e.modelo!.trim();
-      if (rotuloCategoria(e)) produto.category = rotuloCategoria(e);
+      if (e.descricao) servico.description = e.descricao;
+      if (rotuloCategoria(e)) servico.category = rotuloCategoria(e);
+      if (cidade) servico.areaServed = cidade;
       const fotos = fotosValidas(e.fotos);
-      if (fotos.length) produto.image = fotos;
-      return produto;
+      if (fotos.length) servico.image = fotos;
+      return {
+        "@type": "Offer",
+        "@id": urlItem,
+        url: urlItem,
+        name: nome,
+        businessFunction: "http://purl.org/goodrelations/v1#LeaseOut",
+        priceCurrency: "BRL",
+        priceSpecification: precos.map((p) => ({
+          "@type": "UnitPriceSpecification",
+          price: p.valor.toFixed(2),
+          priceCurrency: "BRL",
+          ...(p.unitCode ? { unitCode: p.unitCode } : {}),
+          unitText: p.unitText,
+        })),
+        itemOffered: servico,
+        offeredBy: { "@id": idLocadora },
+      };
     })
     .filter(Boolean);
+  if (ofertas.length) {
+    negocio.hasOfferCatalog = { "@type": "OfferCatalog", name: "Equipamentos para alugar", itemListElement: ofertas };
+  }
 
-  const ld = { "@context": "https://schema.org", "@graph": [negocio, ...produtos] };
+  const ld = { "@context": "https://schema.org", "@graph": [negocio] };
   /* Mesmo cuidado do perfil-seo v8.0: JSON.stringify não escapa "<",
      e o nome/descrição vêm de texto livre da locadora. */
   return `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>\n`;
