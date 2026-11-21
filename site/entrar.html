@@ -618,6 +618,12 @@
         Criar meu perfil
         <span class="btn__spin" id="spinPerfil"></span>
       </button>
+      <!-- v12.46 · este formulário era beco sem saída: quem caía aqui (por
+           um rascunho antigo, ou depois de sair da conta) não tinha como
+           entrar, só cadastrar de novo. -->
+      <button class="btn btn--ghost btn--full" type="button" onclick="irStep(2)" style="margin-top:.9rem">
+        Já tenho conta — entrar
+      </button>
     </div>
 
     <!-- ════════════════════════════════
@@ -892,6 +898,7 @@
 
   /* Se já existe sessão completa, não faz sentido reonboardar */
   if (FIELDO.Auth.isLoggedIn()) {
+    try { localStorage.removeItem('fieldo_cadastro_rascunho'); } catch (e) {}
     window.location.replace('painel.html');
     return;
   }
@@ -996,6 +1003,10 @@
       .then(function (prof) {
         if (!prof) throw new Error('perfil_ausente');
         FIELDO.Auth.setSession(prof);
+        /* v12.46 · quem começou o cadastro e depois entrou pela conta que já
+           tinha deixava o rascunho para trás; ao sair, esta tela abria direto
+           no formulário de cadastro, sem caminho para entrar. */
+        limparRascunho();
         window.location.replace('painel.html');
       })
       .catch(function (err) {
@@ -1020,6 +1031,10 @@
       .then(function (prof) {
         if (!prof) throw new Error('perfil_ausente');
         FIELDO.Auth.setSession(prof);
+        /* v12.46 · quem começou o cadastro e depois entrou pela conta que já
+           tinha deixava o rascunho para trás; ao sair, esta tela abria direto
+           no formulário de cadastro, sem caminho para entrar. */
+        limparRascunho();
         window.location.replace('painel.html');
       })
       .catch(function (err) {

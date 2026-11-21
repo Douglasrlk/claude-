@@ -4012,6 +4012,10 @@ var FIELDO = (function () {
         }
         Auth.logout();
         if (Pro) Pro.clearCache();
+        /* v12.46 · rascunho de cadastro não tem por que sobreviver ao sair:
+           a conta existe. Com ele, entrar.html abria no formulário de
+           cadastro em vez de deixar a pessoa entrar de novo. */
+        try { localStorage.removeItem('fieldo_cadastro_rascunho'); } catch (e) {}
         window.location.href = '/entrar.html';
       }
     },

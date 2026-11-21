@@ -22,7 +22,20 @@ server {
   resolver 127.0.0.11 valid=10s ipv6=off;
 
   location /rest/v1/    { set $u rest:3000;    rewrite ^/rest/v1/(.*)$ /$1 break;    proxy_pass http://$u; }
-  location /auth/v1/    { set $u auth:9999;    rewrite ^/auth/v1/(.*)$ /$1 break;    proxy_pass http://$u; }
+  # Mesmo caso do storage: o GoTrue local não responde ao preflight de CORS
+  # que o login por e-mail faz (no Supabase quem responde é o Kong).
+  location /auth/v1/ {
+    if ($request_method = OPTIONS) {
+      add_header Access-Control-Allow-Origin * always;
+      add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+      add_header Access-Control-Allow-Headers "authorization, apikey, content-type, x-client-info, x-supabase-api-version" always;
+      add_header Access-Control-Max-Age 86400 always;
+      return 204;
+    }
+    proxy_hide_header Access-Control-Allow-Origin;
+    add_header Access-Control-Allow-Origin * always;
+    set $u auth:9999; rewrite ^/auth/v1/(.*)$ /$1 break; proxy_pass http://$u;
+  }
   # O storage-api auto-hospedado não responde CORS (no Supabase quem faz é o
   # Kong). Sem isto, upload de foto/vídeo do navegador falha no preflight.
   location /storage/v1/ {

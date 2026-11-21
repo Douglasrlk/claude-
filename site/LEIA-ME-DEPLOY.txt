@@ -1,5 +1,15 @@
-FIELDO v12.45 — COMO PUBLICAR
+FIELDO v12.46 — COMO PUBLICAR
 =============================
+
+v12.46 = v12.45 + duas correções:
+  · "Sair" não leva mais a uma tela só de cadastro. Um rascunho de cadastro
+    esquecido no celular fazia entrar.html abrir direto no formulário, sem
+    botão para entrar. Agora o rascunho é apagado ao entrar e ao sair, e o
+    formulário de cadastro tem "Já tenho conta — entrar".
+  · Avatares cortados no Explorar e nas listas por cidade (9 de 12 no
+    Explorar): a foto ficava com a altura natural dentro do círculo e
+    aparecia só o topo. Correção em publico.css.
+Sem migration nova.
 
 v12.45 = v12.44 + preparo para o app Android da Play Store (docs/PLAY_STORE.md):
   · app-play.js em todas as páginas: dentro do app, a venda do Pro some
