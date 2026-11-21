@@ -1,5 +1,6 @@
 /* ============================================================
-   Fieldo Locação · painel-locacoes.js  v12.19
+   Fieldo Locação · painel-locacoes.js  v12.42
+   v12.42 · valor pela tabela de períodos (precos.js), não só pela diária.
    Locações: filtros por situação, cartões com a ação do momento,
    assistente de 4 passos (cliente → datas → equipamentos → revisão)
    para registrar E para editar, devolução com data e destino da
@@ -205,19 +206,19 @@
         LP.campo('lcEmail', 'E-mail', l ? l.client_email : '', { tipo: 'email', inputmode: 'email', opc: 1 }) +
       '</div>' +
       /* 2 datas */
-      '<div class="wz-etapa" data-passo="2"><h3 class="wz-tit">Quando retira e quando devolve?</h3><p class="wz-sub">Com as datas, o app mostra o que está livre e calcula as diárias.</p>' +
+      '<div class="wz-etapa" data-passo="2"><h3 class="wz-tit">Quando retira e quando devolve?</h3><p class="wz-sub">Com as datas, o app mostra o que está livre e calcula o valor pelos seus preços de diária, semana, quinzena e mês.</p>' +
         '<div class="lp-2col">' +
           '<div class="fg" id="fg_lcSaida"><label class="field-label" for="lcSaida">Retirada</label><input class="field-input" type="date" id="lcSaida" value="' + esc(l ? l.data_saida : hoje) + '"/><div class="fg-erro" hidden></div></div>' +
           '<div class="fg" id="fg_lcDev"><label class="field-label" for="lcDev">Devolução</label><input class="field-input" type="date" id="lcDev" value="' + esc(l ? l.data_prevista_devolucao : somaDias(hoje, 1)) + '"/><div class="fg-erro" hidden></div></div>' +
         '</div>' +
         '<div class="field-hint" style="margin:-.4rem 0 .5rem">Atalhos para a devolução:</div>' +
-        '<div class="sugestoes" style="margin-bottom:1rem">' + [1, 2, 3, 7, 15, 30].map(function (n) { return '<button type="button" data-lc="dias" data-n="' + n + '">' + LP.plural(n, 'diária', 'diárias') + '</button>'; }).join('') + '</div>' +
+        '<div class="sugestoes" style="margin-bottom:1rem">' + [[1, '1 diária'], [2, '2 diárias'], [3, '3 diárias'], [7, '1 semana'], [15, '1 quinzena'], [30, '1 mês']].map(function (a) { return '<button type="button" data-lc="dias" data-n="' + a[0] + '">' + a[1] + '</button>'; }).join('') + '</div>' +
         '<div class="resumo" id="lcDiasBox"></div>' +
       '</div>' +
       /* 3 equipamentos */
       '<div class="wz-etapa" data-passo="3"><h3 class="wz-tit">Quais equipamentos?</h3><p class="wz-sub" id="lcEqSub"></p><div id="lcEqLista"></div></div>' +
       /* 4 revisão */
-      '<div class="wz-etapa" data-passo="4"><h3 class="wz-tit">Confira e confirme</h3><p class="wz-sub">O valor vem das diárias. Pode ajustar se combinou outro preço.</p>' +
+      '<div class="wz-etapa" data-passo="4"><h3 class="wz-tit">Confira e confirme</h3><p class="wz-sub">O valor vem dos seus preços por período, na combinação mais barata para estas datas. Pode ajustar se combinou outro preço.</p>' +
         '<div id="lcResumo"></div>' +
         '<div class="lp-2col">' +
           LP.campo('lcValor', 'Valor total (R$)', l && l.valor_total != null ? String(l.valor_total).replace('.', ',') : '', { inputmode: 'decimal', ph: '0,00' }) +
@@ -256,8 +257,8 @@
     if (!s || !d) { box.innerHTML = 'Escolha as duas datas.'; return 0; }
     if (d < s) { box.innerHTML = '<strong style="color:var(--red)">A devolução não pode ser antes da retirada.</strong>'; return 0; }
     var n = LP.D.diarias(s, d);
-    box.innerHTML = '<div class="lin"><span>' + esc(LP.fmtData(s, true)) + ' → ' + esc(LP.fmtData(d, true)) + '</span><strong>' + esc(LP.plural(n, 'diária', 'diárias')) + '</strong></div>' +
-      (s === d ? '<div style="font-size:.8rem;color:var(--muted)">Retirar e devolver no mesmo dia conta 1 diária.</div>' : '');
+    box.innerHTML = '<div class="lin"><span>' + esc(LP.fmtData(s, true)) + ' → ' + esc(LP.fmtData(d, true)) + '</span><strong>' + esc(LP.plural(n, 'dia', 'dias')) + '</strong></div>' +
+      (s === d ? '<div style="font-size:.8rem;color:var(--muted)">Retirar e devolver no mesmo dia conta 1 dia.</div>' : '');
     return n;
   }
 
@@ -269,7 +270,7 @@
 
   function renderEquip() {
     var n = LP.D.diarias(q('lcSaida').value, q('lcDev').value);
-    q('lcEqSub').textContent = 'Mostrando o que está livre de ' + LP.fmtData(q('lcSaida').value) + ' a ' + LP.fmtData(q('lcDev').value) + ' (' + LP.plural(n, 'diária', 'diárias') + ').';
+    q('lcEqSub').textContent = 'Mostrando o que está livre de ' + LP.fmtData(q('lcSaida').value) + ' a ' + LP.fmtData(q('lcDev').value) + ' (' + LP.plural(n, 'dia', 'dias') + ').';
     var lista = (LP.st.equip || []).filter(function (e) { return e.ativo !== false || w.itens[e.id]; })
       .sort(function (a, b) { return String(a.nome).localeCompare(String(b.nome), 'pt-BR'); });
     q('lcEqLista').innerHTML = lista.map(function (e) {
@@ -278,7 +279,7 @@
         (capa ? '<img src="' + esc(capa) + '" alt=""/>' : '<span class="ph" aria-hidden="true"></span>') +
         '<div style="min-width:0"><div class="es-nome">' + esc(e.nome) + '</div>' +
           '<div class="es-info' + (liv ? '' : ' zero') + '">' + (liv ? liv + ' livre' + (liv > 1 ? 's' : '') + ' nessas datas' : 'Nenhuma livre nessas datas') +
-          (e.preco_dia ? ' · ' + esc(LP.brl(e.preco_dia)) + '/dia' : ' · <span style="color:var(--amber)">sem preço</span>') + '</div></div>' +
+          (FieldoPrecos.temPreco(e) ? ' · ' + esc(precoNoPeriodo(e, n)) : ' · <span style="color:var(--amber)">sem preço</span>') + '</div></div>' +
         '<div class="qtd" role="group" aria-label="Quantidade de ' + esc(e.nome) + '">' +
           '<button type="button" data-lc="menos" data-id="' + esc(e.id) + '" aria-label="Menos"' + (qtd ? '' : ' disabled') + '>−</button>' +
           '<output aria-live="polite">' + qtd + '</output>' +
@@ -289,17 +290,28 @@
     rodape();
   }
 
+  /* "R$ 640,00 em 10 dias (1 semana + 3 diárias)" — por unidade */
+  function precoNoPeriodo(e, n) {
+    var r = FieldoPrecos.calcular(e, n);
+    return LP.brl(r.total) + ' em ' + LP.plural(n, 'dia', 'dias') + ' (' + FieldoPrecos.descrever(r) + ')';
+  }
+
+  /* v12.42 · valor por período (precos.js): a combinação mais barata de
+     diária/semana/quinzena/mês da tabela de cada equipamento. Grava a
+     composição em locacao_itens.cobranca; preco_dia_aplicado continua
+     indo (contratos e telas antigas leem ele). */
   function calc() {
     var n = LP.D.diarias(q('lcSaida').value, q('lcDev').value), total = 0, semPreco = [], caucao = 0, itens = [];
     Object.keys(w.itens).forEach(function (id) {
       var qtd = w.itens[id]; if (!qtd) return;
-      var e = LP.equip(id) || {}, p = e.preco_dia != null ? Number(e.preco_dia) : null;
-      var sub = p != null ? p * qtd * n : null;
+      var e = LP.equip(id) || {}, cob = FieldoPrecos.cobranca(e, n);
+      var sub = cob ? Math.round(cob.unitario * qtd * 100) / 100 : null;
       if (sub != null) total += sub; else semPreco.push(e.nome || '?');
       if (e.caucao) caucao += Number(e.caucao) * qtd;
-      itens.push({ equipamento_id: id, quantidade: qtd, preco_dia_aplicado: p, subtotal: sub, nome: e.nome || '' });
+      itens.push({ equipamento_id: id, quantidade: qtd, preco_dia_aplicado: e.preco_dia != null ? Number(e.preco_dia) : null,
+                   subtotal: sub, cobranca: cob, nome: e.nome || '' });
     });
-    return { dias: n, total: total, semPreco: semPreco, caucao: caucao, itens: itens };
+    return { dias: n, total: Math.round(total * 100) / 100, semPreco: semPreco, caucao: caucao, itens: itens };
   }
 
   function renderResumo() {
@@ -307,16 +319,21 @@
     var cliente = (q('lcNome').value || '').trim();
     q('lcResumo').innerHTML = '<dl class="resumo">' +
       '<dt>Cliente</dt><dd>' + esc(cliente) + (q('lcTel').value ? ' · ' + esc(q('lcTel').value) : '') + '</dd>' +
-      '<dt>Período</dt><dd>' + esc(LP.fmtData(q('lcSaida').value, true)) + ' → ' + esc(LP.fmtData(q('lcDev').value, true)) + ' · ' + esc(LP.plural(c.dias, 'diária', 'diárias')) + '</dd>' +
+      '<dt>Período</dt><dd>' + esc(LP.fmtData(q('lcSaida').value, true)) + ' → ' + esc(LP.fmtData(q('lcDev').value, true)) + ' · ' + esc(LP.plural(c.dias, 'dia', 'dias')) + '</dd>' +
       '<dt>Equipamentos</dt><dd>' + c.itens.map(function (it) {
-        return '<div class="lin"><span>' + (it.quantidade > 1 ? it.quantidade + '× ' : '') + esc(it.nome) + '</span><span>' + (it.subtotal != null ? esc(LP.brl(it.subtotal)) : 'sem preço') + '</span></div>';
-      }).join('') + '<div class="lin tot"><span>Sugestão pelas diárias</span><span>' + esc(LP.brl(c.total)) + '</span></div></dd></dl>' +
-      (c.semPreco.length ? '<div class="aviso">Sem preço da diária: ' + esc(c.semPreco.join(', ')) + '. Esse item não entrou na conta; ajuste o valor total.</div>' : '');
+        var comp = it.cobranca ? FieldoPrecos.descrever(it.cobranca) : '';
+        var sobra = it.cobranca && it.cobranca.cobre > it.cobranca.dias
+          ? ' · o período cobrado cobre ' + it.cobranca.cobre + ' dias' : '';
+        return '<div class="lin"><span>' + (it.quantidade > 1 ? it.quantidade + '× ' : '') + esc(it.nome) +
+          (comp ? '<br><small style="color:var(--muted)">' + esc(comp + sobra) + (it.quantidade > 1 ? ' · ' + esc(LP.brl(it.cobranca.unitario)) + ' cada' : '') + '</small>' : '') +
+          '</span><span>' + (it.subtotal != null ? esc(LP.brl(it.subtotal)) : 'sem preço') + '</span></div>';
+      }).join('') + '<div class="lin tot"><span>Sugestão pela sua tabela de preços</span><span>' + esc(LP.brl(c.total)) + '</span></div></dd></dl>' +
+      (c.semPreco.length ? '<div class="aviso">Sem preço cadastrado: ' + esc(c.semPreco.join(', ')) + '. Esse item não entrou na conta; ajuste o valor total.</div>' : '');
     var v = q('lcValor'), cv = q('lcCaucao');
     if (!w.valorTocado && c.total > 0) v.value = c.total.toFixed(2).replace('.', ',');
     if (!w.caucaoTocada) cv.value = c.caucao ? c.caucao.toFixed(2).replace('.', ',') : '';
     q('lcValorDica').innerHTML = w.valorTocado && c.total > 0 && LP.num(v.value) !== Math.round(c.total * 100) / 100
-      ? 'Pelas diárias daria ' + esc(LP.brl(c.total)) + '. <button type="button" class="link-acao" data-lc="usar-sug">Usar este valor</button>'
+      ? 'Pela sua tabela de preços daria ' + esc(LP.brl(c.total)) + '. <button type="button" class="link-acao" data-lc="usar-sug">Usar este valor</button>'
       : (c.caucao && !w.caucaoTocada ? 'A caução foi sugerida pela soma das cauções dos equipamentos.' : '');
   }
 

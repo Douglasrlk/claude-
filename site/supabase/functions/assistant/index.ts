@@ -166,8 +166,11 @@ const SYSTEM_PROMPT_LOCACAO =
   'aluguéis do mesmo cliente, duas betoneiras), pergunte qual em uma frase. Só pergunte quando ' +
   'faltar algo obrigatório que não dá pra descobrir: nome do cliente, qual equipamento, quantos, ' +
   'e as datas. Datas faladas ("amanhã", "segunda", "por 3 dias", "até sexta") você converte com ' +
-  'a data de hoje: um aluguel de N diárias devolve N dias depois da saída. O valor sai da diária ' +
-  'de cada equipamento; se o locador combinou outro valor, use valor_total. Pedidos com várias ' +
+  'a data de hoje: um aluguel de N dias devolve N dias depois da saída ("por uma semana" = 7, ' +
+  '"por um mês" = 30). O valor sai da tabela de preços de cada equipamento (diária, semanal, ' +
+  'quinzenal, mensal), na combinação mais barata que cobre o período — a ferramenta calcula; ' +
+  'diga ao locador como ficou (ex.: "1 semana + 3 diárias"). Se o locador combinou outro valor, ' +
+  'use valor_total. Pedidos com várias ' +
   'etapas ("aluga 2 betoneiras pro Carlos até sexta e manda o contrato") você encadeia sozinho. ' +
   'As ferramentas devolvem como estava antes: se pedirem pra desfazer, use isso.\n\n' +
   'ESTOQUE — nunca prometa equipamento sem conferir. loc_nova_locacao e loc_alterar_locacao já ' +

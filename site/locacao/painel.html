@@ -133,7 +133,10 @@
     /* equipamentos */
     .eq-card { background: var(--paper); border: 1px solid var(--border); border-radius: var(--r-l); padding: .9rem; margin-bottom: .7rem; }
     .eq-top { display: grid; grid-template-columns: 64px minmax(0,1fr); gap: .8rem; align-items: start; }
-    .eq-thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; background: var(--paper3); display: grid; place-items: center; color: var(--muted); }
+    /* v12.42 · contain, não cover: foto panorâmica ou em pé aparecia cortada
+       (o equipamento "passava da borda" da moldura). Agora cabe inteira, com
+       faixa neutra onde sobra espaço. */
+    .eq-thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: contain; background: var(--paper3); display: grid; place-items: center; color: var(--muted); }
     .eq-nome { font: 600 .98rem var(--sans); color: var(--ink); line-height: 1.3; }
     .eq-linha { font-size: .82rem; color: var(--muted); margin-top: .15rem; line-height: 1.45; }
     .eq-preco { font: 500 .9rem var(--sans); color: var(--gold-text); margin-top: .25rem; }
@@ -209,7 +212,7 @@
     .eq-fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: .5rem; }
     .eq-foto, .eq-foto-add { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; max-width: 100%; }
     .eq-foto { background: var(--paper3); border: 1px solid var(--border); }
-    .eq-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .eq-foto img { width: 100%; height: 100%; object-fit: contain; display: block; }
     .eq-foto .eq-x { position: absolute; top: 4px; right: 4px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(14,14,20,.72); color: #fff; font-size: 1rem; line-height: 28px; cursor: pointer; padding: 0; }
     .eq-foto .eq-capa { position: absolute; left: 4px; bottom: 4px; font: 500 .62rem var(--sans); background: rgba(14,14,20,.72); color: #fff; border: 0; border-radius: 4px; padding: .25rem .4rem; cursor: pointer; }
     .eq-foto .eq-capa.atual { background: var(--gold); cursor: default; }
@@ -243,7 +246,7 @@
     .es-item { display: grid; grid-template-columns: 52px minmax(0,1fr) auto; gap: .7rem; align-items: center; background: var(--paper); border: 1px solid var(--border); border-radius: var(--r-l); padding: .65rem; margin-bottom: .55rem; }
     .es-item.tem { border-color: var(--gold); background: var(--gold-bg); }
     .es-item.sem { opacity: .6; }
-    .es-item img, .es-item .ph { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; background: var(--paper3); }
+    .es-item img, .es-item .ph { width: 52px; height: 52px; border-radius: 8px; object-fit: contain; background: var(--paper3); }
     .es-nome { font: 600 .9rem var(--sans); color: var(--ink); line-height: 1.3; }
     .es-info { font-size: .78rem; color: var(--muted); margin-top: .1rem; }
     .es-info.zero { color: var(--red); }
@@ -278,7 +281,8 @@
     /* perfil */
     .pf-id { display: flex; gap: .9rem; align-items: center; margin-bottom: 1rem; }
     .pf-avatar { flex: none; width: 72px; height: 72px; border-radius: 50%; border: 1px dashed var(--border3); background: var(--paper2); display: grid; place-items: center; cursor: pointer; padding: 0; overflow: hidden; font: 400 1.8rem var(--serif); color: var(--gold-text); }
-    .pf-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    /* logo costuma ser largo: contain + respiro para caber no círculo sem cortar as pontas */
+    .pf-avatar img { width: 100%; height: 100%; object-fit: contain; padding: 10px; background: #fff; display: block; }
     .pf-avatar.enviando { opacity: .55; cursor: progress; }
     .pf-avatar:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
     .pf-estado { display: flex; gap: .7rem; align-items: flex-start; border-radius: var(--r-l); padding: .8rem .9rem; margin-bottom: .9rem; font-size: .88rem; line-height: 1.5; }
@@ -417,6 +421,7 @@
 <script src="../db.js"></script>
 <script src="../db.locacao.js"></script>
 <script src="../db.locacao.contratos.js"></script>
+<script src="./precos.js"></script>
 <script src="./contrato-doc.js"></script>
 <script src="./assinatura-pad.js"></script>
 <script src="./contrato-pdf.js"></script>

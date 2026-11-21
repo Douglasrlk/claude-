@@ -159,7 +159,7 @@
     var vt = k.Doc.valorTotal(lo, itens);
     return '<dl class="resumo" style="margin-bottom:.8rem">' +
       '<dt>Período</dt><dd>' + k.esc(k.Doc.fmtData(lo.data_saida)) + ' → ' + k.esc(k.Doc.fmtData(lo.data_prevista_devolucao)) +
-        (lo.diarias ? ' · ' + k.esc(lo.diarias) + (lo.diarias == 1 ? ' diária' : ' diárias') : '') + '</dd>' +
+        (lo.diarias ? ' · ' + k.esc(lo.diarias) + (lo.diarias == 1 ? ' dia' : ' dias') : '') + '</dd>' +
       '<dt>Equipamentos</dt><dd>' + itens.map(function (it) {
         return '<div class="lin"><span>' + (it.quantidade > 1 ? k.esc(it.quantidade) + '× ' : '') + k.esc(it.nome || 'equipamento') + '</span><span>' +
           (it.subtotal != null ? k.esc(k.Doc.brl(it.subtotal)) : '') + '</span></div>';

@@ -69,6 +69,7 @@ interface Equipamento {
   fotos: unknown;
   preco_dia: number | string | null;
   preco_semana: number | string | null;
+  preco_quinzena?: number | string | null; /* v12.42 */
   preco_mes: number | string | null;
   caucao: number | string | null;
   quantidade: number | null;
@@ -187,12 +188,18 @@ async function buscar(slug: string): Promise<Busca> {
     );
     if (!locs[0]) return { estado: "ausente" };
     const loc = locs[0];
-    const equips = await rest<Equipamento>(
+    const consulta = (comQuinzena: boolean) => rest<Equipamento>(
       `equipamentos?locadora_id=eq.${encodeURIComponent(loc.id)}&is_public=eq.true&ativo=eq.true` +
-      `&select=id,nome,marca,modelo,descricao,fotos,preco_dia,preco_semana,preco_mes,caucao,quantidade,slug,specs,` +
+      `&select=id,nome,marca,modelo,descricao,fotos,preco_dia,preco_semana,${comQuinzena ? "preco_quinzena," : ""}preco_mes,caucao,quantidade,slug,specs,` +
       `categoria:equipamento_categorias(nome,slug)&order=nome.asc`,
       ctrl.signal,
     );
+    /* v12.42 · se este código for ao ar antes da migration
+       2026-11-21_locacao_precos_periodo.sql, a coluna ainda não existe e o
+       PostgREST responde 400. A vitrine é pública: melhor sair sem o preço
+       quinzenal do que fora do ar. */
+    const equips = await consulta(true).catch((e) =>
+      String(e && (e as Error).message) === "REST 400" ? consulta(false) : Promise.reject(e));
     return { estado: "ok", loc, equips };
   } catch (e) {
     console.error("[vitrine] falha ao buscar:", e instanceof Error ? e.message : e);
@@ -238,8 +245,10 @@ function jsonLd(loc: Locadora, equips: Equipamento[], canonical: string, wa: str
    * equipamento está livre hoje — isso é combinado no WhatsApp. */
   const produtos = equips
     .map((e) => {
-      const dia = num(e.preco_dia);
-      if (!dia) return null;
+      /* v12.42 · o menor período cadastrado (diária, senão semana, quinzena, mês) */
+      const p = precosDe(e)[0];
+      if (!p) return null;
+      const dia = p.valor;
       const urlItem = `${canonical}#${encodeURIComponent(e.slug || e.id)}`;
       const produto: Record<string, unknown> = {
         "@type": "Product",
@@ -255,8 +264,8 @@ function jsonLd(loc: Locadora, equips: Equipamento[], canonical: string, wa: str
             "@type": "UnitPriceSpecification",
             price: dia.toFixed(2),
             priceCurrency: "BRL",
-            unitCode: "DAY",
-            unitText: "diária",
+            ...(p.unitCode ? { unitCode: p.unitCode } : {}),
+            unitText: p.unitText,
           },
           offeredBy: { "@id": idLocadora },
         },
@@ -304,13 +313,26 @@ function textoSpec(e: Equipamento, k: "condicoes" | "info"): string {
   return typeof v === "string" ? v.trim() : "";
 }
 
+/* v12.42 · preços por período, na ordem dia → mês, só os que a locadora
+   preencheu. O primeiro é o destaque do cartão. */
+const PERIODOS = [
+  { campo: "preco_dia", rotulo: "Diária", por: "por dia", unitCode: "DAY", unitText: "diária" },
+  { campo: "preco_semana", rotulo: "Semana", por: "por semana", unitCode: "WEE", unitText: "semana" },
+  { campo: "preco_quinzena", rotulo: "Quinzena", por: "por quinzena", unitCode: "", unitText: "quinzena (15 dias)" },
+  { campo: "preco_mes", rotulo: "Mês", por: "por mês", unitCode: "MON", unitText: "mês (30 dias)" },
+] as const;
+function precosDe(e: Equipamento) {
+  return PERIODOS.map((p) => ({ ...p, valor: num((e as unknown as Record<string, unknown>)[p.campo]) }))
+    .filter((p): p is typeof p & { valor: number } => p.valor !== null);
+}
+
 function cartao(e: Equipamento, loc: Locadora, wa: string, indice: number): string {
   const id = e.slug || e.id;
   const nome = (e.nome || rotuloCategoria(e) || "Equipamento").trim();
   const cat = rotuloCategoria(e);
   const mm = marcaModelo(e);
   const fotos = fotosValidas(e.fotos);
-  const dia = num(e.preco_dia), semana = num(e.preco_semana), mes = num(e.preco_mes), caucao = num(e.caucao);
+  const precos = precosDe(e), principal = precos[0], caucao = num(e.caucao);
 
   /* Os dois primeiros cards carregam já; o resto, quando chegar perto. */
   const carregar = indice < 2 ? "eager" : "lazy";
@@ -323,9 +345,7 @@ function cartao(e: Equipamento, loc: Locadora, wa: string, indice: number): stri
       </div>`
     : `<div class="vt-midia vt-midia--vazia" aria-hidden="true"><span>${esc(cat || "Equipamento")}</span><small>sem foto</small></div>`;
 
-  const outros: string[] = [];
-  if (semana) outros.push(`Semana <b>${esc(brl(semana))}</b>`);
-  if (mes) outros.push(`Mês <b>${esc(brl(mes))}</b>`);
+  const outros = precos.slice(1).map((p) => `${p.rotulo} <b>${esc(brl(p.valor))}</b>`);
 
   const msg = `Olá! Vi ${nome}${mm ? ` (${mm})` : ""} na vitrine de ${loc.nome} no Fieldo. ` +
     `Está disponível? Preciso para o dia `;
@@ -340,9 +360,9 @@ function cartao(e: Equipamento, loc: Locadora, wa: string, indice: number): stri
       ${textoSpec(e, "info") ? `<p class="vt-desc vt-info">${esc(textoSpec(e, "info").slice(0, 300))}</p>` : ""}
       ${textoSpec(e, "condicoes") ? `<p class="vt-cond"><b>Condições:</b> ${esc(textoSpec(e, "condicoes").slice(0, 300))}</p>` : ""}
       <div class="vt-preco">
-        ${dia
-          ? `<div class="vt-diaria"><span class="vt-valor">${esc(brl(dia))}</span><span class="vt-unid">por dia</span></div>`
-          : `<div class="vt-diaria"><span class="vt-sob">Diária sob consulta</span></div>`}
+        ${principal
+          ? `<div class="vt-diaria"><span class="vt-valor">${esc(brl(principal.valor))}</span><span class="vt-unid">${principal.por}</span></div>`
+          : `<div class="vt-diaria"><span class="vt-sob">Preço sob consulta</span></div>`}
         ${outros.length ? `<div class="vt-outros">${outros.join('<span aria-hidden="true"> · </span>')}</div>` : ""}
         ${caucao ? `<div class="vt-caucao">Caução de ${esc(brl(caucao))}, acertada na devolução</div>` : ""}
       </div>
@@ -365,6 +385,10 @@ function pagina(loc: Locadora, equips: Equipamento[], origin: string): string {
   const categorias = [...new Set(equips.map((e) => rotuloCategoria(e)).filter(Boolean))];
   const precos = equips.map((e) => num(e.preco_dia)).filter((n): n is number => n !== null);
   const menor = precos.length ? Math.min(...precos) : null;
+  /* v12.42 · há quem só alugue por semana ou mês: o rótulo da seção não
+     pode prometer "preço por diária" para esses. */
+  const soDiaria = equips.every((e) => precosDe(e).every((p) => p.campo === "preco_dia"));
+  const temPreco = equips.some((e) => precosDe(e).length > 0);
 
   const oQue = categorias.length ? listaNatural(categorias.slice(0, 4).map((c) => c.toLowerCase())) : "equipamentos";
   const title = `${nome} · Aluguel de ${oQue}${cidade ? ` em ${cidade}` : ""}`;
@@ -425,7 +449,7 @@ ${jsonLd(loc, equips, canonical, wa)}<style>
 
   /* ── cabeçalho da locadora ── */
   .vt-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:.9rem 1rem;align-items:center;margin-bottom:1rem}
-  .vt-logo{width:64px;height:64px;border-radius:50%;object-fit:cover;background:var(--paper3);border:1px solid var(--border2);display:block}
+  .vt-logo{width:64px;height:64px;border-radius:50%;object-fit:contain;padding:8px;background:#fff;background:var(--paper3);border:1px solid var(--border2);display:block}
   .vt-logo--ini{display:grid;place-items:center;font-family:var(--serif);font-size:1.7rem;font-weight:300;color:var(--gold-text);background:var(--paper2)}
   .vt-h1{font-family:var(--serif);font-weight:400;font-size:clamp(1.65rem,5.2vw,2.5rem);line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.01em}
   .vt-local{font-size:.9rem;color:var(--text2);margin-top:.25rem}
@@ -457,7 +481,9 @@ ${jsonLd(loc, equips, canonical, wa)}<style>
   .vt-midia{position:relative;aspect-ratio:4/3;background:var(--paper3);max-width:100%}
   .vt-galeria{display:flex;height:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
   .vt-galeria::-webkit-scrollbar{display:none}
-  .vt-galeria img{flex:0 0 100%;width:100%;height:100%;object-fit:cover;scroll-snap-align:start;display:block}
+  /* v12.42 · contain: foto panorâmica ou em pé aparecia cortada (o equipamento
+     passava da borda do cartão). Agora cabe inteira; sobra = fundo neutro. */
+  .vt-galeria img{flex:0 0 100%;width:100%;height:100%;object-fit:contain;scroll-snap-align:start;display:block}
   .vt-nfotos{position:absolute;right:.6rem;bottom:.6rem;background:rgba(14,14,20,.72);color:#fff;font:500 .7rem var(--sans);
     padding:.3rem .55rem;border-radius:999px;pointer-events:none}
   .vt-midia--vazia{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;
@@ -545,14 +571,14 @@ ${jsonLd(loc, equips, canonical, wa)}<style>
   </header>
 
   <section aria-labelledby="catalogo">
-    <div class="vt-secao"><h2 id="catalogo">Para alugar</h2>${precos.length ? `<span>preço por diária</span>` : ""}</div>
+    <div class="vt-secao"><h2 id="catalogo">Para alugar</h2>${temPreco ? `<span>${soDiaria ? "preço por diária" : "preços por período"}</span>` : ""}</div>
     ${lista}
   </section>
 
   <section class="vt-como" aria-labelledby="como">
     <h2 id="como">Como alugar</h2>
     <ol class="vt-passos">
-      <li><div><strong>Escolha o equipamento</strong>Veja fotos, diária e caução aqui na vitrine.</div></li>
+      <li><div><strong>Escolha o equipamento</strong>Veja fotos, preços e caução aqui na vitrine.</div></li>
       <li><div><strong>Chame no WhatsApp</strong>Diga a data em que você precisa. A mensagem já vai com o nome do equipamento.</div></li>
       <li><div><strong>Combine com a locadora</strong>Disponibilidade, retirada ou entrega e pagamento. O contrato pode ser assinado pelo celular.</div></li>
     </ol>

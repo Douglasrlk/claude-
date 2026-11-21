@@ -258,7 +258,7 @@ var FIELDO_LOCACAO = (function () {
       if (!id) return Promise.resolve([]);
       opts = opts || {};
       var qs = '/locacoes?locadora_id=eq.' + id +
-        '&select=*,locacao_itens(id,equipamento_id,quantidade,preco_dia_aplicado,subtotal,equipamentos(nome,marca))' +
+        '&select=*,locacao_itens(id,equipamento_id,quantidade,preco_dia_aplicado,subtotal,cobranca,equipamentos(nome,marca))' +
         '&order=data_saida.desc';
       /* Filtro por estado GRAVADO. 'atrasada' não entra aqui de
          propósito: é derivada e não existe na coluna — filtrar por ela
@@ -270,7 +270,7 @@ var FIELDO_LOCACAO = (function () {
 
     getById: function (locId) {
       return _get('/locacoes?id=eq.' + encodeURIComponent(locId) +
-        '&select=*,locacao_itens(id,equipamento_id,quantidade,preco_dia_aplicado,subtotal,equipamentos(nome,marca))' +
+        '&select=*,locacao_itens(id,equipamento_id,quantidade,preco_dia_aplicado,subtotal,cobranca,equipamentos(nome,marca))' +
         '&limit=1')
         .then(function (rows) { return rows[0] || null; });
     },
@@ -338,6 +338,7 @@ var FIELDO_LOCACAO = (function () {
               quantidade:         it.quantidade,
               preco_dia_aplicado: it.preco_dia_aplicado != null ? it.preco_dia_aplicado : null,
               subtotal:           it.subtotal != null ? it.subtotal : null,
+              cobranca:           it.cobranca || null, /* v12.42 · composição por período */
             };
           });
           return _post('/locacao_itens', corpo);
@@ -395,6 +396,7 @@ var FIELDO_LOCACAO = (function () {
           locacao_id: locId, equipamento_id: it.equipamento_id, quantidade: it.quantidade,
           preco_dia_aplicado: it.preco_dia_aplicado != null ? it.preco_dia_aplicado : null,
           subtotal: it.subtotal != null ? it.subtotal : null,
+          cobranca: it.cobranca || null,
         };
       });
       var velhos = (idsItensAntigos || []).filter(Boolean);

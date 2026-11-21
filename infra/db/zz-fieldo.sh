@@ -17,6 +17,12 @@ for f in /fieldo/init/*.sql; do
   psql -v ON_ERROR_STOP=1 --no-psqlrc -q -U postgres -d postgres -f "$f"
 done
 
+# Migrations novas, ainda não aplicadas em produção (db/pendentes.txt).
+grep -v '^\s*#' /fieldo/pendentes.txt | grep -v '^\s*$' | while read -r m; do
+  echo "zz-fieldo.sh: aplicando pendente $m"
+  psql -v ON_ERROR_STOP=1 --no-psqlrc -q -U postgres -d postgres -f "/fieldo/migrations/$m"
+done
+
 # Buckets, policies de storage e dados de demonstração rodam depois, no
 # serviço "db-post" do compose (precisam das tabelas que o GoTrue e o
 # storage-api criam ao subir).

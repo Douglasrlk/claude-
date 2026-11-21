@@ -5,7 +5,7 @@
 -- Contas criadas (entre pelo e-mail + senha "fieldo-demo-123"):
 --   ana.pintora@demo.local     profissional (pintora, Caraguatatuba)
 --   bruno.eletricista@demo.local profissional (eletricista, Ubatuba)
---   locadora@demo.local        locadora de equipamentos
+--   locadora@demo.local        locadora de equipamentos (2 equipamentos, preço por período)
 
 begin;
 
@@ -57,5 +57,22 @@ select public.submit_rating(r.rating_token, 5::smallint, 'Serviço caprichado, r
 insert into public.locadoras (id, nome, city, uf, whatsapp, bio, responsavel)
 values ('33333333-3333-4333-8333-333333333333', 'Locadora Demonstração', 'Caraguatatuba', 'SP', '12900000003',
         'Andaimes, betoneiras e ferramentas. Locadora fictícia do ambiente local.', 'Responsável Demo');
+
+-- aceite dos Termos e da Política (versão de dados-legais.js): sem ele o
+-- painel abre travado no modal de aceite
+insert into public.aceites (user_id, documento, versao, aceito, origem)
+select u.id, d, '2026-11-11', true, 'seed-demo'
+  from auth.users u, unnest(array['termos', 'privacidade']) d
+ where u.email like '%@demo.local';
+
+-- equipamentos com preço por período (v12.42): um com todos, um só mensal
+insert into public.equipamentos (locadora_id, categoria_id, nome, marca, descricao, preco_dia, preco_semana,
+                                 preco_quinzena, preco_mes, caucao, quantidade, is_public, ativo, specs)
+select '33333333-3333-4333-8333-333333333333', c.id, x.nome, x.marca, x.descricao, x.dia, x.sem, x.quin, x.mes, x.cau, x.qtd, true, true,
+       '{"condicoes":"Retirada com documento. (demo)"}'::jsonb
+  from (select id from public.equipamento_categorias order by ordem limit 1) c,
+       (values ('Betoneira 400 litros (demo)', 'Menegotti', 'Equipamento fictício.', 80, 400, 700, 1200, 300, 2),
+               ('Container escritório 6 m (demo)', null, 'Aluguel mínimo de uma quinzena. Equipamento fictício.', null, null, 900, 1500, 0, 1))
+       as x(nome, marca, descricao, dia, sem, quin, mes, cau, qtd);
 
 commit;

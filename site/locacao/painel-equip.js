@@ -1,5 +1,8 @@
 /* ============================================================
-   Fieldo Locação · painel-equip.js  v12.19
+   Fieldo Locação · painel-equip.js  v12.42
+   v12.42 · preço por período: diária, semanal, quinzenal e mensal, todos
+   decididos pela locadora. Nenhum é obrigatório sozinho; é preciso ao
+   menos um. A conta da locação está em precos.js.
    Meus equipamentos: lista com "livres hoje", chave Na vitrine no
    próprio cartão e cadastro em tela própria, em três blocos com
    exemplos. Correções da auditoria:
@@ -39,22 +42,23 @@
       '</p></div><button type="button" class="btn btn--primary" data-acao="novo-equip">+ Novo equipamento</button></div>' +
       LP.dicaHTML('equipamentos', 'Cadastre os equipamentos que você deseja alugar. Com <strong>“Na vitrine”</strong> ligado, o equipamento aparece na sua página pública com preço e botão de WhatsApp.');
     if (!lista.length) {
-      html += '<div class="lp-vazio"><h3>Nenhum equipamento ainda</h3><p>Comece pelo que você mais aluga. Uma foto e o preço da diária já bastam.</p>' +
+      html += '<div class="lp-vazio"><h3>Nenhum equipamento ainda</h3><p>Comece pelo que você mais aluga. Uma foto e um preço (diária, semana, quinzena ou mês) já bastam.</p>' +
         '<button type="button" class="btn btn--primary" data-acao="novo-equip">Cadastrar o primeiro</button></div>';
       el.innerHTML = html; return;
     }
     html += lista.map(function (e) {
       var capa = LP.fotosDe(e)[0], ativo = e.ativo !== false, es = estoque(e);
-      var precos = [];
-      if (e.preco_semana) precos.push(LP.brl(e.preco_semana) + ' semana');
-      if (e.preco_mes) precos.push(LP.brl(e.preco_mes) + ' mês');
+      var precos = FieldoPrecos.lista(e).map(function (x) { return LP.brl(x.preco) + ' ' + x.por; });
       return '<div class="eq-card"' + (ativo ? '' : ' style="opacity:.75"') + '><div class="eq-top">' +
         (capa ? '<img class="eq-thumb" src="' + esc(capa) + '" alt="" loading="lazy"/>'
               : '<div class="eq-thumb" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></div>') +
         '<div style="min-width:0"><div class="eq-nome">' + esc(e.nome) + '</div>' +
           '<div class="eq-linha">' + esc(LP.categoria(e.categoria_id)) + (e.marca ? ' · ' + esc(e.marca) : '') + (LP.fotosDe(e).length ? '' : ' · <span style="color:var(--amber)">sem foto</span>') + '</div>' +
-          '<div class="eq-preco">' + (e.preco_dia ? esc(LP.brl(e.preco_dia)) + ' por dia' : '<span style="color:var(--red)">Sem preço da diária</span>') +
-            (precos.length ? '<span style="color:var(--muted);font-weight:400"> · ' + esc(precos.join(' · ')) + '</span>' : '') + '</div>' +
+          /* cada preço inteiro numa linha: "R$" não pode ficar longe do número */
+          '<div class="eq-preco">' + (precos.length ? '<span style="white-space:nowrap">' + esc(precos[0]) + '</span>' +
+              (precos.length > 1 ? '<span style="color:var(--muted);font-weight:400"> · ' + precos.slice(1).map(function (x) {
+                return '<span style="white-space:nowrap">' + esc(x) + '</span>'; }).join(' · ') + '</span>' : '')
+            : '<span style="color:var(--red)">Sem preço</span>') + '</div>' +
           (ativo ? '<div class="eq-estoque' + (es.livres ? '' : ' zero') + '">' + es.livres + ' de ' + es.total + ' livre' + (es.livres === 1 ? '' : 's') + ' hoje' +
             (es.futuras ? '<span style="color:var(--amber);font-weight:400"> · ' + es.futuras + ' reservada' + (es.futuras > 1 ? 's' : '') + ' para depois</span>' : '') + '</div>'
             : '<div class="eq-estoque zero">Desativado: não aparece na vitrine nem nas novas locações</div>') +
@@ -84,14 +88,17 @@
         '<div class="fg"><div class="field-label">Fotos <span class="opc" id="eqFotosN"></span></div><div class="eq-fotos" id="eqFotos"></div>' +
           '<div class="field-hint" style="margin-top:.4rem">Até 5 fotos. A primeira é a capa na vitrine. Foto boa vende mais: equipamento limpo, fundo simples.</div></div>' +
       '</div>' +
-      '<div class="lp-card"><h2>Preço e quantidade</h2><p class="sub">O valor da locação é calculado pela diária × dias × quantidade.</p>' +
+      '<div class="lp-card"><h2>Preços e quantidade</h2>' +
+        '<p class="sub">Preencha os períodos em que você aluga — pelo menos um. Deixe em branco o que não usa. Semana = 7 dias, quinzena = 15, mês = 30.</p>' +
         '<div class="lp-2col">' +
-          LP.campo('eqDia', 'Valor da diária (R$)', numTxt(e.preco_dia), { inputmode: 'decimal', ph: 'Ex.: 80,00' }) +
-          LP.campo('eqQtd', 'Quantas unidades você tem', e.quantidade || 1, { inputmode: 'numeric', ph: 'Ex.: 2' }) +
+          LP.campo('eqDia', 'Diária (R$)', numTxt(e.preco_dia), { inputmode: 'decimal', ph: 'Ex.: 80,00' }) +
+          LP.campo('eqSemana', 'Semana (R$)', numTxt(e.preco_semana), { inputmode: 'decimal', ph: 'Ex.: 400,00' }) +
         '</div><div class="lp-2col">' +
-          LP.campo('eqSemana', 'Valor por semana (R$)', numTxt(e.preco_semana), { inputmode: 'decimal', opc: 1, ph: 'Ex.: 400,00' }) +
-          LP.campo('eqMes', 'Valor por mês (R$)', numTxt(e.preco_mes), { inputmode: 'decimal', opc: 1, ph: 'Ex.: 1.200,00' }) +
+          LP.campo('eqQuinzena', 'Quinzena (R$)', numTxt(e.preco_quinzena), { inputmode: 'decimal', ph: 'Ex.: 700,00' }) +
+          LP.campo('eqMes', 'Mês (R$)', numTxt(e.preco_mes), { inputmode: 'decimal', ph: 'Ex.: 1.200,00' }) +
         '</div>' +
+        '<div class="field-hint" id="eqPrecoEx" style="margin:-.3rem 0 1rem"></div>' +
+        LP.campo('eqQtd', 'Quantas unidades você tem', e.quantidade || 1, { inputmode: 'numeric', ph: 'Ex.: 2' }) +
         LP.campo('eqCaucao', 'Caução (R$)', numTxt(e.caucao), { inputmode: 'decimal', opc: 1, ph: 'Ex.: 300,00', dica: 'Valor que o cliente deixa de garantia e recebe de volta na devolução.' }) +
       '</div>' +
       '<div class="lp-card"><h2>Detalhes</h2><p class="sub">Ajudam o cliente a decidir sem precisar perguntar.</p>' +
@@ -107,7 +114,7 @@
   }
 
   function serial() {
-    return ['eqNome', 'eqCat', 'eqDia', 'eqQtd', 'eqSemana', 'eqMes', 'eqCaucao', 'eqDesc', 'eqCond', 'eqInfo', 'eqMarca', 'eqModelo']
+    return ['eqNome', 'eqCat', 'eqDia', 'eqQtd', 'eqSemana', 'eqQuinzena', 'eqMes', 'eqCaucao', 'eqDesc', 'eqCond', 'eqInfo', 'eqMarca', 'eqModelo']
       .map(v).join('|') + '|' + (q('eqPub') && q('eqPub').checked) + '|' + f.fotos.join(',');
   }
 
@@ -128,9 +135,30 @@
       },
     });
     renderFotos();
+    ['eqDia', 'eqSemana', 'eqQuinzena', 'eqMes'].forEach(function (id) {
+      q(id).addEventListener('input', function () { if (FieldoPrecos.temPreco(lerPrecos())) LP.marcarErro('eqDia', ''); exemploPreco(); });
+    });
+    exemploPreco();
     f.inicial = serial();
     if (!e) setTimeout(function () { var n = q('eqNome'); if (n) n.focus(); }, 80);
   };
+
+  /* Mostra, enquanto a locadora digita, como o app vai cobrar — para a
+     regra da "combinação mais barata" não ser surpresa na hora da locação. */
+  function lerPrecos() {
+    return { preco_dia: LP.num(v('eqDia')), preco_semana: LP.num(v('eqSemana')),
+             preco_quinzena: LP.num(v('eqQuinzena')), preco_mes: LP.num(v('eqMes')) };
+  }
+  function exemploPreco() {
+    var box = q('eqPrecoEx'); if (!box) return;
+    var t = lerPrecos();
+    if (!FieldoPrecos.temPreco(t)) { box.textContent = 'Na locação, o app soma os períodos e escolhe a combinação mais barata para o cliente. Mês = 30 dias.'; return; }
+    var ex = [3, 10, 20].map(function (d) {
+      var r = FieldoPrecos.calcular(t, d);
+      return d + ' dias: ' + FieldoPrecos.descrever(r) + ' = ' + LP.brl(r.total);
+    });
+    box.innerHTML = 'Como fica: ' + esc(ex.join(' · ')) + '. <br>O app escolhe a combinação mais barata; na locação você ainda pode mudar o total.';
+  }
 
   function renderFotos() {
     var wrap = q('eqFotos'); if (!wrap) return;
@@ -162,26 +190,28 @@
   });
 
   function salvar() {
-    var nome = v('eqNome'), cat = v('eqCat'), dia = LP.num(v('eqDia')), qtd = parseInt(v('eqQtd'), 10);
-    ['eqNome', 'eqCat', 'eqDia', 'eqQtd', 'eqSemana', 'eqMes', 'eqCaucao'].forEach(function (id) { LP.marcarErro(id, ''); });
+    var nome = v('eqNome'), cat = v('eqCat'), qtd = parseInt(v('eqQtd'), 10);
+    ['eqNome', 'eqCat', 'eqDia', 'eqQtd', 'eqSemana', 'eqQuinzena', 'eqMes', 'eqCaucao'].forEach(function (id) { LP.marcarErro(id, ''); });
     if (nome.length < 2) return LP.marcarErro('eqNome', 'Informe o nome do equipamento.');
     if (!cat) return LP.marcarErro('eqCat', 'Escolha a categoria.');
-    if (dia == null || dia <= 0) return LP.marcarErro('eqDia', 'Informe o valor da diária. Ex.: 80,00');
-    if (isNaN(qtd) || qtd < 1 || qtd > 9999) return LP.marcarErro('eqQtd', 'Informe quantas unidades você tem (1 ou mais).');
     var ext = {};
-    var opcionais = [['eqSemana', 'preco_semana'], ['eqMes', 'preco_mes'], ['eqCaucao', 'caucao']];
-    for (var i = 0; i < opcionais.length; i++) {
-      var bruto = v(opcionais[i][0]), n = LP.num(bruto);
-      if (bruto && (n == null || n < 0)) return LP.marcarErro(opcionais[i][0], 'Use só números. Ex.: 400,00');
-      ext[opcionais[i][1]] = bruto ? n : null;
+    var valores = [['eqDia', 'preco_dia', '80,00'], ['eqSemana', 'preco_semana', '400,00'], ['eqQuinzena', 'preco_quinzena', '700,00'],
+                   ['eqMes', 'preco_mes', '1.200,00'], ['eqCaucao', 'caucao', '300,00']];
+    for (var i = 0; i < valores.length; i++) {
+      var bruto = v(valores[i][0]), n = LP.num(bruto);
+      if (bruto && (n == null || n < 0)) return LP.marcarErro(valores[i][0], 'Use só números. Ex.: ' + valores[i][2]);
+      /* 0 é o mesmo que vazio: "não alugo por este período" */
+      ext[valores[i][1]] = bruto && n > 0 ? n : null;
     }
+    if (!FieldoPrecos.temPreco(ext)) return LP.marcarErro('eqDia', 'Informe pelo menos um preço: diária, semanal, quinzenal ou mensal.');
+    if (isNaN(qtd) || qtd < 1 || qtd > 9999) return LP.marcarErro('eqQtd', 'Informe quantas unidades você tem (1 ou mais).');
     if (f.enviando > 0) { LP.toast('Espere as fotos terminarem de enviar.'); return; }
     var e = f.editando, specs = Object.assign({}, (e && e.specs && typeof e.specs === 'object') ? e.specs : {});
     specs.condicoes = v('eqCond') || undefined; specs.info = v('eqInfo') || undefined;
     Object.keys(specs).forEach(function (k) { if (specs[k] === undefined) delete specs[k]; });
     var payload = {
-      nome: nome, categoria_id: cat, preco_dia: dia, quantidade: qtd,
-      preco_semana: ext.preco_semana, preco_mes: ext.preco_mes, caucao: ext.caucao,
+      nome: nome, categoria_id: cat, preco_dia: ext.preco_dia, quantidade: qtd,
+      preco_semana: ext.preco_semana, preco_quinzena: ext.preco_quinzena, preco_mes: ext.preco_mes, caucao: ext.caucao,
       descricao: v('eqDesc') || null, marca: v('eqMarca') || null, modelo: v('eqModelo') || null,
       specs: specs, is_public: q('eqPub').checked, ativo: true,
       fotos: f.fotos.slice(0, FIELDO_LOCACAO.Fotos.LIMITE_POR_EQUIP),

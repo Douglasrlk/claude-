@@ -51,8 +51,23 @@ docker compose exec -T db psql -U postgres -At -f /dev/stdin < db/verify/estrutu
 docker compose exec -T db psql -U postgres -At -f /dev/stdin < db/verify/permissoes.sql
 ```
 
-Rode os mesmos SQL no SQL Editor de produção; os md5 precisam bater. Se não baterem, alguém mudou
-produção sem arquivo — regenere a baseline e descubra o quê.
+Rode os mesmos SQL no SQL Editor de produção; os md5 precisam bater **quando `db/pendentes.txt`
+estiver vazio**. Com migration pendente (ainda não aplicada em produção), o banco local fica
+de propósito um passo à frente. Se não baterem sem pendência, alguém mudou produção sem arquivo —
+regenere a baseline e descubra o quê.
+
+## Migrations pendentes
+
+`db/pendentes.txt` lista, em ordem, os arquivos de `site/supabase/migrations/` que ainda não estão em
+produção. Um banco novo aplica a baseline e depois esses. Em produção, aplique pelo painel
+`admin-migracoes` (a lista fechada já inclui o SHA-256 delas) **antes** de publicar o site que
+depende delas; depois tire o arquivo de `pendentes.txt` e regenere a baseline.
+
+## Testes
+
+```bash
+node infra/tests/precos.test.mjs   # regra de preço por período + contrato + cópias do assistente
+```
 
 ## Recomeçar do zero
 

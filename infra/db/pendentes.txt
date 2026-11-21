@@ -1,0 +1,4 @@
+# Migrations de site/supabase/migrations que AINDA NÃO estão em produção.
+# O banco local aplica a baseline (igual a produção) e depois estas, nesta ordem.
+# Quando uma for aplicada em produção e a baseline for regenerada, tire-a daqui.
+2026-11-21_locacao_precos_periodo.sql

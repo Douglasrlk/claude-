@@ -22,6 +22,8 @@ services:
       - db-data:/var/lib/postgresql/data
       - ./db/zz-fieldo.sh:/docker-entrypoint-initdb.d/zz-fieldo.sh:ro
       - ./db/init:/fieldo/init:ro
+      - ./db/pendentes.txt:/fieldo/pendentes.txt:ro
+      - ../site/supabase/migrations:/fieldo/migrations:ro
     ports:
       - "127.0.0.1:54322:5432"     # psql local; só na interface de loopback
     healthcheck:

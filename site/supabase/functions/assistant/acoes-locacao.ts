@@ -6,7 +6,9 @@
 // funções loc_contrato_* do banco, exatamente como no painel.
 //
 // Regras de negócio copiadas de db.locacao.js (painel), de propósito
-// iguais: diárias = diferença de dias, mínimo 1; reservada também ocupa
+// iguais: diárias = diferença de dias, mínimo 1; valor pela tabela de
+// períodos (diária/semana/quinzena/mês, combinação mais barata — precos.js,
+// v12.42); reservada também ocupa
 // estoque; atrasada ocupa até hoje; disponibilidade por período.
 // O texto do contrato sai do MESMO módulo do painel (contrato-doc.js).
 //
@@ -19,6 +21,8 @@
 import { rest, AcaoErro, idDoToken, hojeBrasil } from './acoes.ts';
 // @ts-ignore — módulo JS puro, cópia de locacao/contrato-doc.js
 import Doc from './contrato-doc.js';
+// @ts-ignore — módulo JS puro, cópia de locacao/precos.js (v12.42: preço por período)
+import Precos from './precos-locacao.js';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -143,7 +147,7 @@ export function ocupadoNoPeriodo(locs: Linha[], inicio: string, fim: string, ign
 
 async function equipamentos(token: string, loc: string) {
   return await rest(token, 'GET', 'equipamentos?locadora_id=eq.' + loc +
-    '&select=id,nome,marca,modelo,categoria_id,preco_dia,preco_semana,preco_mes,caucao,quantidade,ativo,is_public&order=nome.asc');
+    '&select=id,nome,marca,modelo,categoria_id,preco_dia,preco_semana,preco_quinzena,preco_mes,caucao,quantidade,ativo,is_public&order=nome.asc');
 }
 async function locacoesAbertas(token: string, loc: string) {
   return await rest(token, 'GET', 'locacoes?locadora_id=eq.' + loc +
@@ -174,13 +178,14 @@ export const TOOLS_LOCACAO = [
   },
   {
     name: 'loc_criar_equipamento',
-    description: 'Cadastra um equipamento novo. A categoria é escrita do jeito que o locador falar (betoneira, andaime, furadeira...) e é ligada à categoria mais próxima do Fieldo; se não achar, a resposta traz as categorias existentes para escolher. Por padrão o equipamento já entra na vitrine.',
+    description: 'Cadastra um equipamento novo. A categoria é escrita do jeito que o locador falar (betoneira, andaime, furadeira...) e é ligada à categoria mais próxima do Fieldo; se não achar, a resposta traz as categorias existentes para escolher. Preço: diária, semanal, quinzenal e/ou mensal — pelo menos um; pergunte se o locador não disser. Por padrão o equipamento já entra na vitrine.',
     input_schema: {
       type: 'object',
       properties: {
         nome: { type: 'string', description: 'Obrigatório. Ex.: "Betoneira 400 litros".' },
         categoria: { type: 'string', description: 'Obrigatório. Ex.: "betoneira".' },
-        preco_dia: { type: 'number' }, preco_semana: { type: 'number' }, preco_mes: { type: 'number' },
+        preco_dia: { type: 'number', description: 'Diária, em reais.' }, preco_semana: { type: 'number', description: 'Semanal (7 dias).' },
+        preco_quinzena: { type: 'number', description: 'Quinzenal (15 dias).' }, preco_mes: { type: 'number', description: 'Mensal (30 dias).' },
         caucao: { type: 'number', description: 'Caução por unidade, em reais.' },
         quantidade: { type: 'integer', description: 'Quantas unidades a locadora tem. Padrão 1.' },
         marca: { type: 'string' }, modelo: { type: 'string' }, descricao: { type: 'string' },
@@ -196,7 +201,8 @@ export const TOOLS_LOCACAO = [
       type: 'object',
       properties: {
         equipamento_id: { type: 'string' }, nome: { type: 'string' }, descricao: { type: 'string' },
-        preco_dia: { type: 'number' }, preco_semana: { type: 'number' }, preco_mes: { type: 'number' },
+        preco_dia: { type: 'number', description: 'Diária, em reais.' }, preco_semana: { type: 'number', description: 'Semanal (7 dias).' },
+        preco_quinzena: { type: 'number', description: 'Quinzenal (15 dias).' }, preco_mes: { type: 'number', description: 'Mensal (30 dias).' },
         caucao: { type: 'number' }, quantidade: { type: 'integer' },
         na_vitrine: { type: 'boolean' }, ativo: { type: 'boolean' },
       },
@@ -218,7 +224,7 @@ export const TOOLS_LOCACAO = [
   },
   {
     name: 'loc_nova_locacao',
-    description: 'Registra um aluguel: confere se há unidades livres no período, calcula as diárias e o valor pela diária de cada equipamento e sugere a caução pela soma das cauções. Não pede nem grava CPF/CNPJ: o documento do cliente é preenchido pelo locador na tela.',
+    description: 'Registra um aluguel: confere se há unidades livres no período, calcula o valor pela tabela de preços de cada equipamento (a combinação mais barata de diária, semana, quinzena e mês que cobre o período) e sugere a caução pela soma das cauções. Não pede nem grava CPF/CNPJ: o documento do cliente é preenchido pelo locador na tela.',
     input_schema: {
       type: 'object',
       properties: {
@@ -236,7 +242,7 @@ export const TOOLS_LOCACAO = [
   },
   {
     name: 'loc_alterar_locacao',
-    description: 'Muda um aluguel: renovar (nova data de devolução), mudar a data de saída, endereço, observações, valor ou caução. Ao mudar datas, confere a disponibilidade e recalcula o valor pelas diárias, a menos que o valor seja informado.',
+    description: 'Muda um aluguel: renovar (nova data de devolução), mudar a data de saída, endereço, observações, valor ou caução. Ao mudar datas, confere a disponibilidade e recalcula o valor pela tabela de preços gravada em cada item, a menos que o valor seja informado.',
     input_schema: {
       type: 'object',
       properties: {
@@ -314,7 +320,7 @@ export async function executarLocacao(nome: string, input: Linha, token: string)
       return {
         equipamentos: eqs.map((e) => soDefinidos({
           equipamento_id: e.id, nome: e.nome, marca: e.marca || undefined, preco_dia: e.preco_dia, preco_semana: e.preco_semana,
-          preco_mes: e.preco_mes, caucao: e.caucao, quantidade: e.quantidade, na_vitrine: !!e.is_public, ativo: e.ativo !== false,
+          preco_quinzena: e.preco_quinzena, preco_mes: e.preco_mes, caucao: e.caucao, quantidade: e.quantidade, na_vitrine: !!e.is_public, ativo: e.ativo !== false,
           livres_no_periodo: livres ? Math.max(0, Number(e.quantidade || 0) - (livres[String(e.id)] || 0)) : undefined,
         })),
       };
@@ -331,28 +337,30 @@ export async function executarLocacao(nome: string, input: Linha, token: string)
       if (!achou) {
         return { precisa_categoria: true, categorias: cats.map((c) => c.nome), instrucao: 'Pergunte ao locador em qual destas categorias o equipamento entra e chame de novo com ela.' };
       }
-      for (const k of ['preco_dia', 'preco_semana', 'preco_mes', 'caucao']) {
+      for (const k of ['preco_dia', 'preco_semana', 'preco_quinzena', 'preco_mes', 'caucao']) {
         if (num(input[k]) !== undefined && (input[k] as number) < 0) throw new AcaoErro(k + ' não pode ser negativo.');
       }
+      if (!Precos.temPreco(input)) throw new AcaoErro('informe pelo menos um preço: diária, semanal, quinzenal ou mensal.');
       const qtd = Number.isInteger(input.quantidade) && (input.quantidade as number) >= 1 ? input.quantidade : 1;
       const r = um(await rest(token, 'POST', 'equipamentos', soDefinidos({
         locadora_id: loc, nome: nomeE, categoria_id: achou.id, quantidade: qtd,
         preco_dia: num(input.preco_dia) !== undefined ? r2(input.preco_dia) : undefined,
         preco_semana: num(input.preco_semana) !== undefined ? r2(input.preco_semana) : undefined,
+        preco_quinzena: num(input.preco_quinzena) !== undefined ? r2(input.preco_quinzena) : undefined,
         preco_mes: num(input.preco_mes) !== undefined ? r2(input.preco_mes) : undefined,
         caucao: num(input.caucao) !== undefined ? r2(input.caucao) : undefined,
         marca: txt(input.marca, 80) || undefined, modelo: txt(input.modelo, 80) || undefined,
         descricao: txt(input.descricao, 1500) || undefined,
         is_public: input.na_vitrine === false ? false : true, ativo: true,
       })), 'Equipamento');
-      return { ok: true, equipamento_id: r.id, nome: r.nome, categoria: achou.nome, quantidade: r.quantidade, preco_dia: r.preco_dia, na_vitrine: !!r.is_public,
+      return { ok: true, equipamento_id: r.id, nome: r.nome, categoria: achou.nome, quantidade: r.quantidade, precos: Precos.resumo(r), na_vitrine: !!r.is_public,
         lembrete: 'Fotos se colocam pela tela de Equipamentos.' };
     }
 
     case 'loc_editar_equipamento': {
       const eid = id(input.equipamento_id, 'equipamento_id');
       const dados: Linha = soDefinidos({ nome: txt(input.nome, 120), descricao: txt(input.descricao, 1500) });
-      for (const k of ['preco_dia', 'preco_semana', 'preco_mes', 'caucao']) {
+      for (const k of ['preco_dia', 'preco_semana', 'preco_quinzena', 'preco_mes', 'caucao']) {
         if (num(input[k]) !== undefined) {
           if ((input[k] as number) < 0) throw new AcaoErro(k + ' não pode ser negativo.');
           dados[k] = r2(input[k]);
@@ -365,10 +373,12 @@ export async function executarLocacao(nome: string, input: Linha, token: string)
       if (typeof input.na_vitrine === 'boolean') dados.is_public = input.na_vitrine;
       if (typeof input.ativo === 'boolean') { dados.ativo = input.ativo; if (!input.ativo) dados.is_public = false; }
       if (!Object.keys(dados).length) throw new AcaoErro('diga o que mudar no equipamento.');
-      const antes = um(await rest(token, 'GET', 'equipamentos?id=eq.' + enc(eid) + '&select=preco_dia,caucao,quantidade,is_public,ativo'), 'Equipamento');
+      const antes = um(await rest(token, 'GET', 'equipamentos?id=eq.' + enc(eid) + '&select=preco_dia,preco_semana,preco_quinzena,preco_mes,caucao,quantidade,is_public,ativo'), 'Equipamento');
+      /* zerar todos os preços deixaria o equipamento sem como ser cobrado */
+      if (!Precos.temPreco({ ...antes, ...dados })) throw new AcaoErro('o equipamento precisa de pelo menos um preço (diária, semanal, quinzenal ou mensal).');
       const r = um(await rest(token, 'PATCH', 'equipamentos?id=eq.' + enc(eid), dados), 'Equipamento');
-      return { ok: true, equipamento_id: r.id, nome: r.nome, preco_dia: r.preco_dia, caucao: r.caucao, quantidade: r.quantidade, na_vitrine: !!r.is_public, ativo: r.ativo !== false,
-        antes: { preco_dia: antes.preco_dia, caucao: antes.caucao, quantidade: antes.quantidade, na_vitrine: !!antes.is_public, ativo: antes.ativo !== false } };
+      return { ok: true, equipamento_id: r.id, nome: r.nome, precos: Precos.resumo(r), caucao: r.caucao, quantidade: r.quantidade, na_vitrine: !!r.is_public, ativo: r.ativo !== false,
+        antes: { precos: Precos.resumo(antes), caucao: antes.caucao, quantidade: antes.quantidade, na_vitrine: !!antes.is_public, ativo: antes.ativo !== false } };
     }
 
     case 'loc_disponibilidade': {
@@ -436,11 +446,12 @@ export async function executarLocacao(nome: string, input: Linha, token: string)
         const qtd = Number.isInteger(p.quantidade) && (p.quantidade as number) > 0 ? (p.quantidade as number) : 1;
         const livres = Math.max(0, Number(e.quantidade || 0) - (ocup[eid] || 0));
         if (qtd > livres) faltam.push(e.nome + ': pediu ' + qtd + ', livre' + (livres === 1 ? '' : 's') + ' ' + livres);
-        const preco = e.preco_dia != null ? Number(e.preco_dia) : null;
-        const sub = preco != null ? r2(preco * qtd * n) : null;
+        const cob = Precos.cobranca(e, n);
+        const sub = cob ? r2(cob.unitario * qtd) : null;
         if (sub != null) total += sub; else semPreco.push(String(e.nome));
         if (e.caucao) caucao += Number(e.caucao) * qtd;
-        itens.push({ equipamento_id: eid, quantidade: qtd, preco_dia_aplicado: preco, subtotal: sub, _nome: e.nome });
+        itens.push({ equipamento_id: eid, quantidade: qtd, preco_dia_aplicado: e.preco_dia != null ? Number(e.preco_dia) : null,
+                     subtotal: sub, cobranca: cob, _nome: e.nome });
       }
       if (faltam.length) {
         return { indisponivel: true, periodo: saida + ' a ' + dev, faltam, instrucao: 'Nada foi gravado. Conte ao locador o que falta e sugira outro período ou quantidade.' };
@@ -456,6 +467,7 @@ export async function executarLocacao(nome: string, input: Linha, token: string)
       try {
         await rest(token, 'POST', 'locacao_itens', itens.map((i) => ({
           locacao_id: nova.id, equipamento_id: i.equipamento_id, quantidade: i.quantidade, preco_dia_aplicado: i.preco_dia_aplicado, subtotal: i.subtotal,
+          cobranca: i.cobranca,
         })));
       } catch (e) {
         await rest(token, 'DELETE', 'locacoes?id=eq.' + enc(String(nova.id))).catch(() => []);
@@ -463,16 +475,17 @@ export async function executarLocacao(nome: string, input: Linha, token: string)
       }
       return soDefinidos({
         ok: true, locacao_id: nova.id, cliente, saida, devolucao_prevista: dev, diarias: n,
-        itens: itens.map((i) => ({ equipamento: i._nome, quantidade: i.quantidade, subtotal: i.subtotal })),
-        valor_total: valor, valor_pelas_diarias: r2(total), caucao: cauc, situacao: ROTULO[statusVisivel(nova, hoje)],
-        aviso: semPreco.length ? 'Sem preço de diária (não entrou na conta): ' + semPreco.join(', ') + '.' : undefined,
+        itens: itens.map((i) => soDefinidos({ equipamento: i._nome, quantidade: i.quantidade, subtotal: i.subtotal,
+          cobranca: i.cobranca ? Precos.descrever(i.cobranca) : undefined })),
+        valor_total: valor, valor_pela_tabela: r2(total), caucao: cauc, situacao: ROTULO[statusVisivel(nova, hoje)],
+        aviso: semPreco.length ? 'Sem preço cadastrado (não entrou na conta): ' + semPreco.join(', ') + '.' : undefined,
         lembrete: 'O CPF/CNPJ do cliente, se for fazer contrato, o locador preenche na tela da locação.',
       });
     }
 
     case 'loc_alterar_locacao': {
       const lid = id(input.locacao_id, 'locacao_id');
-      const l = um(await rest(token, 'GET', 'locacoes?id=eq.' + enc(lid) + '&select=id,status,data_saida,data_prevista_devolucao,valor_total,caucao_valor,locacao_itens(id,equipamento_id,quantidade,preco_dia_aplicado)'), 'Locação');
+      const l = um(await rest(token, 'GET', 'locacoes?id=eq.' + enc(lid) + '&select=id,status,data_saida,data_prevista_devolucao,valor_total,caucao_valor,locacao_itens(id,equipamento_id,quantidade,preco_dia_aplicado,cobranca)'), 'Locação');
       if (l.status === 'devolvida' || l.status === 'cancelada') throw new AcaoErro('essa locação já está ' + l.status + '.');
       const saida = typeof input.data_saida === 'string' && input.data_saida ? data(input.data_saida, 'data_saida') : String(l.data_saida);
       const dev = typeof input.data_devolucao === 'string' && input.data_devolucao ? data(input.data_devolucao, 'data_devolucao') : String(l.data_prevista_devolucao);
@@ -496,10 +509,17 @@ export async function executarLocacao(nome: string, input: Linha, token: string)
         const n = diarias(saida, dev);
         valorDiarias = 0;
         for (const it of (l.locacao_itens as Linha[]) || []) {
-          if (it.preco_dia_aplicado == null) continue;
-          const sub = r2(Number(it.preco_dia_aplicado) * Number(it.quantidade) * n);
+          /* Refaz a conta com os preços da ÉPOCA do aluguel: a tabela gravada
+             na cobrança do item; item antigo (sem ela) usa a diária aplicada,
+             como antes. Mudança de preço no cadastro não reprecifica aluguel em curso. */
+          const c = it.cobranca as { tabela?: Linha } | null;
+          const tabela = c && c.tabela ? c.tabela : { dia: it.preco_dia_aplicado };
+          const cob = Precos.cobranca(tabela, n);
+          if (!cob) continue;
+          const sub = r2(cob.unitario * Number(it.quantidade));
           valorDiarias += sub;
-          await rest(token, 'PATCH', 'locacao_itens?id=eq.' + enc(String(it.id)), { subtotal: sub });
+          await rest(token, 'PATCH', 'locacao_itens?id=eq.' + enc(String(it.id)),
+            c ? { subtotal: sub, cobranca: cob } : { subtotal: sub });
         }
         dados.data_saida = saida; dados.data_prevista_devolucao = dev;
         dados.status = saida > hoje ? 'reservada' : 'em_andamento';

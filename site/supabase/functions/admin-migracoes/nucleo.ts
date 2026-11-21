@@ -68,6 +68,10 @@ const SONDAS: Record<string, string> = {
   fieldo_studio: `select to_regclass('public.studio_videos') is not null
                     and to_regprocedure('public.studio_exportar(uuid,text,integer)') is not null
                     and to_regprocedure('private.midia_reservar(uuid,text,integer,text,integer)') is not null as ok`,
+  locacao_precos_periodo: `select exists (select 1 from information_schema.columns
+                              where table_schema = 'public' and table_name = 'equipamentos' and column_name = 'preco_quinzena')
+                           and exists (select 1 from information_schema.columns
+                              where table_schema = 'public' and table_name = 'locacao_itens' and column_name = 'cobranca') as ok`,
 };
 
 async function sondar(sql: Sql, m: Migracao): Promise<boolean | null> {

@@ -65,6 +65,19 @@ var FieldoContratoDoc = (function () {
     if (d.length === 10) return d.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
     return umaLinha(s);
   }
+  /* v12.42 · "1 semana (R$ 400,00) + 3 diárias (R$ 80,00) por unidade"
+     a partir de locacao_itens.cobranca (ver locacao/precos.js). */
+  var NOMES_PERIODO = { mes: ['mês', 'meses'], quinzena: ['quinzena', 'quinzenas'], semana: ['semana', 'semanas'], dia: ['diária', 'diárias'] };
+  function cobrancaTexto(c) {
+    if (!c || !Array.isArray(c.periodos) || !c.periodos.length) return '';
+    var partes = c.periodos.map(function (p) {
+      var nm = NOMES_PERIODO[p.chave], q = Number(p.qtd) || 0;
+      if (!nm || !q) return '';
+      return q + ' ' + (q === 1 ? nm[0] : nm[1]) + (brl(p.preco) ? ' (' + brl(p.preco) + ')' : '');
+    }).filter(Boolean);
+    return partes.length ? 'cobrança: ' + partes.join(' + ') + ' por unidade' : '';
+  }
+
   function brl(n) {
     if (n == null || n === '' || isNaN(Number(n))) return null;
     var v = Number(n).toFixed(2).split('.');
@@ -224,8 +237,15 @@ var FieldoContratoDoc = (function () {
 
     L.push('## 2. Quadro resumo');
     L.push('- Retirada: ' + fmtData(lo.data_saida));
+    /* v12.42 · com cobrança por semana/quinzena/mês, "10 diárias" deixaria
+       de ser verdade: o período passa a ser dito em dias. Contrato só com
+       diária continua com o texto de antes (mesmo hash para mesmos dados). */
+    var porPeriodo = itens.some(function (it) {
+      return it.cobranca && (it.cobranca.periodos || []).some(function (p) { return p.chave !== 'dia'; });
+    });
     L.push('- Devolução prevista: ' + fmtData(lo.data_prevista_devolucao) +
-           (lo.diarias ? ' (' + lo.diarias + (Number(lo.diarias) === 1 ? ' diária' : ' diárias') + ')' : ''));
+           (lo.diarias ? ' (' + lo.diarias + (porPeriodo ? (Number(lo.diarias) === 1 ? ' dia' : ' dias')
+                                                          : (Number(lo.diarias) === 1 ? ' diária' : ' diárias')) + ')' : ''));
     if (lo.entrega_endereco) L.push('- Endereço de entrega: ' + umaLinha(lo.entrega_endereco));
     var vt = valorTotal(lo, itens);
     L.push('- Valor total da locação: ' + (vt != null ? brl(vt) : 'a combinar entre as partes'));
@@ -236,7 +256,9 @@ var FieldoContratoDoc = (function () {
       var nome = umaLinha(it.nome) || 'Equipamento';
       var det = [it.marca, it.modelo].map(umaLinha).filter(Boolean).join(' ');
       var linha = (it.quantidade || 1) + '× ' + nome + (det ? ' (' + det + ')' : '');
-      if (it.preco_dia != null && brl(it.preco_dia)) linha += ' — diária ' + brl(it.preco_dia);
+      var comp = cobrancaTexto(it.cobranca);
+      if (comp) linha += ' — ' + comp;
+      else if (it.preco_dia != null && brl(it.preco_dia)) linha += ' — diária ' + brl(it.preco_dia);
       if (it.subtotal != null && brl(it.subtotal))   linha += ' — subtotal ' + brl(it.subtotal);
       L.push('- ' + linha);
     });

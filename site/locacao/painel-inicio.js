@@ -11,7 +11,7 @@
   function passos() {
     var st = LP.st, l = st.locadora || {}, eq = st.equip || [];
     var ativos = eq.filter(function (e) { return e.ativo !== false; });
-    var precosOk = ativos.length > 0 && ativos.every(function (e) { return Number(e.preco_dia) > 0 && (e.quantidade || 0) >= 1; });
+    var precosOk = ativos.length > 0 && ativos.every(function (e) { return FieldoPrecos.temPreco(e) && (e.quantidade || 0) >= 1; });
     var naVitrine = ativos.some(function (e) { return e.is_public; });
     return [
       { id: 'perfil', feito: !!(l.nome && l.whatsapp && l.city && (l.logo_url || (l.bio && l.bio.trim()))),
@@ -20,12 +20,12 @@
         b: '<button type="button" class="btn btn--primary btn--sm" data-ir="perfil">Completar meu perfil</button>' },
       { id: 'equip', feito: eq.length > 0,
         t: 'Cadastre seu primeiro equipamento',
-        d: 'Betoneira, andaime, gerador… Com foto e preço da diária. Leva um minuto.',
+        d: 'Betoneira, andaime, gerador… Com foto e preço por dia, semana, quinzena ou mês. Leva um minuto.',
         b: '<button type="button" class="btn btn--primary btn--sm" data-acao="novo-equip">Cadastrar equipamento</button>' },
       { id: 'precos', feito: precosOk && naVitrine,
         t: 'Configure preços e disponibilidade',
         d: !eq.length ? 'Depois do primeiro equipamento: confira preço, quantidade e ligue “Na vitrine”.'
-          : !precosOk ? 'Há equipamento sem preço da diária ou sem quantidade. Abra e complete.'
+          : !precosOk ? 'Há equipamento sem preço ou sem quantidade. Abra e complete.'
           : 'Ligue “Na vitrine” em pelo menos um equipamento para sua página aparecer para os clientes.',
         b: '<button type="button" class="btn btn--primary btn--sm" data-ir="equipamentos">Ver meus equipamentos</button>' },
       { id: 'locacao', feito: (st.locacoes || []).length > 0,

@@ -177,7 +177,7 @@
   function html() {
     return '<div class="fl-topo" id="flTopo"></div>' +
       '<div class="fl-vazio" id="flVazio"' + (visiveis.length ? ' hidden' : '') + '>' +
-        '<p>Peça do jeito que você fala. Ele confere o estoque, calcula pela diária e pergunta só o que faltar. CPF, CNPJ, Pix e a sua assinatura no contrato continuam só com você, na tela.</p>' +
+        '<p>Peça do jeito que você fala. Ele confere o estoque, calcula pela sua tabela de preços (diária, semana, quinzena, mês) e pergunta só o que faltar. CPF, CNPJ, Pix e a sua assinatura no contrato continuam só com você, na tela.</p>' +
         '<div class="fl-chips">' + SUGESTOES.map(function (s) { return '<button type="button" class="fl-chip" data-fiel-msg="' + esc(s[1]) + '">' + esc(s[0]) + '</button>'; }).join('') + '</div>' +
       '</div>' +
       '<div class="fl-lista" id="flLista" aria-live="polite"></div>';
