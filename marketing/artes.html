@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Fieldo · artes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--tinta:#0e0e14;--tinta2:#1a1a24;--papel:#f5f2ec;--papel2:#ede9df;--ouro:#d4ab40;--ouroD:#9a7218;--ponto:#c49a30;--sub:rgba(245,242,236,.62)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#333;font-family:"DM Sans",sans-serif;color:var(--papel)}
+.s{width:1080px;height:1920px;position:relative;overflow:hidden;background:var(--tinta)}
+.s + .s{margin-top:40px}
+/* brilho dourado discreto, o mesmo do fechamento do Studio */
+.s::before{content:"";position:absolute;inset:0;background:radial-gradient(760px 760px at 540px 700px,rgba(212,171,64,.13),rgba(212,171,64,0) 70%);pointer-events:none}
+.marca{position:absolute;left:120px;top:206px;display:flex;align-items:center;gap:16px;z-index:3}
+.marca svg{width:58px;height:58px}
+.marca b{font:500 48px/1 Fraunces,serif;letter-spacing:-.5px}
+.marca b em{color:var(--ouro);font-style:italic}
+.olho{font:500 26px/1 "DM Mono",monospace;letter-spacing:5px;color:var(--ouro);text-transform:uppercase}
+h1,h2{font-family:Fraunces,serif;font-weight:500;letter-spacing:-1.5px;line-height:1.03}
+h1{font-size:104px}
+h2{font-size:92px}
+.real{background:linear-gradient(transparent 58%,rgba(212,171,64,.38) 58%,rgba(212,171,64,.38) 92%,transparent 92%);font-style:italic;color:#f0d78c}
+.topo{position:absolute;left:120px;right:110px;top:330px;z-index:3}
+.topo .olho{margin-bottom:34px;display:block}
+/* faixa de baixo: no post leva o texto; no vídeo fica livre para a legenda do Studio */
+.base{position:absolute;left:120px;right:110px;bottom:250px;z-index:4}
+.base p{font:600 50px/1.18 "DM Sans",sans-serif;color:var(--papel)}
+.base small{display:block;margin-top:22px;font:500 28px/1 "DM Mono",monospace;letter-spacing:3px;color:var(--ouro)}
+.rodape{position:absolute;left:0;right:0;bottom:150px;text-align:center;font:500 28px/1 "DM Mono",monospace;letter-spacing:4px;color:rgba(245,242,236,.55);z-index:4}
+body.video .base,body.video .rodape{display:none}
+
+/* celular */
+.cel{position:absolute;left:50%;transform:translateX(-50%);width:600px;border-radius:72px;background:#050507;padding:18px;
+  box-shadow:0 60px 120px rgba(0,0,0,.55),0 0 0 2px rgba(255,255,255,.08) inset;z-index:2}
+.tela{border-radius:56px;overflow:hidden;background:var(--papel);color:var(--tinta);position:relative}
+.tela .barra{height:64px;display:flex;justify-content:space-between;align-items:center;padding:0 44px;font:600 22px/1 "DM Sans";color:var(--tinta)}
+.tela .barra i{width:150px;height:36px;border-radius:20px;background:#050507;display:block}
+.app{padding:12px 34px 40px}
+.ap-top{display:flex;align-items:center;gap:10px;font:600 24px/1 "DM Sans";color:#555;margin:6px 0 22px}
+.ap-top svg{width:30px;height:30px}
+.foto{border-radius:26px;overflow:hidden;background:#e9e2d2;position:relative}
+.foto svg{display:block;width:100%;height:100%}
+.rot{font:500 18px/1 "DM Mono",monospace;letter-spacing:3px;color:var(--ouroD);text-transform:uppercase}
+.tit{font:500 44px/1.08 Fraunces,serif;letter-spacing:-.5px;margin:10px 0 8px}
+.meta{font:400 22px/1.35 "DM Sans";color:#6b6860}
+.valor{margin-top:22px;border-radius:22px;background:#fff;padding:22px 24px;box-shadow:0 2px 0 rgba(14,14,20,.04)}
+.valor .rot{color:#8a8680}
+.valor b{display:block;font:700 54px/1.1 "DM Sans";margin-top:8px;letter-spacing:-1px}
+.botao{margin-top:18px;border-radius:20px;background:var(--tinta);color:var(--papel);text-align:center;padding:24px;font:700 26px/1 "DM Sans"}
+.selo{margin-top:18px;display:flex;gap:12px;align-items:center;font:500 20px/1.3 "DM Sans";color:#6b6860}
+.selo span{width:38px;height:38px;border-radius:50%;border:2px solid var(--ouroD);display:grid;place-items:center;color:var(--ouroD);font:700 20px/1 "DM Sans";flex:none}
+
+/* conversa genérica (sem imitar marca de app de mensagem) */
+.chat{padding:18px 26px 30px;background:#e7e2d8;min-height:880px}
+.chat .quem{display:flex;align-items:center;gap:14px;padding:8px 6px 22px;border-bottom:1px solid rgba(0,0,0,.07);margin-bottom:22px}
+.chat .quem i{width:62px;height:62px;border-radius:50%;background:#c9c2b4;display:block}
+.chat .quem b{font:700 26px/1.1 "DM Sans"} .chat .quem small{display:block;font:400 20px/1.2 "DM Sans";color:#777}
+.bal{max-width:78%;padding:18px 22px 14px;border-radius:24px;font:500 30px/1.25 "DM Sans";margin:12px 0;position:relative;background:#fff;color:#222}
+.bal.eu{margin-left:auto;background:#d8ead0}
+.bal em{display:block;text-align:right;font:400 17px/1 "DM Sans";color:#888;font-style:normal;margin-top:6px}
+.bal.cinza{opacity:.55}
+
+/* orçamento */
+.ia{padding:18px 30px 36px;min-height:880px}
+.ia .msg{margin-left:auto;max-width:86%;background:var(--tinta);color:var(--papel);border-radius:28px 28px 8px 28px;padding:24px 28px;font:500 31px/1.3 "DM Sans"}
+.ia .resp{margin-top:30px;background:#fff;border-radius:28px;padding:30px;box-shadow:0 10px 30px rgba(14,14,20,.08)}
+.ia .resp .linha{display:flex;justify-content:space-between;align-items:baseline;padding:18px 0;border-top:1px solid #eee;font:500 26px/1.2 "DM Sans";color:#444}
+.ia .resp .linha b{font:700 30px/1 "DM Sans";color:var(--tinta)}
+.digitando{display:flex;gap:10px;margin:26px 0 0 8px}
+.digitando i{width:14px;height:14px;border-radius:50%;background:#bdb6a6;display:block}
+.nota{font:400 20px/1 "DM Sans";color:#8a8680;margin-top:22px;text-align:center}
+
+/* busca */
+.busca{padding:10px 30px 36px}
+.campo{border-radius:22px;background:#fff;padding:22px 26px;font:500 26px/1 "DM Sans";color:#555;display:flex;gap:14px;align-items:center;box-shadow:0 2px 0 rgba(14,14,20,.04)}
+.cartao{margin-top:26px;background:#fff;border-radius:28px;padding:26px;box-shadow:0 14px 36px rgba(14,14,20,.10)}
+.cartao .cab{display:flex;gap:18px;align-items:center}
+.cartao .av{width:92px;height:92px;border-radius:50%;background:radial-gradient(circle at 50% 38%,#d9cdb2 0 30%,#b9ab8e 31% 100%);border:4px solid var(--ouro);flex:none}
+.cartao b{font:500 36px/1.1 Fraunces,serif}
+.cartao small{display:block;font:400 22px/1.3 "DM Sans";color:#6b6860;margin-top:4px}
+.estrelas{color:var(--ouro);font-size:30px;letter-spacing:4px;margin-top:18px}
+.estrelas span{font:500 22px/1 "DM Sans";color:#6b6860;letter-spacing:0;margin-left:8px}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+.mini div{aspect-ratio:1;border-radius:16px;overflow:hidden;background:#eadfca}
+.mini svg{width:100%;height:100%;display:block}
+.datas{display:flex;justify-content:space-between;font:500 17px/1 "DM Mono",monospace;color:#8a8680;margin-top:10px;letter-spacing:1px}
+.cartao.fraco{opacity:.45;transform:scale(.96);margin-top:22px}
+
+/* studio */
+.st{background:#111118;color:var(--papel);padding:10px 26px 34px;min-height:900px}
+.st .quadro{width:330px;height:586px;margin:6px auto 0;border-radius:22px;overflow:hidden;position:relative;background:#222}
+.st .quadro svg{width:100%;height:100%;display:block}
+.st .quadro .lg{position:absolute;left:22px;bottom:70px;font:italic 500 38px/1 Fraunces,serif;color:var(--papel)}
+.st .quadro .ct{position:absolute;left:22px;bottom:40px;font:500 14px/1 "DM Mono",monospace;letter-spacing:3px;color:var(--ouro)}
+.st .play{display:flex;justify-content:center;align-items:center;gap:18px;margin:20px 0 8px;font:500 20px/1 "DM Mono",monospace;color:rgba(245,242,236,.7)}
+.st .play i{width:56px;height:56px;border-radius:50%;background:var(--ouro);display:grid;place-items:center;color:var(--tinta);font-style:normal;font-size:24px}
+.trilha{display:flex;gap:8px;height:62px;margin:14px 0;align-items:stretch}
+.trilha span{border-radius:10px;background:#2a2a36;flex:1;position:relative;overflow:hidden}
+.trilha span.on{outline:3px solid var(--ouro)}
+.onda{height:44px;border-radius:10px;background:repeating-linear-gradient(90deg,rgba(212,171,64,.75) 0 4px,transparent 4px 9px);
+  -webkit-mask:linear-gradient(0deg,#000,#000);opacity:.85;clip-path:polygon(0 60%,4% 30%,8% 55%,12% 20%,16% 50%,20% 10%,24% 45%,28% 25%,32% 60%,36% 15%,40% 40%,44% 20%,48% 55%,52% 5%,56% 45%,60% 30%,64% 55%,68% 15%,72% 50%,76% 25%,80% 60%,84% 20%,88% 45%,92% 30%,96% 55%,100% 35%,100% 100%,0 100%)}
+.abas{display:flex;justify-content:space-between;margin-top:20px;font:600 19px/1 "DM Sans";color:rgba(245,242,236,.55)}
+.abas b{color:var(--ouro)}
+
+/* cta */
+.cta-cel{position:absolute;left:120px;right:110px;top:820px;z-index:3}
+.chips{display:flex;flex-wrap:wrap;gap:16px}
+.chips span{border:2px solid rgba(245,242,236,.22);border-radius:40px;padding:18px 28px;font:600 30px/1 "DM Sans";color:var(--papel)}
+.chips span.on{background:var(--ouro);border-color:var(--ouro);color:var(--tinta)}
+.cta{margin-top:54px;display:inline-flex;align-items:center;gap:18px;background:var(--papel);color:var(--tinta);border-radius:999px;padding:34px 54px;font:800 44px/1 "DM Sans";box-shadow:0 20px 50px rgba(212,171,64,.25)}
+.cta-sub{margin-top:30px;font:500 32px/1.3 "DM Sans";color:var(--sub)}
+.url{margin-top:46px;font:500 40px/1 "DM Mono",monospace;color:var(--ouro);letter-spacing:1px}
+
+/* foto do profissional */
+.retrato{position:absolute;left:0;right:0;top:820px;height:1100px;z-index:1}
+.retrato img{width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.retrato::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,var(--tinta) 0,rgba(14,14,20,0) 22%,rgba(14,14,20,0) 55%,rgba(14,14,20,.85) 100%)}
+
+/* v2: celular cortado e esmaecido, faixa de baixo livre */
+h2{font-size:84px}
+.topo{top:300px}
+.cel{top:740px!important;width:520px!important;height:640px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(#000 70%,transparent 100%);mask-image:linear-gradient(#000 70%,transparent 100%);box-shadow:none}
+.base{top:1440px;bottom:auto}
+.base p{font-size:48px}
+.foto{height:210px!important}
+.chat,.ia,.st{min-height:0}
+.bal{font-size:28px;margin:10px 0;padding:14px 20px 10px}
+.st .quadro{width:250px;height:444px}
+.st .quadro .lg{font-size:30px;bottom:56px;left:18px}.st .quadro .ct{bottom:32px;left:18px;font-size:12px}
+.st .abas{margin-top:18px}
+.cta-cel{top:760px}
+.retrato{top:760px;height:1160px}
+.retrato::after{background:linear-gradient(180deg,var(--tinta) 0,rgba(14,14,20,0) 20%,rgba(14,14,20,0) 45%,rgba(14,14,20,.92) 88%)}
+#a2 .topo,#a3 .topo{top:440px}
+#a2 h2,#a3 h2{font-size:78px}
+
+.retrato::after{background:linear-gradient(180deg,var(--tinta) 0,rgba(14,14,20,.75) 8%,rgba(14,14,20,0) 26%,rgba(14,14,20,0) 40%,rgba(14,14,20,.88) 66%,rgba(14,14,20,.96) 100%)!important}
+#a1 .base p{text-shadow:0 2px 18px rgba(0,0,0,.6)}
+
+/* v3 vídeo: celular termina antes da legenda do Studio (que ocupa ~1270–1450) */
+body.video .topo{top:270px}
+body.video #a2 .topo,body.video #a3 .topo{top:440px}
+body.video .cel{top:650px!important;height:610px}
+body.video #a2 .cel,body.video #a3 .cel{top:700px!important;height:570px}
+body.video .cta-cel{top:700px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="logo" viewBox="0 0 24 24"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11.8" cy="4" r="1.2" fill="#c49a30"/></symbol>
+    <!-- "foto" ilustrada no traço da marca: parede, tomada nova, rodapé -->
+    <symbol id="tomada" viewBox="0 0 400 300">
+      <rect width="400" height="300" fill="#efe7d6"/>
+      <rect x="0" y="236" width="400" height="64" fill="#e2d6bd"/><path d="M0 236 H400" stroke="#1a1a24" stroke-width="3"/>
+      <rect x="148" y="78" width="104" height="130" rx="16" fill="#fff" stroke="#1a1a24" stroke-width="4"/>
+      <circle cx="200" cy="128" r="26" fill="#f5f2ec" stroke="#1a1a24" stroke-width="4"/>
+      <circle cx="191" cy="128" r="4.5" fill="#1a1a24"/><circle cx="209" cy="128" r="4.5" fill="#1a1a24"/><circle cx="200" cy="141" r="4" fill="#1a1a24"/>
+      <rect x="182" y="168" width="36" height="20" rx="6" fill="#d4ab40" stroke="#1a1a24" stroke-width="3"/>
+      <path d="M292 70 l18 18 l36 -44" fill="none" stroke="#9a7218" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M318 30 l6 -12 M344 58 l12 -4" stroke="#9a7218" stroke-width="5" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="parede" viewBox="0 0 300 300" preserveAspectRatio="xMidYMid slice">
+      <rect width="300" height="300" fill="#eee5d2"/>
+      <rect x="20" y="30" width="80" height="220" rx="10" fill="#e3cf98"/><rect x="110" y="30" width="80" height="220" rx="10" fill="#e3cf98"/><rect x="200" y="30" width="80" height="220" rx="10" fill="#d4ab40" opacity=".55"/>
+      <rect x="190" y="130" width="70" height="36" rx="8" fill="#d4ab40" stroke="#1a1a24" stroke-width="4"/><path d="M190 148 H150" stroke="#1a1a24" stroke-width="4"/>
+    </symbol>
+    <symbol id="quadro" viewBox="0 0 300 300">
+      <rect width="300" height="300" fill="#e7e0d0"/>
+      <rect x="70" y="40" width="160" height="220" rx="12" fill="#fff" stroke="#1a1a24" stroke-width="5"/>
+      <g stroke="#1a1a24" stroke-width="4"><rect x="96" y="70" width="22" height="44" rx="3" fill="#d4ab40"/><rect x="126" y="70" width="22" height="44" rx="3" fill="#fff"/><rect x="156" y="70" width="22" height="44" rx="3" fill="#d4ab40"/><rect x="186" y="70" width="22" height="44" rx="3" fill="#fff"/>
+      <rect x="96" y="140" width="22" height="44" rx="3" fill="#fff"/><rect x="126" y="140" width="22" height="44" rx="3" fill="#d4ab40"/><rect x="156" y="140" width="22" height="44" rx="3" fill="#fff"/><rect x="186" y="140" width="22" height="44" rx="3" fill="#fff"/></g>
+    </symbol>
+    <symbol id="piso" viewBox="0 0 300 300">
+      <rect width="300" height="300" fill="#e9e2d2"/>
+      <g fill="#f5f2ec" stroke="#1a1a24" stroke-width="3"><path d="M0 170 L150 120 L300 170 L150 220Z"/><path d="M0 170 L150 220 L150 300 L0 300Z" fill="#e2d6bd"/><path d="M300 170 L150 220 L150 300 L300 300Z" fill="#d9cba9"/></g>
+      <path d="M75 145 L225 195 M75 195 L225 145" stroke="#9a7218" stroke-width="3" opacity=".6"/>
+      <circle cx="232" cy="74" r="30" fill="#d4ab40" opacity=".8"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- 1 · gancho -->
+<section class="s" id="a1">
+  <div class="marca"><svg style="color:var(--papel)"><use href="#logo"/></svg><b>Field<em>o</em></b></div>
+  <div class="topo" style="top:330px">
+    <h1>Seu próximo cliente vai ver <span class="real">seu trabalho</span> antes de te ligar.</h1>
+  </div>
+  <div class="retrato"><img src="foto-profissional-fieldo.jpg" alt=""></div>
+  <div class="base"><p>Perfil grátis para quem trabalha com serviço.</p><small>Pintor · Eletricista · Diarista</small></div>
+  <div class="rodape">FIELDO-ZELO.COM.BR</div>
+</section>
+
+<!-- 2a · antes: o "tá pronto" -->
+<section class="s" id="a2">
+  <div class="topo" style="top:470px"><span class="olho">Como é hoje</span><h2>Serviço entregue com um “tá pronto”.</h2></div>
+  <div class="cel" style="top:860px;width:560px;--h:900px">
+    <div class="tela"><div class="barra">9:41<i></i>●●●</div>
+      <div class="chat">
+        <div class="quem"><i></i><div><b>Cliente</b><small>online</small></div></div>
+        <div class="bal eu">tá pronto<em>17:42</em></div>
+        <div class="bal">ficou bom? manda foto<em>17:50</em></div>
+        <div class="bal">quanto deu mesmo?<em>17:51</em></div>
+        <div class="bal">me passa a chave pix<em>17:51</em></div>
+        <div class="bal cinza">…<em>19:08</em></div>
+      </div>
+    </div>
+  </div>
+  <div class="base"><p>Sem foto, sem valor por escrito, sem prova do que foi feito.</p></div>
+  <div class="rodape">FIELDO-ZELO.COM.BR</div>
+</section>
+
+<!-- 2b · depois: o relatório -->
+<section class="s" id="a3">
+  <div class="topo" style="top:470px"><span class="olho">Com o Fieldo</span><h2>O cliente recebe um <span class="real">relatório</span>.</h2></div>
+  <div class="cel" style="top:860px;width:560px">
+    <div class="tela"><div class="barra">9:41<i></i>●●●</div>
+      <div class="app">
+        <div class="ap-top"><svg style="color:var(--tinta)"><use href="#logo"/></svg>Relatório de serviço</div>
+        <div class="foto" style="height:300px"><svg><use href="#tomada"/></svg></div>
+        <div class="rot" style="margin-top:22px">Concluído · Caraguatatuba</div>
+        <div class="tit">Troca de tomadas</div>
+        <div class="valor"><span class="rot">Valor a pagar</span><b>R$ 180,00</b></div>
+        <div class="botao">Copiar código Pix</div>
+        <div class="selo"><span>✓</span>Selo de autenticidade com código para conferir</div>
+      </div>
+    </div>
+  </div>
+  <div class="base"><p>Foto, data, local e valor num link só. Pix já preenchido.</p></div>
+  <div class="rodape">FIELDO-ZELO.COM.BR</div>
+</section>
+
+<!-- 3 · orçamento -->
+<section class="s" id="a4">
+  <div class="topo"><span class="olho">Assistente do Fieldo</span><h2>Orçamento pronto a partir de <span class="real">uma frase</span>.</h2></div>
+  <div class="cel" style="top:860px;width:560px">
+    <div class="tela"><div class="barra">9:41<i></i>●●●</div>
+      <div class="ia">
+        <div class="ap-top"><svg style="color:var(--tinta)"><use href="#logo"/></svg>Assistente</div>
+        <div class="msg">cria um orçamento pra troca de 3 tomadas, uns R$180</div>
+        <div class="resp">
+          <div class="rot">Orçamento</div>
+          <div class="tit" style="font-size:40px;margin-bottom:16px">Troca de 3 tomadas</div>
+          <div class="linha">Valor <b>R$ 180,00</b></div>
+          <div class="linha">Pagamento <b style="font-size:26px">Pix incluso</b></div>
+          <div class="botao" style="margin-top:14px">Enviar ao cliente</div>
+        </div>
+        <div class="nota">Exemplo de conversa.</div>
+      </div>
+    </div>
+  </div>
+  <div class="base"><p>Escreve do seu jeito. O Fieldo monta e você manda.</p></div>
+  <div class="rodape">FIELDO-ZELO.COM.BR</div>
+</section>
+
+<!-- 4 · busca e avaliação -->
+<section class="s" id="a5">
+  <div class="topo"><span class="olho">Seja escolhido</span><h2>Quem procura vê <span class="real">o que você já fez</span>.</h2></div>
+  <div class="cel" style="top:860px;width:560px">
+    <div class="tela"><div class="barra">9:41<i></i>●●●</div>
+      <div class="busca">
+        <div class="campo">⌕ &nbsp;pintor em sua cidade</div>
+        <div class="cartao">
+          <div class="cab"><div class="av"></div><div><b>Seu nome</b><small>Pintor · sua cidade</small></div></div>
+          <div class="estrelas">★★★★★<span>avaliado por quem contratou</span></div>
+          <div class="mini"><div><svg><use href="#parede"/></svg></div><div><svg><use href="#piso"/></svg></div><div><svg><use href="#quadro"/></svg></div></div>
+          <div class="datas"><span>12 OUT</span><span>03 NOV</span><span>18 NOV</span></div>
+        </div>
+        <div class="cartao fraco"><div class="cab"><div class="av" style="border-color:#ddd"></div><div><b>Outro perfil</b><small>sem serviços registrados</small></div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="base"><p>Fotos, datas e notas de quem já contratou você.</p><small>Com 3 serviços, seu perfil entra na busca</small></div>
+  <div class="rodape">FIELDO-ZELO.COM.BR</div>
+</section>
+
+<!-- 5 · studio -->
+<section class="s" id="a6">
+  <div class="topo"><span class="olho">Fieldo Studio</span><h2>Cada serviço vira <span class="real">vídeo pronto</span> pra postar.</h2></div>
+  <div class="cel" style="top:860px;width:560px">
+    <div class="tela" style="background:#111118"><div class="barra" style="color:#eee">9:41<i style="background:#000"></i>●●●</div>
+      <div class="st">
+        <div class="quadro"><svg viewBox="0 0 300 534" preserveAspectRatio="xMidYMid slice"><use href="#parede" width="300" height="534"/><rect width="300" height="534" fill="url(#g)"/></svg>
+          <svg width="0" height="0" style="position:absolute"><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset=".45" stop-color="#0e0e14" stop-opacity="0"/><stop offset="1" stop-color="#0e0e14" stop-opacity=".92"/></linearGradient></svg>
+          <div class="lg">Antes e depois</div><div class="ct">PINTURA · SALA</div></div>
+        <div class="abas"><span>Mídia</span><b>Música</b><span>Cenas</span><span>Texto</span><span>Estilo</span><span>Final</span></div>
+        <div class="onda" style="margin-top:16px"></div>
+        <div class="trilha"><span></span><span class="on"></span><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  </div>
+  <div class="base"><p>Música, cenas, texto e final. Tudo no celular.</p><small>Trilhas compostas para o Fieldo</small></div>
+  <div class="rodape">FIELDO-ZELO.COM.BR</div>
+</section>
+
+<!-- 6 · chamada -->
+<section class="s" id="a7">
+  <div class="marca"><svg style="color:var(--papel)"><use href="#logo"/></svg><b>Field<em>o</em></b></div>
+  <div class="topo"><h1>Seu perfil fica pronto em <span class="real">um minuto</span>.</h1></div>
+  <div class="cta-cel">
+    <div class="chips"><span>Eletricista</span><span>Pedreiro</span><span class="on">Pintor</span><span>Encanador</span><span>Diarista</span><span>Ar-condicionado</span></div>
+    <div class="cta">Criar perfil grátis <span style="color:var(--ouroD)">→</span></div>
+    <div class="cta-sub">Grátis, sem cartão. Seu nome e WhatsApp, e pronto.</div>
+    <div class="url">fieldo-zelo.com.br</div>
+  </div>
+  <div class="base" style="bottom:250px"><p>Até 5 serviços por mês no grátis. Sem limite no Pro.</p></div>
+  <div class="rodape">PERFIL · ORÇAMENTO · RELATÓRIO COM PIX</div>
+</section>
+</body>
+</html>

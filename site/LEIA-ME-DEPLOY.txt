@@ -1,5 +1,9 @@
-FIELDO v12.43 — COMO PUBLICAR
-=============================
+FIELDO v12.43.1 — COMO PUBLICAR
+===============================
+
+v12.43.1 = v12.43 + correção no Studio: o "texto na cena" agora substitui o
+título/legenda automáticos da cena (antes os dois saíam um em cima do outro).
+Só front-end (studio-motor.js, studio.html); banco e ordem de publicação iguais.
 
 Este zip é o site inteiro, no mesmo formato do v12.41 (arquivos na raiz).
 Este arquivo NÃO fica público: o netlify.toml devolve 404 para ele.

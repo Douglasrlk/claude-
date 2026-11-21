@@ -404,6 +404,7 @@
       ctx.translate(0, (1 - a) * 40);
       var box = fotoTela(ctx, F, lt, c.dur, 0, M, { moldura: true, y: 170, alturaMax: 900 });
       ctx.restore();
+      if (c.texto) return;   /* v12.44 · texto da cena substitui o título automático */
       var y0 = (box ? box.y + box.h : 1070) + 96, T = c.titE;
       ctx.font = '500 28px "DM Mono", monospace';
       var espE = espacar(ctx, 5);
@@ -421,6 +422,8 @@
     fotoTela(ctx, F, lt, c.dur, 0, M);
     gradienteTopo(ctx);
     gradienteBase(ctx, 0.36, 1);
+    /* v12.44 · texto da cena: a abertura fica só com a foto e esse texto */
+    if (c.texto) return;
     /* sem marca d'água (Pro), o símbolo assina a abertura no canto esquerdo */
     if (!S.marca) marcaFieldo(ctx, PAD, 236, 40, '#fff', entra(lt, 0.1) * 0.85);
     var y = 1180, e1 = entra(lt, 0.25), acento = S.acento;
@@ -514,6 +517,7 @@
     var aDepois = clamp01((cortina - 0.25) / 0.3);
     selo(ctx, W - 150, 330, 'ANTES', 'rgba(14,14,20,.72)', '#fff', aAntes, 'right');
     selo(ctx, PAD, 330, 'DEPOIS', M.forte ? S.acento : COR.ouro, M.forte ? '#fff' : COR.tinta, aDepois);
+    if (c.texto) return;
     var ef = entra(lt, (M.forte ? 1.5 : 2.4), 0.7);
     if (M.forte) texto(ctx, 'ANTES E DEPOIS', PAD, 1480, '800 84px "DM Sans", sans-serif', '#fff', ef, (1 - ef) * 30);
     else texto(ctx, 'Antes e depois', PAD, 1480, 'italic 500 84px Fraunces, Georgia, serif', COR.papel, ef, (1 - ef) * 30);
@@ -524,12 +528,14 @@
     var M = S.M, F = S.fotos[c.url];
     var box = fotoTela(ctx, F, lt, c.dur, c.indice + 1, M);
     if (M.claro) {
+      if (c.texto) return;
       var y = box ? box.y + box.h + 120 : 1500, e = entra(lt, 0.25);
       texto(ctx, c.contador, PAD, y, '500 28px "DM Mono", monospace', COR.ouroD, e, (1 - e) * 20);
       texto(ctx, c.legenda, PAD, y + 70, 'italic 500 60px Fraunces, Georgia, serif', COR.tinta, e, (1 - e) * 24);
       return;
     }
     if (!box) gradienteBase(ctx, 0.66, 0.85); else gradienteBase(ctx, 0.7, 0.7);
+    if (c.texto) return;
     var e2 = entra(lt, 0.2, 0.6);
     if (M.forte) {
       ctx.save(); ctx.globalAlpha = e2; ctx.fillStyle = S.acento; ctx.fillRect(PAD, 1420, 10, 110); ctx.restore();

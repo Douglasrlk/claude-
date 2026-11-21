@@ -845,7 +845,7 @@
         h += '<div class="st-cena-ed">' +
           (c.tipo !== 'video' && c.tipo !== 'fechamento' ? '<div class="st-dica" style="margin:0 0 .3rem">Duração</div><div class="st-dur"><span class="st-mini"><button type="button" data-dur="-0.5">−</button></span><output>' + dur + '</output><span class="st-mini"><button type="button" data-dur="0.5">+</button></span></div>' : '') +
           (c.tipo === 'video' ? '<p class="st-dica" style="margin:0 0 .4rem">A duração do vídeo vem do corte e da velocidade, na aba Mídia.</p>' : '') +
-          (c.tipo !== 'fechamento' ? '<div class="st-campo" style="margin:.6rem 0 .5rem"><label for="stTxtCena">Texto na cena <span id="stTxtCenaN">' + (cfg.texto || '').length + '/60</span></label><input id="stTxtCena" maxlength="60" value="' + e(cfg.texto || '') + '" placeholder="Ex.: Pintura sem respingo" autocomplete="off"/></div>' : '') +
+          (c.tipo !== 'fechamento' ? '<div class="st-campo" style="margin:.6rem 0 .5rem"><label for="stTxtCena">Texto na cena <span id="stTxtCenaN">' + (cfg.texto || '').length + '/60</span></label><input id="stTxtCena" maxlength="60" value="' + e(cfg.texto || '') + '" placeholder="Ex.: Pintura sem respingo" autocomplete="off"/><small class="st-dica" style="display:block;margin-top:.3rem">Substitui o texto automático desta cena.</small></div>' : '') +
           (c.tipo !== 'abertura' ? '<div class="st-campo" style="margin:0"><label for="stTransCena">Como esta cena entra</label><select id="stTransCena"><option value="">Padrão do vídeo</option>' + MOT.TRANSICOES.map(function (t) {
             return '<option value="' + t + '"' + (cfg.trans === t ? ' selected' : '') + '>' + NOMES_TRANS[t] + '</option>';
           }).join('') + '</select></div>' : '') +

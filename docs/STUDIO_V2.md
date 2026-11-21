@@ -19,6 +19,11 @@
 | Estilo | 7 filtros de cor; 8 transições; cor de destaque e marca (Pro) |
 | Final | 5 encerramentos (cartão, WhatsApp, contato, só a marca, sem final); QR e link do perfil opcionais |
 
+**Texto na cena (v12.43.1).** O texto que a pessoa escreve numa cena substitui o texto automático
+dela: título e nome na abertura (e o símbolo do Fieldo da abertura Pro), "Antes e depois" e a legenda
+na cortina, contador e legenda nas fotos. Antes saíam os dois sobrepostos na mesma altura da tela.
+Achado ao montar o vídeo de divulgação do próprio Fieldo no Studio (`marketing/`).
+
 ## As 31 trilhas novas
 
 Compostas nota a nota em `site/studio-trilhas-catalogo.js` (partitura em texto) e sintetizadas no
