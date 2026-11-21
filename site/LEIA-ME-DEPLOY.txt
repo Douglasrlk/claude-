@@ -1,5 +1,12 @@
-FIELDO v12.44 — COMO PUBLICAR
+FIELDO v12.45 — COMO PUBLICAR
 =============================
+
+v12.45 = v12.44 + preparo para o app Android da Play Store (docs/PLAY_STORE.md):
+  · app-play.js em todas as páginas: dentro do app, a venda do Pro some
+    (política de pagamentos da Play). No site, nada muda.
+  · well-known/assetlinks.json + regra no netlify.toml: liga o app ao site.
+    Depois de publicar, confira https://fieldo-zelo.com.br/.well-known/assetlinks.json
+Sem migration nova.
 
 v12.44 = v12.43.1 + correções de SEO (docs/AUDITORIA_SEO_GEO.md no repositório):
   · vitrine da locação deixa de se declarar loja (aviso "hasMerchantReturnPolicy"

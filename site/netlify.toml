@@ -448,3 +448,32 @@
   to     = "/"
   status = 404
   force  = true
+
+# v12.45 · app Android (TWA). O Android lê este arquivo para confirmar que o
+# app br.com.fieldozelo.app é do mesmo dono do site; sem ele o app abre com a
+# barra de endereço do Chrome. Precisa ser JSON puro, sem redirect, sem cache
+# longo (a impressão digital muda quando a chave da Play entra na lista).
+#
+# O arquivo fica em well-known/ (SEM ponto): deploy por zip e pela API do
+# Netlify descarta pastas que começam com ponto. A regra abaixo o serve no
+# endereço que o Android exige.
+[[redirects]]
+  from   = "/.well-known/assetlinks.json"
+  to     = "/well-known/assetlinks.json"
+  status = 200
+  force  = true
+
+[[headers]]
+  for = "/well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json"
+    Cache-Control = "public, max-age=300"
+    Access-Control-Allow-Origin = "*"
+
+# o mesmo para o endereço público (o Netlify casa cabeçalho pelo caminho pedido)
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json"
+    Cache-Control = "public, max-age=300"
+    Access-Control-Allow-Origin = "*"

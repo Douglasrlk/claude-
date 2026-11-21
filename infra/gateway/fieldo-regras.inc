@@ -10,6 +10,8 @@ location ~ ^/(_verify|netlify|services|supabase)/ { return 404; }
 location = /comece.html { return 301 /; }
 
 # /p/:slug → perfil.html?slug=:slug&_i=1 (status 200 = reescrita, não redirect)
+# /.well-known/assetlinks.json → well-known/ (sem ponto; regra do netlify.toml v12.45)
+location = /.well-known/assetlinks.json { default_type application/json; alias /site/well-known/assetlinks.json; }
 location ~ ^/p/(.+)$ { rewrite ^/p/(.+)$ /perfil.html?slug=$1&_i=1 last; }
 
 location ~* \.mjs$ { types { text/javascript mjs; } add_header Cache-Control "public, max-age=604800"; include /etc/nginx/conf.d/fieldo-seguranca.inc; }
