@@ -1,0 +1,105 @@
+# Fieldo · gateway local (nginx). Três portas:
+#   8000  API no formato do Supabase: /rest/v1 /auth/v1 /storage/v1 /functions/v1
+#   8080  o site, como a Netlify serve (regras do netlify.toml + edge functions)
+#   8081  site estático puro (uso interno: é o context.next() das edge functions)
+#
+# Variáveis ${...} são preenchidas pelo entrypoint da imagem nginx (envsubst
+# só das variáveis definidas no ambiente; $uri, $host etc. ficam intactas).
+
+map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+
+# ── 8000 · API ──────────────────────────────────────────────────────
+server {
+  listen 8000;
+  client_max_body_size 50m;
+  proxy_http_version 1.1;
+  proxy_set_header Host $host;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;
+
+  # upstreams por variável + resolver do Docker: o nginx sobe mesmo que um
+  # serviço ainda esteja reiniciando, e reencontra o IP quando ele volta.
+  resolver 127.0.0.11 valid=10s ipv6=off;
+
+  location /rest/v1/    { set $u rest:3000;    rewrite ^/rest/v1/(.*)$ /$1 break;    proxy_pass http://$u; }
+  # Mesmo caso do storage: o GoTrue local não responde ao preflight de CORS
+  # que o login por e-mail faz (no Supabase quem responde é o Kong).
+  location /auth/v1/ {
+    if ($request_method = OPTIONS) {
+      add_header Access-Control-Allow-Origin * always;
+      add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+      add_header Access-Control-Allow-Headers "authorization, apikey, content-type, x-client-info, x-supabase-api-version" always;
+      add_header Access-Control-Max-Age 86400 always;
+      return 204;
+    }
+    proxy_hide_header Access-Control-Allow-Origin;
+    add_header Access-Control-Allow-Origin * always;
+    set $u auth:9999; rewrite ^/auth/v1/(.*)$ /$1 break; proxy_pass http://$u;
+  }
+  # O storage-api auto-hospedado não responde CORS (no Supabase quem faz é o
+  # Kong). Sem isto, upload de foto/vídeo do navegador falha no preflight.
+  location /storage/v1/ {
+    if ($request_method = OPTIONS) {
+      add_header Access-Control-Allow-Origin * always;
+      add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, HEAD" always;
+      add_header Access-Control-Allow-Headers "authorization, apikey, content-type, x-upsert, x-client-info, cache-control, range" always;
+      add_header Access-Control-Max-Age 86400 always;
+      return 204;
+    }
+    proxy_hide_header Access-Control-Allow-Origin;
+    add_header Access-Control-Allow-Origin * always;
+    add_header Access-Control-Expose-Headers "content-length, content-range, etag" always;
+    set $u storage:5000; rewrite ^/storage/v1/(.*)$ /$1 break; proxy_pass http://$u;
+  }
+  location /functions/v1/ {
+    # perfil "functions" do compose; sem ele, responde 503 explicando
+    set $fn http://functions:9000;
+    rewrite ^/functions/v1/(.*)$ /$1 break;
+    proxy_pass $fn;
+    proxy_intercept_errors on;
+    error_page 502 504 = @sem_functions;
+  }
+  location @sem_functions {
+    default_type application/json;
+    add_header Access-Control-Allow-Origin * always;
+    return 503 '{"error":"edge_functions_desligadas","dica":"docker compose --profile functions up -d"}';
+  }
+  location = /health { return 200 'ok'; }
+}
+
+# ── 8081 · estático puro (regras do netlify.toml) ──────────────────
+server {
+  listen 8081;
+  root /site;
+  include /etc/nginx/conf.d/fieldo-regras.inc;
+}
+
+# ── 8080 · o site público ──────────────────────────────────────────
+server {
+  listen 8080;
+  root /site;
+
+  # Troca, na resposta, o Supabase de produção pelo local. O código do site
+  # tem a URL e a anon key fixas em 22 lugares; assim nenhum arquivo muda.
+  sub_filter_types application/javascript text/javascript application/json application/xml text/xml;
+  sub_filter_once off;
+  sub_filter 'https://jrsctnncoljdcvdofxsg.supabase.co' '${API_EXTERNAL_URL}';
+  sub_filter '${PROD_ANON_KEY}' '${ANON_KEY}';
+  sub_filter 'https://fieldo-zelo.com.br' '${SITE_URL}';
+
+  # caminhos que na Netlify passam por edge function
+  location ~ ^/(|index\.html|perfil|perfil\.html|explorar|explorar\.html|sitemap\.xml|litoral-norte|p/.*|l/.*|[a-z0-9-]+-em-[a-z0-9-]+/?)$ {
+    proxy_http_version 1.1;
+    proxy_set_header Accept-Encoding "";
+    proxy_set_header X-Forwarded-Host $http_host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    resolver 127.0.0.11 valid=10s ipv6=off;
+    set $edge edge-netlify:8787;
+    proxy_pass http://$edge;
+    proxy_intercept_errors on;
+    error_page 502 504 = @estatico;   # edge fora do ar: degrada para o estático
+  }
+  location @estatico { proxy_pass http://127.0.0.1:8081; proxy_set_header Accept-Encoding ""; }
+
+  include /etc/nginx/conf.d/fieldo-regras.inc;
+}

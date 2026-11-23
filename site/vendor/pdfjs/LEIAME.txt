@@ -1,0 +1,3 @@
+pdfjs-dist 4.10.38 (legacy build) · Mozilla · Apache-2.0
+Fonte: https://www.npmjs.com/package/pdfjs-dist/v/4.10.38
+Usado por verificar-pdf.js só para EXTRAIR texto, links e metadados (nunca renderiza).

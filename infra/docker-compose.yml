@@ -1,0 +1,201 @@
+# Fieldo · ambiente local completo em contêineres
+#
+#   cd infra && ./scripts/gerar-env.sh && docker compose up -d
+#   site:  http://localhost:8080      API: http://localhost:8000
+#
+# Versões fixadas. A do Postgres é a MESMA de produção (17.6.1.104).
+
+name: fieldo
+
+services:
+
+  db:
+    image: supabase/postgres:17.6.1.104
+    restart: unless-stopped
+    environment:
+      # NÃO defina POSTGRES_HOST aqui: o migrate.sh da imagem usaria TCP durante
+      # o init, antes de o servidor aceitar conexões, e o init falharia calado.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?rode scripts/gerar-env.sh}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: "3600"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./db/zz-fieldo.sh:/docker-entrypoint-initdb.d/zz-fieldo.sh:ro
+      - ./db/init:/fieldo/init:ro
+      - ./db/pendentes.txt:/fieldo/pendentes.txt:ro
+      - ../site/supabase/migrations:/fieldo/migrations:ro
+    ports:
+      - "127.0.0.1:54322:5432"     # psql local; só na interface de loopback
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  auth:
+    image: supabase/gotrue:v2.177.0
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: "9999"
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL}/auth/v1
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${SITE_URL}/*
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: "3600"
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      # o app inteiro nasce de um usuário anônimo (db.js → Session.ensure)
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_EXTERNAL_PHONE_ENABLED: "false"
+      GOTRUE_RATE_LIMIT_ANONYMOUS_USERS: "30"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9999/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  rest:
+    image: postgrest/postgrest:v12.2.12
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_EXP: "3600"
+
+  storage:
+    image: supabase/storage-api:v1.25.7
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+      rest: { condition: service_started }
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      AUTH_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      FILE_SIZE_LIMIT: "52428800"
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: stub
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: "false"
+    volumes:
+      - storage-data:/var/lib/storage
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5000/status"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Etapa única, depois que GoTrue e storage-api criaram as tabelas deles:
+  # buckets + policies de storage (iguais a produção) e dados de demonstração.
+  db-post:
+    image: supabase/postgres:17.6.1.104
+    depends_on:
+      auth: { condition: service_healthy }
+      storage: { condition: service_healthy }
+    environment:
+      PGHOST: db
+      # storage.* pertence a supabase_storage_admin; só o superusuário da
+      # imagem cria policy lá (em produção quem fez isso foi o painel).
+      PGUSER: supabase_admin
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: postgres
+      FIELDO_SEED_DEMO: ${FIELDO_SEED_DEMO:-1}
+    volumes:
+      - ./db/post:/fieldo/post:ro
+      - ./db/pendentes.txt:/fieldo/pendentes.txt:ro
+      - ../site/supabase/migrations:/fieldo/migrations:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        if psql -Atc "select 1 from storage.buckets where id = 'photos'" | grep -q 1; then
+          echo "db-post: já aplicado, nada a fazer"; exit 0
+        fi
+        psql -v ON_ERROR_STOP=1 -q -f /fieldo/post/10_storage.sql
+        # migrations pendentes de novo, agora como superusuário e com o storage
+        # criado: a parte de bucket/policy delas só roda aqui (são idempotentes)
+        grep -v '^\s*#' /fieldo/pendentes.txt | grep -v '^\s*$$' | while read -r m; do
+          psql -v ON_ERROR_STOP=1 -q -f "/fieldo/migrations/$$m"
+        done
+        if [ "$$FIELDO_SEED_DEMO" = "1" ]; then psql -v ON_ERROR_STOP=1 -q -f /fieldo/post/20_demo.sql; fi
+        echo "db-post: ok"
+    restart: "no"
+
+  # Netlify Edge Functions (SEO server-side), sem alteração de código.
+  edge-netlify:
+    image: denoland/deno:alpine-2.1.4
+    restart: unless-stopped
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      LOCAL_API_INTERNAL: http://gateway:8000
+      STATIC_ORIGIN: http://gateway:8081
+      DENO_DIR: /deno-cache
+    volumes:
+      - ../site:/site:ro
+      - ./edge-netlify:/app:ro
+      - deno-cache:/deno-cache
+    command: ["run", "--config", "/app/deno.json", "--no-prompt", "--allow-net", "--allow-env", "--allow-read=/site,/app", "/app/server.ts"]
+
+  gateway:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on: [rest, auth, storage]
+    environment:
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL}
+      SITE_URL: ${SITE_URL}
+      ANON_KEY: ${ANON_KEY}
+      # anon key PÚBLICA de produção (já está no db.js); só para ser trocada na resposta
+      PROD_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impyc2N0bm5jb2xqZGN2ZG9meHNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMTEzMzgsImV4cCI6MjA5MDc4NzMzOH0.XJj5d37fOgK4nN9B3xI_x7P1HE_4lvnYC_qx_5eF0FI
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx/conf.d
+    volumes:
+      - ../site:/site:ro
+      - ./gateway/fieldo.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./gateway/fieldo-regras.inc:/etc/nginx/conf.d/fieldo-regras.inc:ro
+      - ./gateway/fieldo-seguranca.inc:/etc/nginx/conf.d/fieldo-seguranca.inc:ro
+    ports:
+      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8080:8080"
+
+  # Supabase Edge Functions (assistant, admin-*, conta-acesso, verificar-cnpj,
+  # council). Opcional: docker compose --profile functions up -d
+  functions:
+    image: supabase/edge-runtime:v1.67.4
+    profiles: ["functions"]
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    environment:
+      SUPABASE_URL: http://gateway:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_DB_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      FIELDO_ADMIN_KEY: ${FIELDO_ADMIN_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - ../site/supabase/functions:/home/deno/functions:ro
+      - ./functions-main:/home/deno/main:ro
+    command: ["start", "--main-service", "/home/deno/main"]
+
+volumes:
+  db-data:
+  storage-data:
+  deno-cache:

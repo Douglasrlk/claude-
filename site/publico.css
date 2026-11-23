@@ -1,0 +1,196 @@
+/* ════════════════════════════════════════════════════════════
+   Fieldo · v12.31 · PÁGINAS DE QUEM CONTRATA
+   Explorar, Litoral Norte, "profissão em cidade", Como contratar e
+   Sobre. Até a v12.30 cada uma tinha o seu <style>: as quatro mais
+   novas com Fraunces 600 em tamanho de cartaz, logo sem o "o" dourado
+   e rodapé próprio; o Explorar com cartões escuros em itálico e letra
+   de máquina. Pareciam três sites (auditoria de UX/UI de 04/11).
+
+   Agora é UM sistema, o mesmo do app (fieldo.css): título em Fraunces
+   300 com a palavra-chave em itálico dourado, texto em DM Sans,
+   marcador em DM Mono, topo claro com o símbolo e o "o" dourado, e um
+   só cartão de profissional (o .ll-card das páginas por cidade).
+   Depende dos tokens de fieldo.css — carregue os dois, nesta ordem.
+════════════════════════════════════════════════════════════ */
+
+/* ── topo ─────────────────────────────────────────────────── */
+.pub .topbar { background: rgba(240,236,227,.92); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.pub .topbar-inner { max-width: 1040px; }
+.pub .logo-icon { color: var(--ink); }
+.pub .topbar-brand { color: var(--ink); font-size: 1.02rem; }
+.pub .topbar-brand em { color: var(--gold-text); }
+/* v12.33 · o ponto do símbolo segue o "o" dourado do nome no tema claro */
+.pub .logo-ponto { fill: var(--gold-l); }
+.pub-links { display: flex; align-items: center; gap: 1.15rem; }
+.pub-links a { font-family: var(--sans); font-size: .88rem; color: var(--text2); min-height: 44px; display: inline-flex; align-items: center; white-space: nowrap; }
+.pub-links a:hover { color: var(--ink); }
+.pub-links a[aria-current="page"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--gold); }
+.pub-links .pub-entrar { min-height: 38px; padding: 0 .9rem; border-radius: var(--rad-full); border: 1px solid var(--border2); color: var(--ink); background: var(--paper); }
+.pub-links .pub-entrar:hover { border-color: var(--gold-bd); background: var(--gold-bg); }
+@media (max-width: 720px) { .pub-links .so-pc { display: none; } .pub-links { gap: .9rem; } }
+
+/* ── página ───────────────────────────────────────────────── */
+.pub-wrap { max-width: 1040px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; position: relative; z-index: 1; }
+.pub-skip { position: absolute; left: -999px; top: 0; background: var(--ink); color: var(--on-ink); padding: .6rem .9rem; z-index: 300; border-radius: 0 0 8px 0; }
+.pub-skip:focus { left: 0; }
+
+/* a trilha É o marcador do topo (o .ds-eyebrow do app): mono, dourado, com o traço */
+.pub-trilha { margin: 0 0 .9rem; }
+.pub-trilha ol { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .45rem;
+  font-family: var(--mono); font-size: .62rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-text); }
+.pub-trilha ol::before { content: ''; width: 18px; height: 1px; background: var(--gold); margin-right: .25rem; }
+.pub-trilha li + li::before { content: "/"; margin-right: .45rem; color: var(--gold-bd); }
+.pub-trilha a { color: var(--muted); text-decoration: none; min-height: 32px; display: inline-flex; align-items: center; }
+.pub-trilha a:hover { color: var(--gold-text); }
+.pub-trilha [aria-current] { color: var(--gold-text); }
+
+.pub-cab { max-width: 44rem; margin-bottom: 1.75rem; }
+/* igual ao .page-title do app */
+.pub-h1 { font-family: var(--serif); font-weight: 300; font-size: clamp(2rem, 6.2vw, 3.1rem); line-height: 1.06; letter-spacing: -.02em; color: var(--ink); margin: 0 0 .8rem; text-wrap: balance; }
+.pub-h1 em { font-style: italic; color: var(--gold-text); }
+.pub-lead { font-size: 1rem; line-height: 1.65; color: var(--text2); margin: 0 0 .5rem; }
+.pub-soma { font-size: .9rem; line-height: 1.55; color: var(--muted); margin: 0; }
+
+.pub-sec { margin-top: 2.6rem; max-width: 46rem; }
+.pub-sec--larga { max-width: none; }
+.pub-h2 { font-family: var(--serif); font-weight: 400; font-size: 1.45rem; line-height: 1.2; letter-spacing: -.01em; color: var(--ink); margin: 0 0 .8rem; }
+.pub-h2 em { font-style: italic; color: var(--gold-text); }
+.pub-sec p { line-height: 1.65; margin: 0 0 .7rem; }
+.pub-sec p a:not(.pub-btn), .pub-sec li a:not(.pub-btn), .pub-sec dd a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--gold-bd); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.pub-sec p a:not(.pub-btn):hover, .pub-sec li a:not(.pub-btn):hover { text-decoration-color: var(--ink); }
+.pub-rotulo { font-family: var(--mono); font-size: .62rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 .6rem; }
+
+/* ── botões (mesma família do .ds-btn) ────────────────────── */
+.pub-btn { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-height: 46px; padding: 0 1.1rem; border-radius: var(--rad-md);
+  font-family: var(--sans); font-size: .92rem; font-weight: 500; text-decoration: none; white-space: nowrap; border: 1px solid transparent; cursor: pointer; }
+.pub-btn--primario { background: var(--gold); color: var(--on-gold); border-color: var(--gold); }
+.pub-btn--primario:hover { background: var(--gold-d); border-color: var(--gold-d); }
+.pub-btn--claro { background: var(--gold-bg); color: var(--gold-text); border-color: var(--gold-bd); }
+.pub-btn--claro:hover { background: rgba(133,99,16,.13); }
+.pub-btn--wa { background: #1d7a46; color: #fff; border-color: #1d7a46; }
+.pub-btn--wa:hover { background: #17663a; border-color: #17663a; }
+.pub-acoes { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.1rem; }
+
+/* ── cartão de profissional (um só, para todas as listas) ──── */
+.ll-lista { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; }
+.ll-card { background: var(--paper); border: 1px solid var(--border2); border-radius: var(--r-xl); overflow: hidden; display: flex; flex-direction: column; }
+.ll-card[hidden] { display: none; }
+.ll-foto { position: relative; display: block; aspect-ratio: 16/10; background: var(--paper3); overflow: hidden; }
+.ll-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ll-foto-leg { position: absolute; left: .7rem; bottom: .7rem; background: rgba(14,14,20,.72); color: #f5f2ec; font-family: var(--mono); font-size: .6rem; letter-spacing: .08em; text-transform: uppercase; padding: .32rem .55rem; border-radius: 6px; }
+.ll-corpo { padding: 1.05rem 1.1rem 1.15rem; display: flex; flex-direction: column; gap: .85rem; min-width: 0; flex: 1; }
+.ll-quem { display: flex; align-items: center; gap: .8rem; min-width: 0; }
+.ll-av { flex: 0 0 52px; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: var(--paper3); display: grid; place-items: center; font-family: var(--serif); font-size: 1.3rem; color: var(--text2); box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--border2); }
+/* v12.46 · tamanho fixo, não 100%: dentro de um grid com place-items, o
+   height:100% da imagem não resolve e ela ficava com a altura natural —
+   foto em pé (ex.: 236×512) virava 52×113 e o círculo mostrava só o topo. */
+.ll-av img { display: block; width: 52px; height: 52px; object-fit: cover; }
+.ll-quem-txt { min-width: 0; }
+.ll-nome { font-family: var(--serif); font-weight: 400; font-size: 1.3rem; line-height: 1.2; margin: 0; letter-spacing: -.01em; }
+.ll-nome a { color: var(--ink); text-decoration: none; }
+.ll-nome a:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--gold-bd); }
+.ll-prof { margin: .15rem 0 0; font-size: .9rem; color: var(--text2); line-height: 1.35; overflow-wrap: anywhere; }
+.ll-tambem { margin: .1rem 0 0; font-size: .82rem; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; }
+.ll-fatos { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+.ll-f { display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem; color: var(--text); background: var(--paper2); border: 1px solid var(--border); border-radius: 999px; padding: .28rem .65rem; line-height: 1.2; }
+.ll-f strong { font-weight: 600; }
+.ll-f span { color: var(--text2); }
+.ll-f--nota { color: var(--gold-text); background: var(--gold-bg); border-color: var(--gold-bd); }
+.ll-f--nota svg { color: var(--gold-l); }
+.ll-f--ok { color: var(--green); background: var(--green-bg); border-color: var(--green-bd); font-weight: 500; }
+.ll-f--sem { color: var(--muted); }
+.ll-bio { font-size: .9rem; color: var(--text2); line-height: 1.55; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ll-acoes { display: flex; gap: .5rem; margin-top: auto; }
+.ll-btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 46px; padding: 0 .95rem; border-radius: var(--rad-md); font-size: .9rem; font-weight: 500; text-decoration: none; white-space: nowrap; border: 1px solid transparent; }
+.ll-btn--perfil { flex: 1 1 auto; min-width: 0; background: var(--gold-bg); color: var(--gold-text); border-color: var(--gold-bd); }
+.ll-btn--perfil:hover { background: rgba(133,99,16,.13); }
+.ll-btn--wa { flex: 0 0 auto; background: #1d7a46; color: #fff; border-color: #1d7a46; }
+.ll-btn--wa:hover { background: #17663a; }
+.ll-ordem { font-size: .8rem; color: var(--muted); margin: 0 0 .75rem; }
+/* em tela estreita o texto inteiro não cabe ao lado do WhatsApp (cortava em 360 px) */
+.ll-btn-curto { display: none; }
+@media (max-width: 419px) { .ll-btn-longo { display: none; } .ll-btn-curto { display: inline; } }
+@media (max-width: 359px) { .ll-btn--wa span { display: none; } .ll-btn--wa { padding: 0 .85rem; } }
+@media (min-width: 760px) {
+  .ll-card { flex-direction: row; }
+  .ll-foto { flex: 0 0 36%; aspect-ratio: auto; min-height: 230px; }
+  .ll-corpo { padding: 1.35rem 1.4rem; }
+  .ll-btn--perfil { flex: 0 0 auto; }
+  .ll-btn { padding: 0 1.15rem; }
+}
+
+/* linha curta: quem ainda não tem trabalho comprovado (Explorar) */
+.ex-linhas { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
+.ex-linha[hidden] { display: none; }
+.ex-linha a { display: grid; grid-template-columns: 40px minmax(0,1fr) auto; gap: .8rem; align-items: center; padding: .7rem .25rem; border-bottom: 1px solid var(--border); color: inherit; text-decoration: none; min-height: 60px; }
+.ex-linha a:hover { background: var(--paper); }
+.ex-av { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: var(--paper3); display: grid; place-items: center; font-family: var(--serif); font-size: 1.05rem; color: var(--text2); }
+.ex-av img { display: block; width: 40px; height: 40px; object-fit: cover; }
+.ex-txt { min-width: 0; display: grid; gap: .1rem; }
+.ex-nome { font-family: var(--serif); font-size: 1.05rem; color: var(--ink); line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ex-sub { font-size: .82rem; color: var(--text2); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ex-fato { font-family: var(--mono); font-size: .6rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; display: flex; align-items: center; gap: .35rem; }
+.ex-fato svg { color: var(--gold-text); }
+
+/* ── região, perguntas, listas de definição ───────────────── */
+.ll-confere, .cc-def, .rg-faq { margin: 0; display: grid; gap: .9rem; max-width: 44rem; }
+.ll-confere div, .cc-def div, .rg-faq div { border-left: 2px solid var(--gold-bd); padding-left: .9rem; }
+.ll-confere dt, .cc-def dt, .rg-faq dt { font-weight: 500; color: var(--ink); font-size: .95rem; }
+.ll-confere dd, .cc-def dd, .rg-faq dd { margin: .15rem 0 0; font-size: .92rem; color: var(--text2); line-height: 1.55; }
+.ll-rel, .rg-cidades { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.ll-rel a, .rg-cidades a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 .95rem; border: 1px solid var(--border2); border-radius: 999px; color: var(--ink); text-decoration: none; font-size: .9rem; background: var(--paper); }
+.ll-rel a:hover, .rg-cidades a:hover { border-color: var(--gold-bd); background: var(--gold-bg); }
+.ll-rel small { color: var(--muted); margin-left: .35rem; font-size: .8rem; }
+.rg-cidades { margin-top: 1rem; }
+.rg-cid { padding-top: .2rem; }
+.rg-sub { margin: 0 0 .8rem; color: var(--text2); font-size: .92rem; }
+.rg-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; max-width: 46rem; }
+.rg-grupo { padding: .75rem .95rem; border: 1px solid var(--border); border-radius: var(--r-l); background: var(--paper); line-height: 1.5; font-size: .95rem; overflow-wrap: anywhere; }
+.rg-grupo a { color: var(--ink); font-weight: 500; }
+.rg-grupo small { color: var(--muted); font-size: .8rem; }
+.rg-pag { font-weight: 500; text-decoration: underline; text-decoration-color: var(--gold-bd); text-underline-offset: 3px; }
+.rg-prof { color: var(--text2); }
+.rg-vazio { margin: 0 0 .4rem; color: var(--text2); }
+.rg-convite { margin: 0; font-size: .9rem; color: var(--muted); }
+.rg-convite a { color: var(--gold-text); font-weight: 500; }
+.rg-passos, .cc-lista { margin: 0; padding-left: 1.25rem; display: grid; gap: .45rem; max-width: 44rem; line-height: 1.6; }
+.rg-mais { margin: .9rem 0 0; font-size: .92rem; }
+.rg-mais a { color: var(--gold-text); font-weight: 500; }
+.cc-passos { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; counter-reset: passo; }
+.cc-passos li { counter-increment: passo; display: grid; grid-template-columns: 2.1rem minmax(0,1fr); gap: .75rem; align-items: start; padding: .9rem .95rem; border: 1px solid var(--border); border-radius: var(--r-l); background: var(--paper); }
+.cc-passos li::before { content: counter(passo); display: grid; place-items: center; width: 2.1rem; height: 2.1rem; border-radius: 999px; background: var(--gold-bg); border: 1px solid var(--gold-bd); font-family: var(--serif); color: var(--gold-text); }
+.cc-passos b { display: block; color: var(--ink); font-weight: 500; font-size: 1rem; margin: .25rem 0 .2rem; }
+.cc-passos span { display: block; color: var(--text2); font-size: .93rem; line-height: 1.55; }
+.cc-caixa { padding: 1rem 1.1rem; border-radius: var(--r-l); background: var(--paper2); border: 1px solid var(--border); }
+.cc-caixa p:last-child { margin-bottom: 0; }
+
+/* convite ao profissional, sempre no fim */
+.ll-pro { margin-top: 2.6rem; padding: 1.15rem 1.15rem; border-radius: var(--r-l); background: var(--paper2); border: 1px dashed var(--border3); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .8rem; }
+.ll-pro p { margin: 0; font-size: .92rem; color: var(--text); line-height: 1.5; max-width: 34rem; }
+.ll-pro a { color: var(--gold-text); font-weight: 500; font-size: .92rem; white-space: nowrap; min-height: 44px; display: inline-flex; align-items: center; }
+
+/* ── rodapé ───────────────────────────────────────────────── */
+.pub-pe { border-top: 1px solid var(--border); margin-top: 3rem; position: relative; z-index: 1; }
+.pub-pe-in { max-width: 1040px; margin: 0 auto; padding: 1.4rem 1.25rem 2.2rem; display: grid; gap: .8rem; }
+.pub-pe-marca { display: inline-flex; align-items: center; gap: .5rem; color: var(--ink); text-decoration: none; }
+.pub-pe-marca .logo-icon { width: 20px; height: 20px; }
+.pub-pe-marca .topbar-brand { font-size: .95rem; }
+.pub-pe nav { display: flex; flex-wrap: wrap; gap: 0 1.3rem; }
+.pub-pe nav a { font-size: .84rem; color: var(--text2); min-height: 40px; display: inline-flex; align-items: center; }
+.pub-pe nav a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.pub-pe small { font-family: var(--mono); font-size: .6rem; letter-spacing: .08em; color: var(--muted); }
+
+.pub a:focus-visible, .pub button:focus-visible, .pub select:focus-visible, .pub input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
+
+/* v12.36 · páginas legais (privacidade, termos) e bloco legal do rodapé */
+.pub-h3 { font-size: 1rem; font-weight: 600; margin: 1.4rem 0 .5rem; color: var(--ink); }
+.pub-nota { font-size: .85rem; color: var(--muted); margin-top: .4rem; }
+.pub-tabela-wrap { overflow-x: auto; margin: .8rem 0 1rem; -webkit-overflow-scrolling: touch; }
+.pub-tabela { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.pub-tabela td, .pub-tabela th { overflow-wrap: anywhere; }
+.pub-tabela th, .pub-tabela td { text-align: left; vertical-align: top; padding: .55rem .6rem; border-bottom: 1px solid var(--border); }
+.pub-tabela th { font-weight: 600; color: var(--ink); background: var(--paper2); }
+.pub-sec ul { padding-left: 1.2rem; }
+.pub-sec li { margin: .35rem 0; }
+.pub-pe-legal p { margin: .2rem 0; font-size: .8rem; color: var(--text2); line-height: 1.5; }
+.pub-pe-legal a { color: var(--text2); text-decoration: underline; text-underline-offset: 2px; }

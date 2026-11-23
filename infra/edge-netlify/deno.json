@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "@netlify/edge-functions": "./netlify-tipos.ts"
+  }
+}

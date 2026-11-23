@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+<script src="/app-play.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0e0e14"/>
+  <meta name="robots" content="noindex,follow"/>
+  <title>Serviços · Fieldo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <style>
+    /* Um card por serviço. Um só padrão — a auditoria contou catorze
+       estruturas de card diferentes no app. */
+    .sv { display: block; background: var(--paper); border: 1px solid var(--border);
+          border-radius: var(--rad-md); padding: var(--s2); margin-bottom: var(--s1);
+          text-decoration: none; transition: border-color var(--t); }
+    .sv:hover { border-color: var(--gold-bd); }
+    .sv-topo { display: flex; align-items: flex-start; gap: var(--s2); }
+    .sv-ico { width: 36px; height: 36px; flex-shrink: 0; border-radius: var(--rad-sm);
+              background: var(--gold-bg); color: var(--gold-text);
+              display: flex; align-items: center; justify-content: center; }
+    .sv-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .sv-cliente { font-size: var(--t-body); font-weight: 500; color: var(--text);
+                  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sv-meta { font-family: var(--mono); font-size: var(--t-meta); color: var(--muted);
+               margin-top: 2px; }
+    .sv-valor { font-family: var(--serif); font-size: var(--t-body); color: var(--text);
+                flex-shrink: 0; }
+    .sv-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--s1);
+               padding-left: calc(36px + var(--s2)); }
+    .sv-nota { color: var(--gold); font-size: var(--t-meta); letter-spacing: .08em; }
+    .sv-filtros { display: flex; gap: 6px; overflow-x: auto; margin-bottom: var(--s3);
+                  padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+    .sv-filtro { flex-shrink: 0; min-height: 40px; padding: 0 14px; border-radius: var(--rad-full);
+      font-family: var(--mono); font-size: var(--t-meta); letter-spacing: .04em;
+      background: transparent; color: var(--muted); border: 1px solid var(--border2);
+      cursor: pointer; white-space: nowrap; transition: var(--t); }
+    .sv-filtro[aria-pressed="true"] { background: var(--gold-bg); color: var(--gold-text);
+      border-color: var(--gold-bd); font-weight: 500; }
+  </style>
+</head>
+<body>
+<a href="#conteudo" class="sr-only">Pular para o conteúdo</a>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="painel.html" class="topbar-logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      <span class="topbar-brand">Field<em>o</em></span>
+    </a>
+  </div>
+</header>
+
+<main id="conteudo" class="ds-page">
+  <div class="ds-eyebrow" style="margin-bottom:8px">Seu histórico</div>
+  <h1 class="ds-hero" style="margin-bottom:8px">Serviços</h1>
+  <p class="ds-sm" style="margin-bottom:24px" id="svResumo">Carregando…</p>
+
+  <div class="sv-filtros" id="svFiltros" style="display:none">
+    <button type="button" class="sv-filtro" data-f="todos"  aria-pressed="true"  onclick="filtrar(this)">Todos</button>
+    <button type="button" class="sv-filtro" data-f="publico" aria-pressed="false" onclick="filtrar(this)">No perfil público</button>
+    <button type="button" class="sv-filtro" data-f="avaliado" aria-pressed="false" onclick="filtrar(this)">Com avaliação</button>
+    <button type="button" class="sv-filtro" data-f="receber" aria-pressed="false" onclick="filtrar(this)">A receber</button>
+  </div>
+
+  <div id="svLista">
+    <div class="ds-skel" style="height:72px;margin-bottom:8px"></div>
+    <div class="ds-skel" style="height:72px;margin-bottom:8px"></div>
+    <div class="ds-skel" style="height:72px"></div>
+  </div>
+</main>
+
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="db.js" onerror="document.documentElement.innerHTML='&lt;div style=\'font-family:system-ui;padding:2rem;text-align:center\'&gt;&lt;h2&gt;Falha ao carregar&lt;/h2&gt;&lt;p&gt;Verifique a conexão. Seus dados continuam salvos.&lt;/p&gt;&lt;button onclick=\'location.reload(true)\'&gt;Recarregar&lt;/button&gt;&lt;/div&gt;'"></script>
+<script>
+'use strict';
+if (!FIELDO.Auth.isLoggedIn()) { window.location.href = 'entrar.html'; }
+
+var I = FIELDO.Icones, esc = FIELDO.UI.esc;
+var _todos = [], _filtro = 'todos';
+
+FIELDO.NavInf.montar('servicos');
+
+function carregar() {
+  FIELDO.Reports.list().then(function (rows) {
+    _todos = rows || [];
+    render();
+  }).catch(function (e) {
+    FIELDO.UI.erro(e, 'carregar seus serviços');
+    /* Estado de ERRO ≠ estado VAZIO. Dizer "você não tem serviços"
+       quando na verdade não conseguimos ler seria apagar o trabalho da
+       pessoa na cara dela. */
+    document.getElementById('svResumo').textContent = '';
+    document.getElementById('svLista').innerHTML = estado(
+      'semRede', 'Não conseguimos carregar',
+      'Seus serviços continuam salvos. Pode ser a conexão.',
+      'Tentar de novo', 'location.reload()');
+  });
+}
+
+function estado(ico, titulo, texto, rotulo, acao) {
+  return '<div class="ds-empty">' +
+    '<div class="ds-empty-ico">' + I.get(ico, 44) + '</div>' +
+    '<div class="ds-empty-tit">' + esc(titulo) + '</div>' +
+    '<p class="ds-empty-txt">' + esc(texto) + '</p>' +
+    (rotulo ? '<button type="button" class="ds-btn ds-btn--primary" onclick="' + acao + '">' +
+              esc(rotulo) + '</button>' : '') +
+    '</div>';
+}
+
+function aplicar(rows) {
+  if (_filtro === 'publico')  return rows.filter(function (r) { return r.is_public === true; });
+  if (_filtro === 'avaliado') return rows.filter(function (r) { return Number(r.rating) > 0; });
+  if (_filtro === 'receber')  return rows.filter(function (r) { return r.payment_status === 'pendente'; });
+  return rows;
+}
+
+function filtrar(btn) {
+  document.querySelectorAll('.sv-filtro').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+  btn.setAttribute('aria-pressed', 'true');
+  _filtro = btn.getAttribute('data-f');
+  render();
+}
+
+function render() {
+  var lista = aplicar(_todos);
+  var publicos = _todos.filter(function (r) { return r.is_public === true; }).length;
+
+  document.getElementById('svResumo').textContent = _todos.length
+    ? _todos.length + (_todos.length === 1 ? ' serviço registrado' : ' serviços registrados') +
+      ' · ' + publicos + ' no seu perfil público'
+    : '';
+  document.getElementById('svFiltros').style.display = _todos.length > 3 ? '' : 'none';
+
+  /* Vazio de VERDADE e vazio POR FILTRO são situações diferentes e
+     pedem saídas diferentes — a segunda tem como voltar atrás. */
+  if (!_todos.length) {
+    document.getElementById('svLista').innerHTML = estado('raio',
+      'Tudo começa com o primeiro',
+      'Registre um trabalho que você já fez, com foto e data. Sai um documento ' +
+      'pro cliente — e seu perfil público abre na hora.',
+      'Registrar serviço', "location.href='servico.html'");
+    return;
+  }
+  if (!lista.length) {
+    document.getElementById('svLista').innerHTML = estado('filtro',
+      'Nenhum serviço neste filtro',
+      'Você tem ' + _todos.length + ' serviço' + (_todos.length > 1 ? 's' : '') +
+      ' registrado' + (_todos.length > 1 ? 's' : '') + ', mas nenhum se encaixa aqui.',
+      'Ver todos', "document.querySelector('.sv-filtro').click()");
+    return;
+  }
+
+  document.getElementById('svLista').innerHTML = lista.map(function (r) {
+    var nicho = r.niche || r.category_key || 'outro';
+    var tags = [];
+    if (r.is_public) tags.push('<span class="ds-badge ds-badge--ok"><span class="ds-dot"></span>No perfil</span>');
+    else tags.push('<span class="ds-badge ds-badge--free">Só você vê</span>');
+    if (Number(r.rating) > 0) tags.push('<span class="sv-nota">' + FIELDO.UI.stars(r.rating) + '</span>');
+    if (r.payment_status === 'pendente') tags.push('<span class="ds-badge ds-badge--free">A receber</span>');
+
+    return '<a class="sv" href="relatorio.html?id=' + encodeURIComponent(r.id) + '">' +
+      '<span class="sv-topo">' +
+        '<span class="sv-ico" style="display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-style:italic;color:var(--gold-d)">' + FIELDO.UI.esc((FIELDO.Niches.label(nicho) || 'S').charAt(0).toUpperCase()) + '</span>' + /* v12.9 · inicial, sem ícone */
+        '<span class="sv-txt">' +
+          '<span class="sv-cliente">' + esc(r.client_name || 'Serviço') + '</span>' +
+          '<span class="sv-meta">' + esc(FIELDO.Niches.label(nicho)) + ' · ' +
+            esc(FIELDO.UI.fmtDate(r.created_at)) + '</span>' +
+        '</span>' +
+        (Number(r.valor) > 0 ? '<span class="sv-valor">' + FIELDO.UI.brl(r.valor) + '</span>' : '') +
+      '</span>' +
+      '<span class="sv-tags">' + tags.join('') + '</span>' +
+      '</a>';
+  }).join('');
+}
+
+carregar();
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

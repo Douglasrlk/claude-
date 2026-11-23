@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+<script src="/app-play.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0e0e14"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Fieldo Studio · seus serviços em vídeo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <!-- o vídeo usa itálico de verdade (Fraunces 400/500 itálico) e DM Sans até 800 -->
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,500&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <style>
+    /* v12.41 · Fieldo Studio. Um passo por vez: escolher o serviço →
+       ajustar com a prévia ao vivo → gerar no aparelho → compartilhar. */
+    body { background: var(--bg); }
+    .st { max-width: 1040px; margin: 0 auto; padding: .75rem 1rem 7.5rem; }
+    .st-top { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 48px; }
+    .st-voltar { display: inline-flex; align-items: center; gap: .3rem; color: var(--text2); font-size: .88rem; text-decoration: none; min-height: 44px; background: none; border: 0; padding: 0; cursor: pointer; font-family: var(--sans); }
+    .st-cota { font: 500 .72rem var(--mono); letter-spacing: .02em; color: var(--gold-text); background: var(--gold-bg); border: 1px solid var(--gold-bd); border-radius: 999px; padding: .32rem .7rem; white-space: nowrap; }
+    .st-cota--zero { color: var(--red); background: var(--red-bg); border-color: var(--red-bd); }
+    .st-eyebrow { font: 500 .7rem var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin: .9rem 0 .35rem; }
+    .st-tit { font-family: var(--serif); font-weight: 400; font-size: clamp(1.7rem, 6.4vw, 2.3rem); line-height: 1.08; color: var(--ink); margin: 0 0 .5rem; letter-spacing: -.01em; }
+    .st-tit em { font-style: italic; color: var(--gold); }
+    .st-sub { font-size: .93rem; color: var(--text2); line-height: 1.55; margin: 0 0 1.1rem; max-width: 36rem; }
+    .st-h2 { font: 600 1rem var(--sans); color: var(--text); margin: 1.6rem 0 .65rem; display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+    .st-h2 small { font: 400 .78rem var(--sans); color: var(--muted); }
+    .st-box { background: var(--paper); border: 1px solid var(--border2); border-radius: 16px; padding: .95rem 1rem; }
+    .st-alerta { display: flex; gap: .7rem; align-items: flex-start; background: var(--amber-bg); border: 1px solid var(--amber-bd); color: var(--amber); border-radius: 12px; padding: .75rem .85rem; font-size: .86rem; line-height: 1.5; margin: 0 0 .7rem; }
+    .st-alerta b { color: var(--text); font-weight: 600; }
+    .st-alerta a, .st-lnk { color: var(--gold-d); font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .st-erro { background: var(--red-bg); border-color: var(--red-bd); color: var(--red); }
+
+    /* lista de serviços */
+    .st-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: .55rem; }
+    .st-sv { display: grid; grid-template-columns: 64px 1fr auto; gap: .8rem; align-items: center; width: 100%; text-align: left; background: var(--paper); border: 1px solid var(--border2); border-radius: 14px;
+      padding: .55rem .7rem .55rem .55rem; cursor: pointer; font-family: var(--sans); color: var(--text); transition: border-color .2s, transform .15s; min-height: 76px; }
+    .st-sv:hover { border-color: var(--gold-bd); }
+    .st-sv:active { transform: scale(.99); }
+    .st-sv[disabled] { cursor: default; opacity: .72; }
+    .st-sv-img { width: 64px; height: 64px; border-radius: 10px; background: var(--paper3) center/cover no-repeat; overflow: hidden; }
+    .st-sv-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .st-sv-tit { font-weight: 600; font-size: .93rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .st-sv-meta { display: block; font-size: .76rem; color: var(--muted); margin-top: .15rem; }
+    .st-sv-motivo { display: block; font-size: .74rem; color: var(--amber); margin-top: .2rem; line-height: 1.35; }
+    .st-sv-seta { color: var(--gold); font-size: 1.3rem; padding-left: .2rem; }
+    .st-tag { display: inline-block; font: 500 .62rem var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--green); background: var(--green-bg); border: 1px solid var(--green-bd); border-radius: 999px; padding: .1rem .45rem; margin-left: .3rem; vertical-align: 1px; }
+    .st-vazio { text-align: center; padding: 1.6rem 1rem; }
+    .st-vazio p { color: var(--text2); font-size: .9rem; line-height: 1.55; margin: .4rem auto 1rem; max-width: 26rem; }
+    .st-mais { background: none; border: 0; color: var(--gold-d); font: 600 .85rem var(--sans); padding: .6rem 0; cursor: pointer; min-height: 44px; }
+
+    /* meus vídeos */
+    .st-vid { display: grid; grid-template-columns: 54px 1fr; gap: .75rem; background: var(--paper); border: 1px solid var(--border2); border-radius: 14px; padding: .6rem .7rem .6rem .6rem; }
+    .st-vid--foco { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-bg); }
+    .st-vid-img { width: 54px; height: 96px; border-radius: 8px; background: var(--ink) center/cover no-repeat; }
+    .st-vid-tit { font-weight: 600; font-size: .9rem; line-height: 1.3; }
+    .st-vid-meta { font-size: .74rem; color: var(--muted); margin: .1rem 0 .45rem; }
+    .st-num { display: flex; gap: 1.1rem; flex-wrap: wrap; }
+    .st-num div { font-size: .72rem; color: var(--muted); line-height: 1.2; }
+    .st-num b { display: block; font: 500 1.25rem var(--serif); color: var(--ink); }
+    .st-vid-acoes { display: flex; gap: 1rem; margin-top: .35rem; }
+    .st-vid-acoes button { background: none; border: 0; padding: .4rem 0; font: 600 .8rem var(--sans); color: var(--gold-d); cursor: pointer; min-height: 40px; }
+    .st-vid-acoes .st-perigo { color: var(--muted); font-weight: 500; }
+
+    /* editor */
+    .st-ed { display: grid; gap: 1.1rem; grid-template-columns: minmax(0, 1fr); }
+    /* sem isto a faixa de gêneros (rolagem horizontal) alarga a coluna e a página estoura no celular */
+    .st-ed > * { min-width: 0; }
+    @media (min-width: 900px) { .st-ed { grid-template-columns: 380px minmax(0, 1fr); align-items: start; gap: 2rem; } .st-ed-palco { position: sticky; top: 1rem; } }
+    /* no celular a prévia deixa ver os controles logo abaixo (≤ 60% da altura) */
+    .st-palco { position: relative; width: min(100%, 360px, calc(60vh * 9 / 16)); margin: 0 auto; aspect-ratio: 9 / 16; border-radius: 22px; overflow: hidden; background: #0e0e14; box-shadow: 0 18px 50px rgba(14,14,20,.25); }
+    .st-palco canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .st-carregando { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .8rem; color: rgba(255,255,255,.75); font-size: .85rem;
+      background: linear-gradient(110deg, #16161f 30%, #22222c 50%, #16161f 70%); background-size: 220% 100%; animation: stBrilho 1.4s linear infinite; text-align: center; padding: 1rem; }
+    @keyframes stBrilho { to { background-position: -220% 0; } }
+    .st-play { position: absolute; inset: 0; border: 0; background: rgba(14,14,20,.18); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity .25s; }
+    .st-play span { width: 74px; height: 74px; border-radius: 50%; background: rgba(255,255,255,.92); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(0,0,0,.3); }
+    .st-play.tocando { opacity: 0; }
+    .st-play.tocando:focus-visible { opacity: 1; }
+    .st-ctrl { display: flex; align-items: center; gap: .45rem; width: min(100%, 420px); margin: .6rem auto 0; }
+    .st-ctrl input[type=range] { flex: 1; accent-color: var(--gold); height: 28px; }
+    .st-tempo { font: 400 .72rem var(--mono); color: var(--muted); min-width: 4.6rem; text-align: right; white-space: nowrap; }
+    .st-hist .st-btn-ico { width: 36px; height: 36px; }
+    .st-btn-ico { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border2); background: var(--paper); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; flex: none; }
+    .st-musica-status { text-align: center; font-size: .74rem; color: var(--muted); min-height: 1.2em; margin-top: .3rem; }
+
+    .st-sec { background: var(--paper); border: 1px solid var(--border2); border-radius: 16px; padding: .9rem 1rem 1rem; }
+    .st-sec + .st-sec { margin-top: .75rem; }
+    .st-sec h3 { font: 600 .92rem var(--sans); color: var(--text); margin: 0 0 .7rem; display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+    .st-sec h3 small { font-weight: 400; font-size: .74rem; color: var(--muted); }
+    .st-modelos { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+    .st-modelo { position: relative; border: 1.5px solid var(--border2); border-radius: 12px; padding: .55rem .5rem .6rem; background: var(--paper2); cursor: pointer; text-align: left; font-family: var(--sans); color: var(--text); min-height: 44px; }
+    .st-modelo[aria-pressed=true] { border-color: var(--gold); background: var(--gold-bg); }
+    .st-modelo i { display: block; height: 54px; border-radius: 8px; margin-bottom: .45rem; }
+    .st-modelo b { display: block; font-size: .82rem; }
+    .st-modelo small { display: block; font-size: .68rem; color: var(--muted); line-height: 1.3; margin-top: .1rem; }
+    .st-cad { position: absolute; top: .35rem; right: .35rem; font: 600 .58rem var(--mono); letter-spacing: .06em; background: var(--ink); color: var(--on-ink); border-radius: 999px; padding: .12rem .4rem; }
+    .st-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .st-chip { border: 1px solid var(--border2); background: var(--paper2); color: var(--text); border-radius: 999px; padding: .5rem .85rem; font: 500 .82rem var(--sans); cursor: pointer; min-height: 40px; }
+    .st-chip[aria-pressed=true] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+    .st-chip small { color: inherit; opacity: .65; font-weight: 400; margin-left: .25rem; }
+    .st-modo { display: flex; background: var(--paper2); border-radius: 10px; padding: 3px; margin-bottom: .6rem; }
+    .st-modo button { flex: 1; border: 0; background: none; border-radius: 8px; padding: .45rem .2rem; font: 500 .78rem var(--sans); color: var(--text2); cursor: pointer; min-height: 38px; }
+    .st-modo button[aria-pressed=true] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 3px rgba(14,14,20,.12); font-weight: 600; }
+    .st-grade { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; }
+    .st-foto { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; border: 0; padding: 0; cursor: pointer; background: var(--paper3); }
+    .st-foto img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity .2s, filter .2s; }
+    .st-foto[data-fora="1"] img { opacity: .35; filter: grayscale(.8); }
+    .st-foto .st-ok { position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: #fff; font-size: .72rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+    .st-foto[data-fora="1"] .st-ok { background: rgba(255,255,255,.85); color: transparent; border: 1.5px solid var(--border3); }
+    .st-papeis { position: absolute; left: 4px; bottom: 4px; display: flex; flex-wrap: wrap; gap: 3px; }
+    .st-papeis span { font: 600 .54rem var(--mono); letter-spacing: .05em; background: rgba(14,14,20,.82); color: #fff; border-radius: 4px; padding: .12rem .3rem; }
+    .st-papeis .capa { background: var(--gold); }
+    .st-dica { font-size: .74rem; color: var(--muted); line-height: 1.45; margin: .55rem 0 0; }
+    .st-campo { margin-bottom: .7rem; }
+    .st-campo label { display: flex; justify-content: space-between; font-size: .78rem; color: var(--text2); margin-bottom: .3rem; }
+    .st-campo label span { font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+    .st-campo input { width: 100%; box-sizing: border-box; border: 1px solid var(--border2); background: var(--paper2); border-radius: 10px; padding: .7rem .75rem; font: 400 .95rem var(--sans); color: var(--text); min-height: 46px; }
+    .st-campo input:focus { outline: 2px solid var(--gold-bd); border-color: var(--gold); }
+    .st-sw { display: flex; gap: .75rem; align-items: flex-start; justify-content: space-between; padding: .35rem 0; }
+    .st-sw-txt { font-size: .86rem; line-height: 1.45; color: var(--text); }
+    .st-sw-txt small { display: block; color: var(--muted); font-size: .76rem; margin-top: .15rem; }
+    .st-sw input { appearance: none; -webkit-appearance: none; width: 46px; height: 28px; border-radius: 999px; background: var(--paper4); position: relative; flex: none; cursor: pointer; transition: background .2s; margin-top: .1rem; }
+    .st-sw input::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+    .st-sw input:checked { background: var(--gold); }
+    .st-sw input:checked::after { transform: translateX(18px); }
+    .st-sw input:disabled { opacity: .5; cursor: not-allowed; }
+    .st-aval { background: var(--paper2); border-radius: 10px; padding: .6rem .75rem; font-size: .84rem; color: var(--text2); line-height: 1.5; margin-top: .5rem; font-style: italic; }
+    .st-aval b { color: var(--gold); font-style: normal; letter-spacing: .1em; }
+    .st-cores { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .st-cor { width: 38px; height: 38px; border-radius: 50%; border: 3px solid var(--paper); box-shadow: 0 0 0 1px var(--border2); cursor: pointer; }
+    .st-cor[aria-pressed=true] { box-shadow: 0 0 0 2px var(--ink); }
+    .st-priv { font-size: .74rem; color: var(--muted); line-height: 1.5; margin: .9rem 0 0; display: flex; gap: .45rem; }
+
+    /* barra de ação */
+    .st-barra { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--veu); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border2); padding: .7rem 1rem calc(.7rem + env(safe-area-inset-bottom)); display: none; }
+    .st-barra.on { display: block; }
+    .st-barra-in { max-width: 1040px; margin: 0 auto; display: flex; align-items: center; gap: .9rem; }
+    .st-barra-txt { flex: 1; font-size: .76rem; color: var(--text2); line-height: 1.35; }
+    .st-cta { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 50px; border: 0; border-radius: 13px; background: var(--gold); color: var(--on-gold);
+      font: 600 .98rem var(--sans); cursor: pointer; padding: 0 1.4rem; text-decoration: none; }
+    .st-cta:disabled { opacity: .5; cursor: not-allowed; }
+    .st-cta--full { width: 100%; }
+    .st-cta--wa { background: #1d7a46; color: #fff; }
+    .st-cta--sec { background: transparent; color: var(--gold-d); border: 1px solid var(--gold-bd); }
+    .st-cta--ink { background: var(--ink); color: var(--on-ink); }
+
+    /* gerando / pronto */
+    .st-modal { position: fixed; inset: 0; z-index: 100; background: rgba(14,14,20,.92); display: flex; align-items: center; justify-content: center; padding: 1.2rem; }
+    .st-gerando { width: min(100%, 360px); text-align: center; color: #fff; }
+    .st-gerando canvas { width: 150px; aspect-ratio: 9 / 16; border-radius: 14px; display: block; margin: 0 auto 1.3rem; background: #1e1e28; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+    .st-gerando h2 { font: 400 1.45rem var(--serif); margin: 0 0 .3rem; }
+    .st-gerando p { color: rgba(255,255,255,.62); font-size: .86rem; line-height: 1.5; margin: .2rem 0 1rem; }
+    .st-prog { height: 8px; border-radius: 999px; background: rgba(255,255,255,.12); overflow: hidden; }
+    .st-prog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold-l), #d4ab40); border-radius: inherit; transition: width .25s; }
+    .st-pct { font: 500 .8rem var(--mono); color: #d4ab40; margin-top: .5rem; }
+    .st-cancelar { background: none; border: 1px solid rgba(255,255,255,.25); color: rgba(255,255,255,.8); border-radius: 10px; padding: .6rem 1.2rem; font: 500 .85rem var(--sans); margin-top: 1.2rem; cursor: pointer; min-height: 44px; }
+    .st-pronto { display: grid; gap: 1.2rem; align-items: start; }
+    @media (min-width: 900px) { .st-pronto { grid-template-columns: 360px 1fr; gap: 2rem; } }
+    .st-pronto video, .st-pronto .st-carrossel { width: min(100%, 340px); aspect-ratio: 9 / 16; border-radius: 20px; background: #000; display: block; margin: 0 auto; box-shadow: 0 18px 50px rgba(14,14,20,.25); }
+    .st-carrossel { display: grid !important; grid-template-columns: 1fr 1fr; gap: 4px; overflow-y: auto; padding: 4px; aspect-ratio: auto !important; max-height: 70vh; }
+    .st-carrossel img { width: 100%; border-radius: 10px; display: block; }
+    .st-acoes { display: grid; gap: .55rem; }
+    .st-passos { margin: .6rem 0 0; padding: 0 0 0 1.1rem; font-size: .84rem; color: var(--text2); line-height: 1.7; }
+    .st-rastreio { display: flex; gap: .6rem; background: var(--green-bg); border: 1px solid var(--green-bd); border-radius: 12px; padding: .7rem .8rem; font-size: .82rem; color: var(--green); line-height: 1.5; }
+    .st-link { font: 400 .72rem var(--mono); color: var(--text2); background: var(--paper2); border-radius: 8px; padding: .55rem .65rem; word-break: break-all; }
+
+    .st-folha { position: fixed; inset: 0; z-index: 120; background: rgba(14,14,20,.5); display: flex; align-items: flex-end; justify-content: center; }
+    .st-folha-in { background: var(--paper); width: min(100%, 520px); border-radius: 20px 20px 0 0; padding: 1.3rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(0,0,0,.2); }
+    .st-folha h2 { font: 400 1.35rem var(--serif); margin: 0 0 .4rem; color: var(--ink); }
+    .st-folha p { font-size: .88rem; color: var(--text2); line-height: 1.55; margin: 0 0 .9rem; }
+    .st-folha ul { margin: 0 0 1rem 1.1rem; padding: 0; font-size: .86rem; color: var(--text); line-height: 1.75; }
+    /* v12.43 · Studio v2: barra de ferramentas, música, cenas, clipes, final */
+    .st-abas { display: flex; gap: .3rem; overflow-x: auto; scrollbar-width: none; margin: 0 0 .75rem; padding: .25rem; background: var(--paper); border: 1px solid var(--border2); border-radius: 14px; position: sticky; top: .4rem; z-index: 5; }
+    .st-abas::-webkit-scrollbar { display: none; }
+    .st-aba { flex: 1 0 auto; min-width: 64px; display: flex; flex-direction: column; align-items: center; gap: .15rem; border: 0; background: none; border-radius: 10px; padding: .45rem .5rem; font: 500 .7rem var(--sans); color: var(--text2); cursor: pointer; min-height: 52px; }
+    .st-aba svg { width: 20px; height: 20px; }
+    .st-aba[aria-selected=true] { background: var(--ink); color: var(--on-ink); }
+    .st-hist { display: flex; gap: .35rem; }
+    .st-hist button:disabled { opacity: .35; cursor: default; }
+    .st-generos { display: flex; gap: .35rem; overflow-x: auto; scrollbar-width: none; margin-bottom: .6rem; padding-bottom: .15rem; }
+    .st-generos::-webkit-scrollbar { display: none; }
+    .st-generos .st-chip { flex: none; min-height: 34px; padding: .35rem .7rem; font-size: .76rem; }
+    .st-trilhas { display: grid; gap: .35rem; max-height: 46vh; overflow-y: auto; padding-right: .15rem; }
+    .st-trilha { display: grid; grid-template-columns: 1fr auto; gap: .5rem; align-items: center; text-align: left; border: 1px solid var(--border2); background: var(--paper2); border-radius: 12px; padding: .55rem .7rem; cursor: pointer; font-family: var(--sans); color: var(--text); min-height: 52px; }
+    .st-trilha b { display: block; font-size: .86rem; }
+    .st-trilha small { display: block; font-size: .72rem; color: var(--muted); line-height: 1.35; }
+    .st-trilha i { font: 500 .62rem var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--gold-text); font-style: normal; white-space: nowrap; }
+    .st-trilha[aria-pressed=true] { border-color: var(--gold); background: var(--gold-bg); box-shadow: inset 3px 0 0 var(--gold); }
+    .st-faixa { display: grid; gap: .25rem; margin-top: .55rem; }
+    .st-faixa label { display: flex; justify-content: space-between; font-size: .78rem; color: var(--text2); }
+    .st-faixa label span { font: 500 .72rem var(--mono); color: var(--muted); }
+    .st-faixa input[type=range] { width: 100%; accent-color: var(--gold); height: 28px; }
+    .st-arquivo { display: flex; gap: .6rem; align-items: center; justify-content: space-between; background: var(--paper2); border: 1px dashed var(--border3); border-radius: 12px; padding: .65rem .75rem; font-size: .84rem; }
+    .st-arquivo b { display: block; font-size: .84rem; word-break: break-all; }
+    .st-arquivo small { color: var(--muted); font-size: .72rem; }
+    .st-clip { display: grid; grid-template-columns: 64px 1fr; gap: .7rem; border: 1px solid var(--border2); border-radius: 12px; padding: .6rem; background: var(--paper2); }
+    .st-clip + .st-clip { margin-top: .5rem; }
+    .st-clip-img { width: 64px; height: 96px; border-radius: 8px; background: #000 center/cover no-repeat; position: relative; }
+    .st-clip-img span { position: absolute; left: 4px; bottom: 4px; font: 500 .58rem var(--mono); background: rgba(14,14,20,.8); color: #fff; border-radius: 4px; padding: .1rem .3rem; }
+    .st-clip[data-fora="1"] .st-clip-ctl { opacity: .45; pointer-events: none; }
+    .st-cenas { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; }
+    .st-cena { border: 1px solid var(--border2); border-radius: 12px; background: var(--paper2); }
+    .st-cena[aria-current=true] { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold-bg); }
+    .st-cena-lin { display: grid; grid-template-columns: 40px 1fr auto; gap: .55rem; align-items: center; padding: .45rem .5rem; }
+    .st-cena-img { width: 40px; height: 56px; border-radius: 6px; background: var(--ink) center/cover no-repeat; display: flex; align-items: center; justify-content: center; color: #fff; font: 600 .58rem var(--mono); }
+    .st-cena-nome { font-size: .84rem; font-weight: 600; background: none; border: 0; padding: 0; text-align: left; color: var(--text); cursor: pointer; font-family: var(--sans); }
+    .st-cena-nome small { display: block; font-weight: 400; font-size: .72rem; color: var(--muted); }
+    .st-cena[data-oculta="1"] .st-cena-nome, .st-cena[data-oculta="1"] .st-cena-img { opacity: .4; }
+    .st-mini { display: flex; gap: .2rem; }
+    .st-mini button { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border2); background: var(--paper); color: var(--text); cursor: pointer; font-size: .9rem; line-height: 1; }
+    .st-mini button:disabled { opacity: .3; cursor: default; }
+    .st-cena-ed { border-top: 1px solid var(--border2); padding: .6rem .6rem .7rem; }
+    .st-cena-ed select, .st-campo select { width: 100%; border: 1px solid var(--border2); background: var(--paper); border-radius: 10px; padding: .6rem .65rem; font: 400 .9rem var(--sans); color: var(--text); min-height: 44px; }
+    .st-dur { display: flex; align-items: center; gap: .4rem; }
+    .st-dur output { font: 500 .78rem var(--mono); min-width: 3.4rem; text-align: center; }
+    .st-fins { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .5rem; }
+    .st-fim { border: 1.5px solid var(--border2); border-radius: 12px; background: var(--paper2); padding: .6rem .65rem; text-align: left; cursor: pointer; font-family: var(--sans); color: var(--text); }
+    .st-fim b { display: block; font-size: .84rem; }
+    .st-fim small { display: block; font-size: .7rem; color: var(--muted); line-height: 1.35; margin-top: .15rem; }
+    .st-fim[aria-pressed=true] { border-color: var(--gold); background: var(--gold-bg); }
+    .st-fim:disabled { opacity: .45; cursor: not-allowed; }
+    .st-filtros { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: .45rem; }
+    .st-filtro { border: 1.5px solid var(--border2); border-radius: 10px; padding: 0 0 .35rem; background: var(--paper2); cursor: pointer; overflow: hidden; font: 500 .72rem var(--sans); color: var(--text); }
+    .st-filtro img, .st-filtro i { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; margin-bottom: .3rem; background: linear-gradient(160deg,#9fb8ad,#2a3a36); }
+    .st-filtro[aria-pressed=true] { border-color: var(--gold); }
+    @media (prefers-reduced-motion: reduce) { .st-carregando { animation: none; } }
+  </style>
+</head>
+<body>
+<main class="st" id="st" aria-live="polite"><p class="st-sub" style="margin-top:2rem">Carregando o Studio…</p></main>
+<div class="st-barra" id="stBarra"><div class="st-barra-in"><div class="st-barra-txt" id="stBarraTxt"></div><button type="button" class="st-cta" id="stGerar">Gerar vídeo</button></div></div>
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="db.js"></script>
+<script src="db.studio.js"></script>
+<script src="qrcode_min.js"></script>
+<script src="vendor/mp4-muxer/mp4-muxer-5.2.2.js"></script>
+<script src="studio-trilhas.js"></script>
+<script src="studio-trilhas-catalogo.js"></script>
+<script src="studio-audio.js"></script>
+<script src="studio-motor.js"></script>
+<script src="studio-export.js"></script>
+<script>
+(function () {
+  'use strict';
+  var main = document.getElementById('st');
+  var barra = document.getElementById('stBarra'), barraTxt = document.getElementById('stBarraTxt'), btnGerar = document.getElementById('stGerar');
+  var params = new URLSearchParams(location.search);
+  var S = FIELDO.Studio, MOT = FIELDO.StudioMotor, EXP = FIELDO.StudioExport, TRI = FIELDO.StudioTrilhas;
+
+  if (!S || !MOT || !EXP || !TRI) { main.innerHTML = '<p class="st-sub" style="margin-top:2rem">Não foi possível carregar o Studio. Recarregue a página.</p>'; return; }
+  if (!FIELDO.Auth.isLoggedIn()) { location.href = 'entrar.html'; return; }
+
+  var dados = null, videos = [], fotosCache = {}, avatar = null, caps = null;
+  var ed = null;           /* estado do editor */
+  var player = null;       /* prévia */
+  var mostrarTodos = false;
+
+  function e(s) { return FIELDO.UI.esc(s == null ? '' : String(s)); }
+  function toast(m) { try { FIELDO.UI.toast(m, 3200); } catch (x) {} }
+  function pro() { return !!(dados && dados.cota && dados.cota.plano === 'pro'); }
+  function dataBR(iso) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? m[3] + '/' + m[2] + '/' + m[1] : ''; }
+  function dataCurta(iso) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? m[3] + '/' + m[2] : ''; }
+  function mmss(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+  function plural(n, um, varios) { return n + ' ' + (n === 1 ? um : varios); }
+
+  /* ── cota ───────────────────────────────────────────────────── */
+  function cotaChip() {
+    var c = dados && dados.cota;
+    if (!c) return '';
+    if (c.limite == null) return '<span class="st-cota">Pro · vídeos ilimitados</span>';
+    return '<span class="st-cota' + (c.restante ? '' : ' st-cota--zero') + '">' + c.restante + ' de ' + c.limite + ' vídeos grátis</span>';
+  }
+  function topo(voltar) {
+    return '<div class="st-top">' + (voltar || '<a class="st-voltar" href="painel.html">‹ Painel</a>') + cotaChip() + '</div>';
+  }
+
+  /* ── carregar ───────────────────────────────────────────────── */
+  function carregar() {
+    main.innerHTML = topo() + '<div class="st-eyebrow">Fieldo Studio</div><h1 class="st-tit">Carregando…</h1>';
+    Promise.all([S.fontes(), S.meus().catch(function () { return []; }), EXP.capacidades().catch(function () { return null; })]).then(function (r) {
+      dados = r[0]; videos = r[1] || []; caps = r[2];
+      var rid = params.get('r'), vid = params.get('v');
+      if (vid) {
+        var v = videos.filter(function (x) { return x.id === vid; })[0];
+        if (v && params.get('editar') === '1') return abrirVideo(v);
+      }
+      if (rid) {
+        var sv = servico(rid);
+        if (sv && sv.situacao === 'ok') return abrirEditor(sv, null);
+      }
+      telaInicio(vid);
+    }).catch(function (err) {
+      main.innerHTML = topo() + '<div class="st-eyebrow">Fieldo Studio</div><h1 class="st-tit">Não deu para abrir agora</h1>' +
+        '<div class="st-alerta st-erro" role="alert">' + e(err.message) + '</div>' +
+        '<button type="button" class="st-cta st-cta--sec" id="stDeNovo">Tentar de novo</button>';
+      document.getElementById('stDeNovo').onclick = carregar;
+      if (err.code === 'nao_autenticado') setTimeout(function () { location.href = 'entrar.html'; }, 1500);
+    });
+  }
+
+  function servico(id) { return ((dados && dados.servicos) || []).filter(function (s) { return s.id === id; })[0] || null; }
+
+  /* ── 1. início: escolher o serviço ──────────────────────────── */
+  var MOTIVO = {
+    portfolio_desligado: 'Fotos fora do portfólio público',
+    servico_privado: 'Serviço privado',
+    servico_fora_do_portfolio: 'Fotos deste serviço não liberadas',
+    sem_fotos: 'Sem fotos nem vídeos'
+  };
+
+  function telaInicio(focoVideo) {
+    pararPlayer(); barra.classList.remove('on');
+    var p = dados.perfil, c = dados.cota, svs = dados.servicos || [];
+    var elegiveis = svs.filter(function (s) { return s.situacao === 'ok'; });
+    var outros = svs.filter(function (s) { return s.situacao !== 'ok'; });
+    var comVideo = {};
+    videos.forEach(function (v) { if (v.gerado_em) comVideo[v.report_id] = true; });
+
+    var h = topo() +
+      '<div class="st-eyebrow">Fieldo Studio</div>' +
+      '<h1 class="st-tit">Seu trabalho <em>vira vídeo</em></h1>' +
+      '<p class="st-sub">Escolha um serviço. Em menos de um minuto sai um vídeo vertical para o Status, Reels e TikTok — com suas fotos e vídeos, música, antes e depois, a avaliação do cliente e o seu contato.</p>';
+
+    if (!p.portfolio_publico) {
+      h += '<div class="st-alerta"><div><b>Suas fotos estão fora do portfólio público.</b> O Studio só usa fotos que você liberou para mostrar no perfil. ' +
+        '<a href="meu-perfil.html">Liberar no meu perfil →</a></div></div>';
+    }
+    if (!p.publico || !p.slug) {
+      h += '<div class="st-alerta"><div><b>Seu perfil está oculto.</b> O vídeo leva o cliente até o seu perfil, então ele precisa estar público. ' +
+        '<a href="meu-perfil.html">Ajustar perfil →</a></div></div>';
+    }
+    if (c && c.limite != null) {
+      h += '<div class="st-box" style="display:flex;gap:.9rem;align-items:center;justify-content:space-between;margin-bottom:.4rem">' +
+        '<div style="font-size:.86rem;line-height:1.5;color:var(--text2)">' +
+          (c.restante ? 'Você tem <b style="color:var(--ink)">' + plural(c.restante, 'vídeo grátis', 'vídeos grátis') + '</b> este mês.' : '<b style="color:var(--ink)">Os vídeos grátis deste mês acabaram.</b>') +
+          ' Renova em ' + e(dataBR(c.renova_em)) + '. Refazer um vídeo já gerado não conta.' +
+        '</div><a class="st-lnk" href="planos.html">Pro: ilimitado →</a></div>';
+    }
+
+    h += '<h2 class="st-h2">Escolha o serviço <small>' + plural(elegiveis.length, 'pronto', 'prontos') + ' para vídeo</small></h2>';
+    if (!svs.length) {
+      h += '<div class="st-box st-vazio"><div style="font:400 1.2rem var(--serif);color:var(--ink)">Nenhum serviço com fotos ou vídeos ainda</div>' +
+        '<p>Registre um serviço com fotos do antes e do depois, ou um vídeo curto do resultado. Ele aparece aqui na hora, pronto para virar vídeo.</p>' +
+        '<a class="st-cta" href="servico.html">Registrar serviço com fotos</a></div>';
+    } else {
+      var lista = elegiveis.concat(outros), limite = mostrarTodos ? lista.length : 8;
+      h += '<ul class="st-lista">' + lista.slice(0, limite).map(function (s) {
+        var ok = s.situacao === 'ok', foto = ok && ((s.fotos && s.fotos[0]) || (s.videos && s.videos[0] && s.videos[0].capa));
+        return '<li><button type="button" class="st-sv" data-sv="' + e(s.id) + '"' + (ok ? '' : ' disabled aria-disabled="true"') + '>' +
+          '<span class="st-sv-img">' + (foto ? '<img src="' + e(foto) + '" alt="" loading="lazy" decoding="async"/>' : '') + '</span>' +
+          '<span><span class="st-sv-tit">' + e(s.titulo) + (comVideo[s.id] ? '<span class="st-tag">vídeo feito</span>' : '') + '</span>' +
+            '<span class="st-sv-meta">' + e(dataBR(s.data)) + ' · ' + plural(s.total_fotos, 'foto', 'fotos') + (s.total_videos ? ' · ' + plural(s.total_videos, 'vídeo', 'vídeos') : '') + (s.avaliacao ? ' · ' + '★'.repeat(s.avaliacao.nota) : '') + '</span>' +
+            (ok ? '' : '<span class="st-sv-motivo">' + e(MOTIVO[s.situacao] || 'Indisponível') + '</span>') + '</span>' +
+          '<span class="st-sv-seta" aria-hidden="true">' + (ok ? '›' : '') + '</span>' +
+        '</button></li>';
+      }).join('') + '</ul>';
+      if (lista.length > limite) h += '<button type="button" class="st-mais" id="stMais">Ver todos os ' + lista.length + ' serviços</button>';
+      if (outros.length && p.portfolio_publico) {
+        h += '<p class="st-dica">Serviços privados ou com fotos não liberadas não entram em vídeo — é o mesmo cuidado do seu perfil público. Para liberar, abra o serviço e marque as fotos como portfólio.</p>';
+      }
+    }
+
+    if (videos.length) {
+      h += '<h2 class="st-h2" id="stMeus">Meus vídeos <small>visitas vindas de cada vídeo</small></h2><ul class="st-lista">' +
+        videos.map(function (v) {
+          var r = v.roteiro || {}, img = r.capa || (r.fotos || [])[0];
+          var meta = v.gerado_em ? 'Gerado em ' + dataBR(v.gerado_em) + (v.compartilhado_em ? ' · compartilhado' : ' · ainda não compartilhado') : 'Rascunho';
+          return '<li class="st-vid' + (v.id === focoVideo ? ' st-vid--foco' : '') + '" id="v-' + e(v.id) + '">' +
+            '<span class="st-vid-img" style="background-image:url(\'' + e(img || '') + '\')"></span>' +
+            '<div><div class="st-vid-tit">' + e(r.titulo || 'Vídeo') + '</div><div class="st-vid-meta">' + e(meta) + '</div>' +
+              (v.gerado_em ? '<div class="st-num"><div><b>' + Number(v.visitas || 0) + '</b>visitas ao perfil</div><div><b>' + (Number(v.whatsapp || 0) + Number(v.ligacoes || 0)) + '</b>contatos</div></div>' : '') +
+              '<div class="st-vid-acoes"><button type="button" data-abrir="' + e(v.id) + '">' + (v.gerado_em ? 'Abrir e baixar de novo' : 'Continuar') + '</button>' +
+              '<button type="button" class="st-perigo" data-excluir="' + e(v.id) + '">Excluir</button></div></div></li>';
+        }).join('') + '</ul>' +
+        '<p class="st-dica">As visitas contam quem abriu seu perfil pelo link ou QR do vídeo. Suas próprias visitas não entram.</p>';
+    }
+
+    main.innerHTML = h;
+    Array.prototype.forEach.call(main.querySelectorAll('[data-sv]'), function (b) {
+      b.onclick = function () { var sv = servico(b.getAttribute('data-sv')); if (sv) abrirEditor(sv, null); };
+    });
+    var mais = document.getElementById('stMais');
+    if (mais) mais.onclick = function () { mostrarTodos = true; telaInicio(); };
+    Array.prototype.forEach.call(main.querySelectorAll('[data-abrir]'), function (b) {
+      b.onclick = function () { var v = videos.filter(function (x) { return x.id === b.getAttribute('data-abrir'); })[0]; if (v) abrirVideo(v); };
+    });
+    Array.prototype.forEach.call(main.querySelectorAll('[data-excluir]'), function (b) {
+      b.onclick = function () {
+        if (!confirm('Excluir este vídeo da sua lista? O arquivo que você já compartilhou continua onde está.')) return;
+        b.disabled = true;
+        S.excluir(b.getAttribute('data-excluir')).then(function () {
+          videos = videos.filter(function (x) { return x.id !== b.getAttribute('data-excluir'); });
+          toast('Vídeo excluído'); telaInicio();
+        }).catch(function (err) { b.disabled = false; toast(err.message); });
+      };
+    });
+    if (focoVideo) { var alvo = document.getElementById('v-' + focoVideo); if (alvo) setTimeout(function () { alvo.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 60); }
+  }
+
+  function abrirVideo(v) {
+    var sv = servico(v.report_id);
+    if (!sv || sv.situacao !== 'ok') {
+      toast(sv ? (FIELDO.Studio.MSG[sv.situacao] || 'Este serviço não pode mais virar vídeo.') : 'O serviço deste vídeo não existe mais.');
+      return telaInicio(v.id);
+    }
+    abrirEditor(sv, v);
+  }
+
+  /* ── 2. editor ──────────────────────────────────────────────────
+     v12.43 · Studio v2: ferramentas em abas (como os editores de vídeo
+     de celular), desfazer/refazer, clipes de vídeo, música do aparelho,
+     linha do tempo editável e encerramentos. */
+  var AUDIO = FIELDO.StudioAudio;
+  var videosCache = {};
+  var ABAS = [
+    ['midia', 'Mídia', '<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>'],
+    ['musica', 'Música', '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'],
+    ['cenas', 'Cenas', '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M7 6v12M12 6v12M17 6v12"/>'],
+    ['texto', 'Texto', '<path d="M4 7V4h16v3M9 20h6M12 4v16"/>'],
+    ['estilo', 'Estilo', '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>'],
+    ['final', 'Final', '<path d="M4 4h16v12H5.17L4 17.17z"/><path d="M8 9h8M8 12h5"/>']
+  ];
+  var NOMES_FILTRO = { nenhum: 'Original', vivo: 'Vivo', quente: 'Quente', frio: 'Frio', pb: 'P&B', cinema: 'Cinema', suave: 'Suave' };
+  var CSS_FILTRO = { nenhum: 'none', vivo: 'saturate(1.35) contrast(1.08)', quente: 'sepia(.22) saturate(1.25) hue-rotate(-6deg)', frio: 'saturate(1.05) hue-rotate(10deg) brightness(1.03)', pb: 'grayscale(1) contrast(1.12)', cinema: 'contrast(1.16) saturate(.82) brightness(.95)', suave: 'brightness(1.06) contrast(.92) saturate(.9)' };
+  var NOMES_TRANS = { modelo: 'Do modelo', fade: 'Esmaecer', deslizar: 'Deslizar', zoom: 'Zoom', cortina: 'Cortina', flash: 'Flash', corte: 'Corte seco', desfoque: 'Desfoque' };
+  var FINS = [
+    ['cartao', 'Cartão', 'Foto, nome, frase, QR e link do perfil'],
+    ['whatsapp', 'WhatsApp', 'Seu número em destaque para chamar'],
+    ['contato', 'Contato', 'WhatsApp, Instagram e perfil em lista'],
+    ['logo', 'Só a marca', 'Sua foto e seu nome, limpo'],
+    ['nenhum', 'Sem final', 'O vídeo termina na última cena']
+  ];
+
+  function abrirEditor(sv, video) {
+    var fotosSv = (sv.fotos || []).filter(function (u) { return typeof u === 'string'; });
+    var videosSv = (sv.videos || []).filter(function (v) { return v && typeof v.url === 'string'; });
+    var r = video && video.roteiro ? JSON.parse(JSON.stringify(video.roteiro)) : null;
+    ed = {
+      sv: sv, video: video || null, fotosSv: fotosSv, videosSv: videosSv,
+      modelo: video ? video.modelo : 'classico', trilha: video ? video.trilha : 'leve',
+      marca: video ? video.marca !== false : true,
+      roteiro: r, modo: 'incluir', antesDepois: r ? !!(r.antes && r.depois) : fotosSv.length >= 2,
+      pronto: false, aba: 'midia', genero: '', cenaSel: null, arquivo: null,
+      hist: [], futuro: []
+    };
+    if (!pro()) { ed.modelo = 'classico'; ed.marca = true; if (ed.roteiro) delete ed.roteiro.acento; }
+    desenharEditor();
+    var avatarUrl = dados.perfil.foto;
+    var urls = fotosSv.slice(0, 16);
+    MOT.fontesProntas().then(function () {
+      return MOT.prepararFotos(urls.concat(avatarUrl && !fotosCache.__avatar ? [avatarUrl] : []), function (f, t) {
+        var c = document.getElementById('stCarregandoTxt'); if (c) c.textContent = 'Preparando suas fotos… ' + f + ' de ' + t;
+      });
+    }).then(function (res) {
+      if (ed.sv !== sv) return null;
+      Object.keys(res.fotos).forEach(function (u) { fotosCache[u] = res.fotos[u]; });
+      if (avatarUrl && res.fotos[avatarUrl]) fotosCache.__avatar = res.fotos[avatarUrl];
+      if (res.falhas.length) toast(plural(res.falhas.length, 'foto não abriu', 'fotos não abriram') + ' e ficou de fora.');
+      var faltam = videosSv.filter(function (v) { return !videosCache[v.url]; });
+      return MOT.prepararVideos(faltam, function (f, t) {
+        var c = document.getElementById('stCarregandoTxt'); if (c) c.textContent = 'Preparando seus vídeos… ' + f + ' de ' + t;
+      });
+    }).then(function (rv) {
+      if (!rv || ed.sv !== sv) return;
+      Object.keys(rv.videos).forEach(function (u) { videosCache[u] = rv.videos[u]; });
+      if (rv.falhas.length) toast(plural(rv.falhas.length, 'vídeo não abriu', 'vídeos não abriram') + ' neste aparelho e ficou de fora.');
+      ed.fotosSv = fotosSv.filter(function (u) { return fotosCache[u]; });
+      ed.videosSv = videosSv.filter(function (v) { return videosCache[v.url]; });
+      if (!ed.fotosSv.length && !ed.videosSv.length) {
+        main.querySelector('.st-carregando').innerHTML = 'Não conseguimos abrir as fotos e vídeos deste serviço.<br><button type="button" class="st-cta st-cta--sec" style="margin-top:.8rem" onclick="location.reload()">Tentar de novo</button>';
+        return;
+      }
+      if (!ed.roteiro) {
+        var mapa = {}; ed.fotosSv.forEach(function (u) { mapa[u] = fotosCache[u]; });
+        ed.roteiro = MOT.sugerirRoteiro({ titulo: sv.titulo, categoria: sv.categoria, fotos: ed.fotosSv, videos: ed.videosSv, avaliacao: sv.avaliacao }, mapa, videosCache);
+      } else {
+        var r2 = ed.roteiro;
+        r2.fotos = (r2.fotos || []).filter(function (u) { return fotosCache[u] && ed.fotosSv.indexOf(u) >= 0; });
+        ['capa', 'antes', 'depois'].forEach(function (k) { if (r2[k] && ed.fotosSv.indexOf(r2[k]) < 0) r2[k] = null; });
+        r2.videos = (r2.videos || []).filter(function (v) { return v && videosCache[v.url]; });
+        if (!r2.fotos.length && !r2.videos.length) { r2.fotos = ed.fotosSv.slice(0, 8); }
+      }
+      ed.pronto = true;
+      desenharControles();
+      montarPrevia(true);
+    }).catch(function () {
+      var c = main.querySelector('.st-carregando'); if (c) c.textContent = 'Não foi possível preparar as fotos e vídeos. Verifique a conexão.';
+    });
+  }
+
+  function desenharEditor() {
+    var sv = ed.sv;
+    main.innerHTML = topo('<button type="button" class="st-voltar" id="stVoltar">‹ Serviços</button>') +
+      '<div class="st-eyebrow">Novo vídeo</div><h1 class="st-tit" style="font-size:clamp(1.4rem,5.4vw,1.9rem)">' + e(sv.titulo) + '</h1>' +
+      '<div class="st-ed">' +
+        '<div class="st-ed-palco">' +
+          '<div class="st-palco" id="stPalco"><canvas id="stCanvas" aria-label="Prévia do vídeo" role="img"></canvas>' +
+            '<div class="st-carregando"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg><span id="stCarregandoTxt">Preparando suas fotos…</span></div>' +
+            '<button type="button" class="st-play" id="stPlay" aria-label="Assistir prévia" style="display:none"><span><svg width="26" height="26" viewBox="0 0 24 24" fill="#0e0e14"><path d="M8 5v14l11-7z"/></svg></span></button>' +
+          '</div>' +
+          '<div class="st-ctrl"><button type="button" class="st-btn-ico" id="stPP" aria-label="Tocar"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>' +
+            '<input type="range" id="stScrub" min="0" max="1000" value="0" step="1" aria-label="Posição na prévia"/><span class="st-tempo" id="stTempo">0:00 / 0:00</span>' +
+            '<span class="st-hist"><button type="button" class="st-btn-ico" id="stDesfazer" aria-label="Desfazer" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>' +
+            '<button type="button" class="st-btn-ico" id="stRefazer" aria-label="Refazer" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button></span></div>' +
+          '<div class="st-musica-status" id="stMusicaSt"></div>' +
+        '</div>' +
+        '<div><div class="st-abas" role="tablist" aria-label="Ferramentas">' + ABAS.map(function (a) {
+            return '<button type="button" class="st-aba" role="tab" data-aba="' + a[0] + '" aria-selected="' + (ed.aba === a[0]) + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + a[2] + '</svg>' + a[1] + '</button>';
+          }).join('') + '</div>' +
+          '<div id="stControles" role="tabpanel"><div class="st-sec"><p class="st-dica" style="margin:0">Montando as opções…</p></div></div></div>' +
+      '</div>' +
+      '<input type="file" id="stArqMusica" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg" style="display:none"/>';
+    document.getElementById('stVoltar').onclick = function () { telaInicio(); };
+    Array.prototype.forEach.call(main.querySelectorAll('[data-aba]'), function (b) {
+      b.onclick = function () { ed.aba = b.getAttribute('data-aba'); marcar(main, '[data-aba]', b, 'aria-selected'); desenharControles(); };
+    });
+    document.getElementById('stDesfazer').onclick = function () { historia(-1); };
+    document.getElementById('stRefazer').onclick = function () { historia(1); };
+    document.getElementById('stArqMusica').onchange = escolherArquivoMusica;
+    atualizarBarra();
+  }
+
+  /* ── desfazer / refazer ── */
+  function foto() { return JSON.stringify({ r: ed.roteiro, m: ed.modelo, t: ed.trilha, k: ed.marca, a: ed.antesDepois }); }
+  function antesDeMudar() { if (!ed || !ed.roteiro) return; ed.hist.push(foto()); if (ed.hist.length > 60) ed.hist.shift(); ed.futuro = []; botoesHist(); }
+  function historia(dir) {
+    var de = dir < 0 ? ed.hist : ed.futuro, para = dir < 0 ? ed.futuro : ed.hist;
+    if (!de.length) return;
+    para.push(foto());
+    var x = JSON.parse(de.pop());
+    ed.roteiro = x.r; ed.modelo = x.m; ed.trilha = x.t; ed.marca = x.k; ed.antesDepois = x.a;
+    botoesHist(); desenharControles(); montarPrevia(false, true);
+  }
+  function botoesHist() {
+    var a = document.getElementById('stDesfazer'), b = document.getElementById('stRefazer');
+    if (a) a.disabled = !ed.hist.length; if (b) b.disabled = !ed.futuro.length;
+  }
+  /* toda mudança passa por aqui: guarda o estado, aplica, redesenha */
+  function mudar(fn, opts) {
+    opts = opts || {};
+    antesDeMudar();
+    fn();
+    if (opts.controles !== false) desenharControles();
+    montarPrevia(false, !!opts.audio);
+  }
+
+  var CORES = ['#e4572e', '#d4ab40', '#2a9d8f', '#3a86ff', '#8338ec', '#ef476f'];
+
+  function desenharControles() {
+    var box = document.getElementById('stControles');
+    if (!box || !ed || !ed.roteiro) return;
+    var h = ({ midia: abaMidia, musica: abaMusica, cenas: abaCenas, texto: abaTexto, estilo: abaEstilo, final: abaFinal }[ed.aba] || abaMidia)();
+    h += '<p class="st-priv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:none;margin-top:2px"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>' +
+      '<span>O vídeo é feito no seu celular. Só entram fotos e vídeos que você liberou no portfólio; o nome do cliente nunca aparece. A música do celular não sai do aparelho. O Fieldo guarda o roteiro, não o vídeo.</span></p>';
+    box.innerHTML = h;
+    ({ midia: ligarMidia, musica: ligarMusica, cenas: ligarCenas, texto: ligarTexto, estilo: ligarEstilo, final: ligarFinal }[ed.aba] || ligarMidia)(box);
+    botoesHist();
+    atualizarBarra();
+  }
+
+  function desenharEditorAbas() {
+    Array.prototype.forEach.call(main.querySelectorAll('[data-aba]'), function (x) { x.setAttribute('aria-selected', x.getAttribute('data-aba') === ed.aba ? 'true' : 'false'); });
+    desenharControles();
+  }
+  function marcar(box, sel, ativo, attr) {
+    Array.prototype.forEach.call(box.querySelectorAll(sel), function (x) { x.setAttribute(attr || 'aria-pressed', x === ativo ? 'true' : 'false'); });
+  }
+  function cada(box, sel, fn) { Array.prototype.forEach.call(box.querySelectorAll(sel), fn); }
+
+  /* ── aba Mídia: modelo, fotos, vídeos, antes e depois, avaliação ── */
+  function abaMidia() {
+    var r = ed.roteiro, av = ed.sv.avaliacao, ehPro = pro();
+    var modelos = ['classico', 'impacto', 'editorial'].map(function (k) {
+      var m = MOT.MODELOS[k], cad = m.pro && !ehPro;
+      var amostra = k === 'classico' ? 'linear-gradient(160deg,#5b7f72 0%,#2a3a36 55%,#0e0e14 100%)' :
+        k === 'impacto' ? 'linear-gradient(160deg,#3d4a47 0%,#0e0e14 60%),#e4572e' : 'linear-gradient(#f5f2ec 0 0) padding-box,#f5f2ec';
+      var extra = k === 'impacto' ? ';box-shadow:inset 0 -10px 0 #e4572e' : k === 'editorial' ? ';border:6px solid #f5f2ec;outline:1px solid var(--border2);background:linear-gradient(160deg,#9fb8ad,#5b7f72)' : '';
+      return '<button type="button" class="st-modelo" data-modelo="' + k + '" aria-pressed="' + (ed.modelo === k) + '">' +
+        (cad ? '<span class="st-cad">PRO</span>' : '') + '<i style="background:' + amostra + extra + '"></i><b>' + e(m.nome) + '</b><small>' + e(m.descricao) + '</small></button>';
+    }).join('');
+    var h = '<section class="st-sec"><h3>Modelo' + (ehPro ? '' : ' <small>Impacto e Editorial no Pro</small>') + '</h3><div class="st-modelos">' + modelos + '</div></section>';
+
+    if (ed.videosSv.length) {
+      h += '<section class="st-sec"><h3>Vídeos do serviço <small>corte, velocidade e som</small></h3>' + ed.videosSv.map(function (v, i) {
+        var V = videosCache[v.url], cl = clipeDe(v.url), dentro = !!cl, tot = V ? V.duracao : Number(v.duracao) || 30;
+        var de = cl ? cl.de : 0, ate = cl ? cl.ate : Math.min(tot, 8), vel = cl ? cl.vel : 1, vol = cl ? (cl.vol == null ? 1 : cl.vol) : 1;
+        return '<div class="st-clip" data-fora="' + (dentro ? 0 : 1) + '">' +
+          '<div class="st-clip-img" style="background-image:url(\'' + e(v.capa || '') + '\')"><span>' + mmss(tot) + '</span></div>' +
+          '<div><label class="st-sw" style="padding-top:0"><span class="st-sw-txt">Vídeo ' + (i + 1) + '<small>' + (dentro ? 'Entra no vídeo: ' + ((ate - de) / vel).toFixed(1).replace('.', ',') + ' s' : 'Fora do vídeo') + '</small></span>' +
+            '<input type="checkbox" data-clip-usar="' + i + '"' + (dentro ? ' checked' : '') + '/></label>' +
+            '<div class="st-clip-ctl">' +
+              '<div class="st-faixa"><label for="stDe' + i + '">Começa em <span>' + de.toFixed(1).replace('.', ',') + ' s</span></label><input type="range" id="stDe' + i + '" data-clip-de="' + i + '" min="0" max="' + Math.max(0, tot - 0.3).toFixed(1) + '" step="0.1" value="' + de + '"/></div>' +
+              '<div class="st-faixa"><label for="stAte' + i + '">Termina em <span>' + ate.toFixed(1).replace('.', ',') + ' s</span></label><input type="range" id="stAte' + i + '" data-clip-ate="' + i + '" min="0.3" max="' + tot.toFixed(1) + '" step="0.1" value="' + ate + '"/></div>' +
+              '<div class="st-dica" style="margin:.45rem 0 .3rem">Velocidade</div><div class="st-chips">' + MOT.VELOCIDADES.map(function (x) {
+                return '<button type="button" class="st-chip" style="min-height:34px;padding:.3rem .6rem" data-clip-vel="' + i + '" data-v="' + x + '" aria-pressed="' + (vel === x) + '">' + String(x).replace('.', ',') + '×</button>';
+              }).join('') + '</div>' +
+              '<div class="st-faixa"><label for="stVol' + i + '">Som do vídeo <span>' + Math.round(vol * 100) + '%</span></label><input type="range" id="stVol' + i + '" data-clip-vol="' + i + '" min="0" max="100" step="5" value="' + Math.round(vol * 100) + '"/></div>' +
+            '</div></div></div>';
+      }).join('') + '<p class="st-dica">Cada vídeo pode ter até 30 s. O som do vídeo toca junto com a música; em <b>Música</b> você decide se a música abaixa enquanto ele fala.</p></section>';
+    }
+
+    if (ed.fotosSv.length) {
+      var modos = [['incluir', 'Usar no vídeo'], ['capa', 'Capa']];
+      if (ed.antesDepois) modos.push(['antes', 'Antes'], ['depois', 'Depois']);
+      var dicaModo = { incluir: 'Toque nas fotos para colocar ou tirar do vídeo (até 8).', capa: 'Toque na foto que abre o vídeo.', antes: 'Toque na foto de como estava antes.', depois: 'Toque na foto do resultado.' };
+      var grade = ed.fotosSv.map(function (u, i) {
+        var dentro = r.fotos.indexOf(u) >= 0, papeis = [];
+        if (r.capa === u) papeis.push('<span class="capa">CAPA</span>');
+        if (ed.antesDepois && r.antes === u) papeis.push('<span>ANTES</span>');
+        if (ed.antesDepois && r.depois === u) papeis.push('<span>DEPOIS</span>');
+        return '<button type="button" class="st-foto" data-foto="' + i + '" data-fora="' + (dentro ? 0 : 1) + '" aria-label="Foto ' + (i + 1) + (dentro ? ', no vídeo' : ', fora do vídeo') + '">' +
+          '<img src="' + e(u) + '" alt="" loading="lazy" decoding="async"/><span class="st-ok">✓</span><span class="st-papeis">' + papeis.join('') + '</span></button>';
+      }).join('');
+      h += '<section class="st-sec"><h3>Fotos <small>' + r.fotos.length + ' de ' + Math.min(8, ed.fotosSv.length) + ' no vídeo</small></h3>' +
+        '<div class="st-modo" role="group" aria-label="O que o toque na foto faz">' + modos.map(function (m) {
+          return '<button type="button" data-modo="' + m[0] + '" aria-pressed="' + (ed.modo === m[0]) + '">' + m[1] + '</button>';
+        }).join('') + '</div>' +
+        '<div class="st-grade">' + grade + '</div><p class="st-dica" id="stDicaModo">' + dicaModo[ed.modo] + '</p>' +
+        (ed.fotosSv.length >= 2 ? '<label class="st-sw" style="margin-top:.5rem"><span class="st-sw-txt">Antes e depois<small>A cortina revela o resultado sobre a foto de antes</small></span><input type="checkbox" id="stAD"' + (ed.antesDepois ? ' checked' : '') + '/></label>' : '') +
+        '</section>';
+    }
+    if (av && av.comentario) {
+      var podeAval = av.nota >= 4;
+      h += '<section class="st-sec"><label class="st-sw"><span class="st-sw-txt">Mostrar a avaliação do cliente<small>' +
+        (podeAval ? 'Aparece como no seu perfil: nota, comentário e nome curto.' : 'Só avaliações de 4 ou 5 estrelas entram no vídeo.') + '</small></span>' +
+        '<input type="checkbox" id="stAval"' + (r.avaliacao && podeAval ? ' checked' : '') + (podeAval ? '' : ' disabled') + '/></label>' +
+        '<div class="st-aval"><b>' + '★'.repeat(av.nota) + '</b> “' + e(av.comentario) + '” — ' + e(av.autor) + '</div></section>';
+    }
+    return h;
+  }
+
+  function clipeDe(url) { return (ed.roteiro.videos || []).filter(function (c) { return c.url === url; })[0] || null; }
+
+  function ligarMidia(box) {
+    var r = ed.roteiro;
+    cada(box, '[data-modelo]', function (b) {
+      b.onclick = function () {
+        var k = b.getAttribute('data-modelo');
+        if (MOT.MODELOS[k].pro && !pro()) return folhaPro('O modelo ' + MOT.MODELOS[k].nome + ' é do Fieldo Pro');
+        mudar(function () { ed.modelo = k; if (k === 'impacto' && !ed.roteiro.acento) ed.roteiro.acento = CORES[0]; });
+      };
+    });
+    cada(box, '[data-modo]', function (b) {
+      b.onclick = function () { ed.modo = b.getAttribute('data-modo'); desenharControles(); };
+    });
+    cada(box, '[data-foto]', function (b) { b.onclick = function () { tocarFoto(ed.fotosSv[Number(b.getAttribute('data-foto'))]); }; });
+    var ad = document.getElementById('stAD');
+    if (ad) ad.onchange = function () {
+      mudar(function () {
+        ed.antesDepois = ad.checked;
+        if (ad.checked && (!r.antes || !r.depois)) { r.antes = ed.fotosSv[0]; r.depois = ed.fotosSv[ed.fotosSv.length - 1]; }
+        if (!ad.checked && (ed.modo === 'antes' || ed.modo === 'depois')) ed.modo = 'incluir';
+      });
+    };
+    var avc = document.getElementById('stAval');
+    if (avc) avc.onchange = function () { mudar(function () { r.avaliacao = avc.checked; }); };
+
+    /* clipes */
+    cada(box, '[data-clip-usar]', function (c) {
+      c.onchange = function () {
+        var v = ed.videosSv[Number(c.getAttribute('data-clip-usar'))], V = videosCache[v.url];
+        mudar(function () {
+          r.videos = r.videos || [];
+          if (c.checked) r.videos.push({ url: v.url, de: 0, ate: Math.round(Math.min(V.duracao, 8) * 10) / 10, vel: 1, vol: 1 });
+          else {
+            if (r.videos.length === 1 && !(r.fotos || []).length) { c.checked = true; return toast('O vídeo precisa de pelo menos uma foto ou um vídeo.'); }
+            r.videos = r.videos.filter(function (x) { return x.url !== v.url; });
+          }
+          r.videos.sort(function (a, b) { return idxVideo(a.url) - idxVideo(b.url); });
+        }, { audio: true });
+      };
+    });
+    function ajustaClip(i, fn, audio) {
+      var v = ed.videosSv[i], cl = clipeDe(v.url); if (!cl) return;
+      fn(cl, videosCache[v.url].duracao);
+      clearTimeout(_tmTexto); _tmTexto = setTimeout(function () { desenharControles(); montarPrevia(false, audio); }, 220);
+    }
+    cada(box, '[data-clip-de]', function (inp) {
+      inp.onpointerdown = inp.onfocus = antesDeMudar;
+      inp.oninput = function () {
+        ajustaClip(Number(inp.getAttribute('data-clip-de')), function (cl, tot) {
+          cl.de = Math.round(Number(inp.value) * 10) / 10;
+          if (cl.ate <= cl.de + 0.3) cl.ate = Math.min(tot, cl.de + 0.3);
+          if (cl.ate - cl.de > 30) cl.ate = cl.de + 30;
+          inp.previousSibling.querySelector('span').textContent = cl.de.toFixed(1).replace('.', ',') + ' s';
+        }, true);
+      };
+    });
+    cada(box, '[data-clip-ate]', function (inp) {
+      inp.onpointerdown = inp.onfocus = antesDeMudar;
+      inp.oninput = function () {
+        ajustaClip(Number(inp.getAttribute('data-clip-ate')), function (cl) {
+          cl.ate = Math.max(cl.de + 0.3, Math.round(Number(inp.value) * 10) / 10);
+          if (cl.ate - cl.de > 30) cl.de = cl.ate - 30;
+          inp.previousSibling.querySelector('span').textContent = cl.ate.toFixed(1).replace('.', ',') + ' s';
+        }, true);
+      };
+    });
+    cada(box, '[data-clip-vel]', function (b) {
+      b.onclick = function () {
+        var cl = clipeDe(ed.videosSv[Number(b.getAttribute('data-clip-vel'))].url); if (!cl) return;
+        mudar(function () { cl.vel = Number(b.getAttribute('data-v')); }, { audio: true });
+      };
+    });
+    cada(box, '[data-clip-vol]', function (inp) {
+      inp.onpointerdown = inp.onfocus = antesDeMudar;
+      inp.oninput = function () {
+        ajustaClip(Number(inp.getAttribute('data-clip-vol')), function (cl) {
+          cl.vol = Number(inp.value) / 100;
+          inp.previousSibling.querySelector('span').textContent = inp.value + '%';
+        }, true);
+      };
+    });
+  }
+  function idxVideo(url) { for (var i = 0; i < ed.videosSv.length; i++) if (ed.videosSv[i].url === url) return i; return 99; }
+
+  function tocarFoto(u) {
+    var r = ed.roteiro, i = r.fotos.indexOf(u);
+    if (ed.modo === 'incluir' && i >= 0 && r.fotos.length === 1 && !(r.videos || []).length) return toast('O vídeo precisa de pelo menos uma foto ou um vídeo.');
+    if (i < 0 && r.fotos.length >= 8) return toast('Até 8 fotos por vídeo. Tire uma antes de colocar outra.');
+    mudar(function () {
+      if (ed.modo === 'incluir') {
+        if (i >= 0) { r.fotos.splice(i, 1); if (r.capa === u) r.capa = r.fotos[0] || null; }
+        else { r.fotos.push(u); r.fotos.sort(function (a, b) { return ed.fotosSv.indexOf(a) - ed.fotosSv.indexOf(b); }); }
+      } else {
+        if (i < 0) { r.fotos.push(u); r.fotos.sort(function (a, b) { return ed.fotosSv.indexOf(a) - ed.fotosSv.indexOf(b); }); }
+        r[ed.modo] = u;
+        if (ed.modo === 'antes' && r.depois === u) r.depois = null;
+        if (ed.modo === 'depois' && r.antes === u) r.antes = null;
+      }
+    });
+  }
+
+  /* ── aba Música: catálogo por gênero, música do celular, volume ── */
+  function abaMusica() {
+    var r = ed.roteiro, m = r.musica || {}, generos = [];
+    TRI.lista.forEach(function (t) { if (t.genero && generos.indexOf(t.genero) < 0) generos.push(t.genero); });
+    var lista = TRI.lista.filter(function (t) { return t.id !== 'nenhuma' && (!ed.genero || t.genero === ed.genero); });
+    var temSomClipe = (r.videos || []).some(function (c) { return (c.vol == null ? 1 : c.vol) > 0; });
+    var h = '<section class="st-sec"><h3>Trilhas do Fieldo <small>' + (TRI.lista.length - 1) + ' composições, livres para postar</small></h3>' +
+      '<div class="st-generos">' + [''].concat(generos).map(function (g) {
+        return '<button type="button" class="st-chip" data-genero="' + e(g) + '" aria-pressed="' + (ed.genero === g) + '">' + (g ? e(g) : 'Todas') + '</button>';
+      }).join('') + '</div>' +
+      '<div class="st-trilhas">' + lista.map(function (t) {
+        return '<button type="button" class="st-trilha" data-trilha="' + t.id + '" aria-pressed="' + (ed.trilha === t.id) + '"><span><b>' + e(t.nome) + '</b><small>' + e(t.descricao) + '</small></span><i>' + e(t.genero || '') + (t.bpm ? ' · ' + t.bpm : '') + '</i></button>';
+      }).join('') +
+        '<button type="button" class="st-trilha" data-trilha="nenhuma" aria-pressed="' + (ed.trilha === 'nenhuma') + '"><span><b>Sem música</b><small>Só a imagem' + (temSomClipe ? ' e o som dos vídeos' : '') + '</small></span><i></i></button>' +
+      '</div></section>';
+    h += '<section class="st-sec"><h3>Do seu celular <small>MP3, M4A, WAV</small></h3>' +
+      (ed.arquivo || ed.trilha === 'aparelho'
+        ? '<div class="st-arquivo"><div><b>' + e(ed.arquivo ? ed.arquivo.nome : (m.nome || 'Música do celular')) + '</b><small>' +
+            (ed.arquivo ? mmss(ed.arquivo.buffer.duration) + (ed.trilha === 'aparelho' ? ' · tocando neste vídeo' : '') : 'Escolha o arquivo de novo: a música do celular não fica guardada no Fieldo.') + '</small></div>' +
+            '<button type="button" class="st-cta st-cta--sec" style="min-height:40px;padding:0 .9rem" id="stTrocarArq">' + (ed.arquivo ? 'Trocar' : 'Escolher') + '</button></div>' +
+          (ed.arquivo && ed.trilha !== 'aparelho' ? '<button type="button" class="st-chip" style="margin-top:.5rem" id="stUsarArq">Usar esta música</button>' : '') +
+          (ed.arquivo && ed.trilha === 'aparelho' ? '<div class="st-faixa"><label for="stIniMus">Começar a música em <span>' + mmss(m.inicio || 0) + '</span></label><input type="range" id="stIniMus" min="0" max="' + Math.max(0, Math.floor(ed.arquivo.buffer.duration - 2)) + '" step="1" value="' + Math.round(m.inicio || 0) + '"/></div>' : '')
+        : '<button type="button" class="st-cta st-cta--sec st-cta--full" id="stTrocarArq">Escolher música do celular</button>') +
+      '<p class="st-dica">Use só música que você tem direito de usar. Instagram e TikTok podem silenciar ou bloquear vídeo com música protegida; as trilhas do Fieldo não têm esse problema.</p></section>';
+    h += '<section class="st-sec"><h3>Volume</h3>' +
+      '<div class="st-faixa" style="margin-top:0"><label for="stVolMus">Música <span>' + Math.round((m.volume == null ? 1 : m.volume) * 100) + '%</span></label><input type="range" id="stVolMus" min="0" max="100" step="5" value="' + Math.round((m.volume == null ? 1 : m.volume) * 100) + '"/></div>' +
+      (temSomClipe ? '<label class="st-sw" style="margin-top:.4rem"><span class="st-sw-txt">Abaixar a música quando o vídeo tiver som<small>A música desce enquanto o vídeo toca e volta depois</small></span><input type="checkbox" id="stAbaixar"' + (m.abaixar !== false ? ' checked' : '') + '/></label>' : '') +
+      '</section>';
+    return h;
+  }
+  function musica() { var r = ed.roteiro; r.musica = r.musica || {}; return r.musica; }
+  function ligarMusica(box) {
+    cada(box, '[data-genero]', function (b) { b.onclick = function () { ed.genero = b.getAttribute('data-genero'); desenharControles(); }; });
+    cada(box, '[data-trilha]', function (b) {
+      b.onclick = function () { var t = b.getAttribute('data-trilha'); if (t === ed.trilha) return; mudar(function () { ed.trilha = t; }, { audio: true }); tocarDoInicio(); };
+    });
+    var tr = document.getElementById('stTrocarArq'); if (tr) tr.onclick = function () { document.getElementById('stArqMusica').click(); };
+    var us = document.getElementById('stUsarArq'); if (us) us.onclick = function () { mudar(function () { ed.trilha = 'aparelho'; musica().nome = ed.arquivo.nome.slice(0, 80); }, { audio: true }); tocarDoInicio(); };
+    var ini = document.getElementById('stIniMus');
+    if (ini) { ini.onpointerdown = ini.onfocus = antesDeMudar; ini.oninput = function () { musica().inicio = Number(ini.value); ini.previousSibling.querySelector('span').textContent = mmss(Number(ini.value)); clearTimeout(_tmTexto); _tmTexto = setTimeout(function () { montarPrevia(false, true); }, 350); }; }
+    var vol = document.getElementById('stVolMus');
+    if (vol) { vol.onpointerdown = vol.onfocus = antesDeMudar; vol.oninput = function () { musica().volume = Number(vol.value) / 100; vol.previousSibling.querySelector('span').textContent = vol.value + '%'; clearTimeout(_tmTexto); _tmTexto = setTimeout(function () { montarPrevia(false, true); }, 300); }; }
+    var ab = document.getElementById('stAbaixar');
+    if (ab) ab.onchange = function () { mudar(function () { musica().abaixar = ab.checked; }, { audio: true, controles: false }); };
+  }
+  function escolherArquivoMusica() {
+    var inp = document.getElementById('stArqMusica'), f = inp.files && inp.files[0]; inp.value = '';
+    if (!f) return;
+    var st = document.getElementById('stMusicaSt'); if (st) st.textContent = 'Abrindo a música…';
+    TRI.lerArquivo(f).then(function (buf) {
+      ed.arquivo = { buffer: buf, nome: (f.name || 'música').replace(/[<>\u0000-\u001f]/g, '').slice(0, 80) };
+      mudar(function () { ed.trilha = 'aparelho'; var m = musica(); m.nome = ed.arquivo.nome; m.inicio = 0; }, { audio: true });
+      tocarDoInicio();
+    }).catch(function (err) { if (st) st.textContent = ''; toast(err.message); });
+  }
+  function tocarDoInicio() { if (player) { player.capa = false; player.t = 0; } }
+
+  /* ── aba Cenas: a linha do tempo ── */
+  var OLHO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+  var OLHO_FECHADO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.1 3.9M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a9.7 9.7 0 0 0 4.4-1"/></svg>';
+  var ROTULO_CENA = { abertura: 'Abertura', antesDepois: 'Antes e depois', avaliacao: 'Avaliação', fechamento: 'Final' };
+  function cenasAtuais() { return linhaDoTempo().cenas; }
+  function cfgCena(id, criar) {
+    var r = ed.roteiro; r.cenas = r.cenas || [];
+    var c = r.cenas.filter(function (x) { return x.id === id; })[0];
+    if (!c && criar) { c = { id: id }; r.cenas.push(c); }
+    return c || null;
+  }
+  function todasAsCenas() {
+    /* inclui as ocultas, na ordem atual, para poder reexibir */
+    var vis = cenasAtuais(), ids = vis.map(function (c) { return c.id; });
+    var ocultas = (ed.roteiro.cenas || []).filter(function (x) { return x.oculta && ids.indexOf(x.id) < 0; });
+    var meio = vis.filter(function (c) { return c.tipo !== 'abertura' && c.tipo !== 'fechamento'; });
+    var lista = vis.filter(function (c) { return c.tipo === 'abertura'; });
+    if (!lista.length && cfgCena('abertura') && cfgCena('abertura').oculta) lista.push({ id: 'abertura', tipo: 'abertura', oculta: true });
+    lista = lista.concat(meio);
+    ocultas.forEach(function (x) { if (x.id !== 'abertura') lista.push({ id: x.id, tipo: x.id.split(':')[0], oculta: true }); });
+    vis.filter(function (c) { return c.tipo === 'fechamento'; }).forEach(function (c) { lista.push(c); });
+    return lista;
+  }
+  function nomeCena(c) {
+    if (ROTULO_CENA[c.tipo]) return ROTULO_CENA[c.tipo];
+    if (c.tipo === 'video') return 'Vídeo ' + (Number(c.id.split(':')[1]) + 1);
+    return 'Foto';
+  }
+  function imgCena(c) {
+    if (c.tipo === 'foto') return c.id.slice(5);
+    if (c.tipo === 'video') { var cl = (ed.roteiro.videos || [])[Number(c.id.split(':')[1])]; var v = cl && ed.videosSv[idxVideo(cl.url)]; return v && v.capa; }
+    if (c.tipo === 'abertura') return ed.roteiro.capa || (ed.roteiro.fotos || [])[0] || '';
+    return '';
+  }
+  function abaCenas() {
+    var lista = todasAsCenas(), r = ed.roteiro, meio = lista.filter(function (c) { return c.tipo !== 'abertura' && c.tipo !== 'fechamento'; });
+    var h = '<section class="st-sec"><h3>Linha do tempo <small>' + (player && player.linha ? Math.round(player.linha.duracao) + ' s no total' : '') + '</small></h3><ol class="st-cenas">';
+    lista.forEach(function (c) {
+      var cfg = cfgCena(c.id) || {}, mi = meio.indexOf(c), oculta = !!c.oculta, sel = ed.cenaSel === c.id, img = imgCena(c);
+      var dur = c.dur ? c.dur.toFixed(1).replace('.', ',') + ' s' : '';
+      h += '<li class="st-cena" data-oculta="' + (oculta ? 1 : 0) + '" aria-current="' + sel + '">' +
+        '<div class="st-cena-lin"><span class="st-cena-img" style="' + (img ? 'background-image:url(\'' + e(img) + '\')' : '') + '">' + (img ? '' : e(nomeCena(c).slice(0, 3).toUpperCase())) + '</span>' +
+          '<button type="button" class="st-cena-nome" data-cena="' + e(c.id) + '">' + e(nomeCena(c)) + '<small>' + (oculta ? 'oculta' : dur) + (cfg.texto ? ' · “' + e(cfg.texto) + '”' : '') + (cfg.trans ? ' · ' + e(NOMES_TRANS[cfg.trans] || '') : '') + '</small></button>' +
+          '<span class="st-mini">' +
+            (mi >= 0 && !oculta ? '<button type="button" data-subir="' + e(c.id) + '" aria-label="Mover para cima"' + (mi === 0 ? ' disabled' : '') + '>↑</button><button type="button" data-descer="' + e(c.id) + '" aria-label="Mover para baixo"' + (mi === meio.length - 1 || mi < 0 ? ' disabled' : '') + '>↓</button>' : '') +
+            (c.tipo !== 'fechamento' ? '<button type="button" data-ocultar="' + e(c.id) + '" aria-label="' + (oculta ? 'Mostrar cena' : 'Ocultar cena') + '" title="' + (oculta ? 'Mostrar cena' : 'Ocultar cena') + '">' + (oculta ? OLHO_FECHADO : OLHO) + '</button>' : '') +
+          '</span></div>';
+      if (sel && !oculta) {
+        h += '<div class="st-cena-ed">' +
+          (c.tipo !== 'video' && c.tipo !== 'fechamento' ? '<div class="st-dica" style="margin:0 0 .3rem">Duração</div><div class="st-dur"><span class="st-mini"><button type="button" data-dur="-0.5">−</button></span><output>' + dur + '</output><span class="st-mini"><button type="button" data-dur="0.5">+</button></span></div>' : '') +
+          (c.tipo === 'video' ? '<p class="st-dica" style="margin:0 0 .4rem">A duração do vídeo vem do corte e da velocidade, na aba Mídia.</p>' : '') +
+          (c.tipo !== 'fechamento' ? '<div class="st-campo" style="margin:.6rem 0 .5rem"><label for="stTxtCena">Texto na cena <span id="stTxtCenaN">' + (cfg.texto || '').length + '/60</span></label><input id="stTxtCena" maxlength="60" value="' + e(cfg.texto || '') + '" placeholder="Ex.: Pintura sem respingo" autocomplete="off"/><small class="st-dica" style="display:block;margin-top:.3rem">Substitui o texto automático desta cena.</small></div>' : '') +
+          (c.tipo !== 'abertura' ? '<div class="st-campo" style="margin:0"><label for="stTransCena">Como esta cena entra</label><select id="stTransCena"><option value="">Padrão do vídeo</option>' + MOT.TRANSICOES.map(function (t) {
+            return '<option value="' + t + '"' + (cfg.trans === t ? ' selected' : '') + '>' + NOMES_TRANS[t] + '</option>';
+          }).join('') + '</select></div>' : '') +
+          '</div>';
+      }
+      h += '</li>';
+    });
+    h += '</ol><p class="st-dica">Toque no nome para editar a cena. ↑↓ muda a ordem; o olho oculta ou mostra a cena. A abertura e o final ficam nas pontas.</p></section>';
+    return h;
+  }
+  function moverCena(id, dir) {
+    var lista = todasAsCenas().filter(function (c) { return c.tipo !== 'abertura' && c.tipo !== 'fechamento' && !c.oculta; }).map(function (c) { return c.id; });
+    var i = lista.indexOf(id), j = i + dir;
+    if (i < 0 || j < 0 || j >= lista.length) return;
+    mudar(function () {
+      var x = lista[i]; lista[i] = lista[j]; lista[j] = x;
+      var r = ed.roteiro, antigo = r.cenas || [], novo = [];
+      lista.forEach(function (cid) { novo.push(antigo.filter(function (a) { return a.id === cid; })[0] || { id: cid }); });
+      antigo.forEach(function (a) { if (lista.indexOf(a.id) < 0) novo.push(a); });
+      r.cenas = novo.slice(0, 20);
+    });
+  }
+  function ligarCenas(box) {
+    cada(box, '[data-cena]', function (b) { b.onclick = function () { var id = b.getAttribute('data-cena'); ed.cenaSel = ed.cenaSel === id ? null : id; desenharControles(); irParaCena(id); }; });
+    cada(box, '[data-subir]', function (b) { b.onclick = function () { moverCena(b.getAttribute('data-subir'), -1); }; });
+    cada(box, '[data-descer]', function (b) { b.onclick = function () { moverCena(b.getAttribute('data-descer'), 1); }; });
+    cada(box, '[data-ocultar]', function (b) {
+      b.onclick = function () {
+        var id = b.getAttribute('data-ocultar'), cfg = cfgCena(id), oculta = !(cfg && cfg.oculta);
+        var visiveis = cenasAtuais().filter(function (c) { return c.tipo !== 'fechamento'; });
+        if (oculta && visiveis.length <= 1) return toast('O vídeo precisa de pelo menos uma cena além do final.');
+        mudar(function () { var c = cfgCena(id, true); if (oculta) c.oculta = true; else delete c.oculta; }, { audio: true });
+      };
+    });
+    cada(box, '[data-dur]', function (b) {
+      b.onclick = function () {
+        var c = cenasAtuais().filter(function (x) { return x.id === ed.cenaSel; })[0]; if (!c) return;
+        var nova = Math.max(c.tipo === 'abertura' ? 1.2 : 0.8, Math.min(10, Math.round((c.dur + Number(b.getAttribute('data-dur'))) * 10) / 10));
+        mudar(function () { cfgCena(c.id, true).dur = nova; }, { audio: true });
+      };
+    });
+    var tx = document.getElementById('stTxtCena');
+    if (tx) {
+      tx.onfocus = antesDeMudar;
+      tx.oninput = function () {
+        var v = tx.value.replace(/[<>\u0000-\u001f]/g, ''); if (v !== tx.value) tx.value = v;
+        var c = cfgCena(ed.cenaSel, true); if (v.trim()) c.texto = v.trim(); else delete c.texto;
+        document.getElementById('stTxtCenaN').textContent = v.length + '/60';
+        clearTimeout(_tmTexto); _tmTexto = setTimeout(function () { montarPrevia(false); }, 260);
+      };
+    }
+    var tr = document.getElementById('stTransCena');
+    if (tr) tr.onchange = function () { mudar(function () { var c = cfgCena(ed.cenaSel, true); if (tr.value) c.trans = tr.value; else delete c.trans; }); irParaCena(ed.cenaSel, true); };
+  }
+  /* leva a prévia ao começo da cena (ou um pouco antes, para ver a transição) */
+  function irParaCena(id, antes) {
+    if (!player || !player.linha) return;
+    var c = player.linha.cenas.filter(function (x) { return x.id === id; })[0]; if (!c) return;
+    player.pausar(); player.capa = false; player.t = Math.max(0, c.ini - (antes ? 0.6 : 0) + (antes ? 0 : Math.min(1.2, c.dur / 2))); player.pintarJa();
+  }
+
+  /* ── aba Texto ── */
+  function abaTexto() {
+    var r = ed.roteiro, est = r.textoEstilo || 'legenda';
+    return '<section class="st-sec"><h3>Textos</h3>' +
+      '<div class="st-campo"><label for="stTit">Título do serviço <span id="stTitN">' + (r.titulo || '').length + '/60</span></label><input id="stTit" maxlength="60" value="' + e(r.titulo || '') + '" autocomplete="off"/></div>' +
+      '<p class="st-dica" style="margin-top:0">Texto em qualquer cena: aba <b>Cenas</b> → toque na cena.</p></section>' +
+      '<section class="st-sec"><h3>Estilo do texto nas cenas</h3><div class="st-chips">' + [['legenda', 'Legenda'], ['destaque', 'Destaque'], ['caixa', 'Caixa']].map(function (x) {
+        return '<button type="button" class="st-chip" data-testilo="' + x[0] + '" aria-pressed="' + (est === x[0]) + '">' + x[1] + '</button>';
+      }).join('') + '</div><p class="st-dica">Legenda: branco com sombra. Destaque: letras grandes sobre faixa colorida. Caixa: balão claro.</p></section>';
+  }
+  function ligarTexto(box) {
+    ligarCampo('stTit', 'titulo', 'stTitN');
+    cada(box, '[data-testilo]', function (b) { b.onclick = function () { mudar(function () { ed.roteiro.textoEstilo = b.getAttribute('data-testilo'); }); }; });
+  }
+
+  /* ── aba Estilo: filtro, transição padrão, cor, marca ── */
+  function abaEstilo() {
+    var r = ed.roteiro, ehPro = pro(), f = r.filtro || 'nenhum', tr = r.transicao || 'modelo';
+    var amostra = r.capa || (r.fotos || [])[0] || (ed.videosSv[0] && ed.videosSv[0].capa) || '';
+    var h = '<section class="st-sec"><h3>Filtro de cor <small>nas fotos e vídeos</small></h3><div class="st-filtros">' + MOT.FILTROS.map(function (k) {
+      return '<button type="button" class="st-filtro" data-filtro="' + k + '" aria-pressed="' + (f === k) + '">' +
+        (amostra ? '<img src="' + e(amostra) + '" alt="" style="filter:' + CSS_FILTRO[k] + '"/>' : '<i style="filter:' + CSS_FILTRO[k] + '"></i>') + NOMES_FILTRO[k] + '</button>';
+    }).join('') + '</div></section>';
+    h += '<section class="st-sec"><h3>Transição entre cenas</h3><div class="st-chips">' + MOT.TRANSICOES.map(function (t) {
+      return '<button type="button" class="st-chip" data-trans="' + t + '" aria-pressed="' + (tr === t) + '">' + NOMES_TRANS[t] + '</button>';
+    }).join('') + '</div><p class="st-dica">Vale para todas as cenas. Para mudar só uma, use a aba Cenas.</p></section>';
+    h += '<section class="st-sec"><h3>Acabamento' + (ehPro ? '' : ' <small>no Pro</small>') + '</h3>' +
+      (ed.modelo === 'impacto' ? '<div style="margin-bottom:.6rem"><div class="st-dica" style="margin:0 0 .45rem">Cor de destaque</div><div class="st-cores">' + CORES.map(function (c) {
+        return '<button type="button" class="st-cor" data-cor="' + c + '" style="background:' + c + '" aria-label="Cor ' + c + '" aria-pressed="' + ((r.acento || CORES[0]) === c) + '"></button>';
+      }).join('') + '</div></div>' : '') +
+      '<label class="st-sw"><span class="st-sw-txt">Marca "feito com fieldo"<small>' + (ehPro ? 'Tire se preferir um vídeo só com a sua marca.' : 'No plano grátis a marca fica. No Pro você escolhe.') + '</small></span>' +
+      '<input type="checkbox" id="stMarca"' + (ed.marca ? ' checked' : '') + (ehPro ? '' : ' disabled') + '/></label></section>';
+    return h;
+  }
+  function ligarEstilo(box) {
+    cada(box, '[data-filtro]', function (b) { b.onclick = function () { mudar(function () { ed.roteiro.filtro = b.getAttribute('data-filtro'); }); }; });
+    cada(box, '[data-trans]', function (b) { b.onclick = function () { mudar(function () { ed.roteiro.transicao = b.getAttribute('data-trans'); }); }; });
+    cada(box, '[data-cor]', function (b) { b.onclick = function () { mudar(function () { ed.roteiro.acento = b.getAttribute('data-cor'); }); }; });
+    var mc = document.getElementById('stMarca');
+    if (mc) {
+      mc.onchange = function () { mudar(function () { ed.marca = mc.checked; }, { controles: false }); };
+      if (!pro()) mc.parentNode.onclick = function (ev) { ev.preventDefault(); folhaPro('Tirar a marca do Fieldo é do Pro'); };
+    }
+  }
+
+  /* ── aba Final: encerramento, QR, link, frase ── */
+  function abaFinal() {
+    var r = ed.roteiro, en = r.encerramento || {}, est = en.estilo || 'cartao', p = dados.perfil;
+    var semRastreio = est === 'nenhum' || (en.qr === false && en.link === false);
+    var h = '<section class="st-sec"><h3>Como o vídeo termina</h3><div class="st-fins">' + FINS.map(function (f) {
+      var precisa = (f[0] === 'whatsapp' && !p.whatsapp);
+      return '<button type="button" class="st-fim" data-fim="' + f[0] + '" aria-pressed="' + (est === f[0]) + '"' + (precisa ? ' disabled title="Cadastre seu WhatsApp no perfil"' : '') + '><b>' + f[1] + '</b><small>' + (precisa ? 'Cadastre seu WhatsApp no perfil' : f[2]) + '</small></button>';
+    }).join('') + '</div></section>';
+    if (est !== 'nenhum') {
+      h += '<section class="st-sec"><h3>No final</h3>' +
+        (est !== 'logo' ? '<label class="st-sw"><span class="st-sw-txt">QR code do seu perfil<small>O cliente aponta a câmera e cai no seu perfil</small></span><input type="checkbox" id="stQr"' + (en.qr !== false ? ' checked' : '') + '/></label>' : '') +
+        '<label class="st-sw"><span class="st-sw-txt">Link do seu perfil<small>' + e(MOT.linkLimpo(FIELDO.perfilUrl({ slug: p.slug, id: p.id }))) + '</small></span><input type="checkbox" id="stLinkFim"' + (en.link !== false ? ' checked' : '') + '/></label>' +
+        (est !== 'logo' ? '<div class="st-campo" style="margin:.6rem 0 .4rem"><label for="stCham">Frase do final <span id="stChamN">' + (r.chamada || '').length + '/60</span></label><input id="stCham" maxlength="60" value="' + e(r.chamada || '') + '" autocomplete="off"/></div>' +
+          '<div class="st-chips">' + ['Peça seu orçamento', 'Agende uma visita', 'Orçamento sem compromisso', 'Chame no WhatsApp'].map(function (t) {
+            return '<button type="button" class="st-chip" data-cham="' + e(t) + '" aria-pressed="' + (r.chamada === t) + '">' + e(t) + '</button>';
+          }).join('') + '</div>' : '') +
+        '</section>';
+    }
+    if (semRastreio) h += '<div class="st-alerta" style="margin-top:.75rem"><div><b>Sem link e sem QR, as visitas deste vídeo não aparecem em Meus vídeos.</b> O vídeo continua seu; só não dá para medir quantos clientes ele trouxe.</div></div>';
+    return h;
+  }
+  function encerramento() { var r = ed.roteiro; r.encerramento = r.encerramento || {}; return r.encerramento; }
+  function ligarFinal(box) {
+    cada(box, '[data-fim]', function (b) { b.onclick = function () { mudar(function () { encerramento().estilo = b.getAttribute('data-fim'); }, { audio: true }); irParaFim(); }; });
+    var q = document.getElementById('stQr'); if (q) q.onchange = function () { mudar(function () { encerramento().qr = q.checked; }); irParaFim(); };
+    var l = document.getElementById('stLinkFim'); if (l) l.onchange = function () { mudar(function () { encerramento().link = l.checked; }); irParaFim(); };
+    ligarCampo('stCham', 'chamada', 'stChamN');
+    cada(box, '[data-cham]', function (b) { b.onclick = function () { mudar(function () { ed.roteiro.chamada = b.getAttribute('data-cham'); }); irParaFim(); }; });
+  }
+  function irParaFim() { if (player && player.linha) { player.pausar(); player.capa = false; player.t = Math.max(0, player.linha.duracao - 1.0); player.pintarJa(); } }
+
+  var _tmTexto = 0;
+  function ligarCampo(id, campo, contador) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.onfocus = antesDeMudar;
+    el.oninput = function () {
+      var v = el.value.replace(/[<>\u0000-\u001f]/g, '');
+      if (v !== el.value) el.value = v;
+      ed.roteiro[campo] = v.trim();
+      document.getElementById(contador).textContent = v.length + '/60';
+      clearTimeout(_tmTexto); _tmTexto = setTimeout(function () { montarPrevia(false); }, 260);
+    };
+  }
+
+  function roteiroFinal() {
+    var r = JSON.parse(JSON.stringify(ed.roteiro));
+    if (!ed.antesDepois) { r.antes = null; r.depois = null; }
+    if (ed.modelo !== 'impacto' || !pro()) delete r.acento;
+    if (!r.titulo) r.titulo = ed.sv.titulo;
+    if (!r.chamada) r.chamada = 'Peça seu orçamento';
+    if (!ed.sv.avaliacao || ed.sv.avaliacao.nota < 4) r.avaliacao = false;
+    r.fotos = r.fotos || [];
+    r.videos = (r.videos || []).map(function (c) { return { url: c.url, de: c.de, ate: c.ate, vel: c.vel, vol: c.vol == null ? 1 : c.vol }; });
+    if (!r.videos.length) delete r.videos;
+    if (r.cenas) {
+      r.cenas = r.cenas.filter(function (c) { return c && c.id && (c.dur != null || c.texto || c.trans || c.oculta || true); }).slice(0, 20)
+        .map(function (c) { var x = { id: c.id }; ['dur', 'texto', 'trans', 'oculta'].forEach(function (k) { if (c[k] != null && c[k] !== '' && c[k] !== false) x[k] = c[k]; }); return x; });
+      if (!r.cenas.length) delete r.cenas;
+    }
+    if (r.musica) {
+      var m = {};
+      if (r.musica.volume != null && r.musica.volume < 0.999) m.volume = Math.round(r.musica.volume * 100) / 100;
+      if (r.musica.abaixar === false) m.abaixar = false;
+      if (ed.trilha === 'aparelho') { m.nome = (r.musica.nome || 'música do celular').slice(0, 80); m.inicio = Math.round(r.musica.inicio || 0); }
+      r.musica = m; if (!Object.keys(m).length) delete r.musica;
+    }
+    if (r.encerramento && !Object.keys(r.encerramento).length) delete r.encerramento;
+    ['filtro', 'transicao', 'textoEstilo'].forEach(function (k) { if (!r[k]) delete r[k]; });
+    r.v = 2;
+    return r;
+  }
+
+  /* ── prévia ─────────────────────────────────────────────────── */
+  function linhaDoTempo(link) {
+    var p = dados.perfil;
+    return MOT.montar({
+      modelo: ed.modelo, marca: !pro() || ed.marca, roteiro: roteiroFinal(), fotos: fotosCache, videos: videosCache, avatar: fotosCache.__avatar || null,
+      servico: { titulo: ed.sv.titulo, categoria: ed.sv.categoria, data: ed.sv.data, avaliacao: ed.sv.avaliacao },
+      perfil: { nome: p.nome, profissao: p.profissao, cidade: p.cidade, uf: p.uf, whatsapp: p.whatsapp, instagram: p.instagram },
+      link: link || FIELDO.perfilUrl({ slug: p.slug, id: p.id })
+    });
+  }
+
+  function montarPrevia(primeira, soAudio) {
+    if (!ed || !ed.pronto) return;
+    var canvas = document.getElementById('stCanvas');
+    if (!canvas) return;
+    var linha = linhaDoTempo();
+    if (!player) player = novoPlayer(canvas);
+    if (player.linha && player.linha !== linha && player.linha.pararVideos) player.linha.pararVideos();
+    player.trocar(linha);
+    var carregando = main.querySelector('.st-carregando');
+    if (carregando) carregando.remove();
+    document.getElementById('stPlay').style.display = '';
+    carregarMusica();
+    atualizarBarra();
+  }
+
+  /* A trilha (composta ou do celular) + o som dos clipes, mixados. Cacheado pela "assinatura". */
+  var _audioCache = { chave: null, p: null };
+  function assinaturaAudio(linha) {
+    var m = ed.roteiro.musica || {};
+    return [ed.trilha, linha.duracao.toFixed(2), ed.trilha === 'aparelho' ? (ed.arquivo ? ed.arquivo.nome + '@' + (m.inicio || 0) : 'sem-arquivo') : '',
+      m.volume == null ? 1 : m.volume, m.abaixar !== false, JSON.stringify(linha.clipes)].join('|');
+  }
+  function audioPara(linha) {
+    var chave = assinaturaAudio(linha);
+    if (_audioCache.chave === chave) return _audioCache.p;
+    var m = ed.roteiro.musica || {}, trilha = ed.trilha, dur = linha.duracao;
+    var pm = trilha === 'nenhuma' ? Promise.resolve(null)
+      : trilha === 'aparelho' ? (ed.arquivo ? TRI.aparelho(ed.arquivo.buffer, dur, m.inicio || 0) : Promise.resolve(null))
+      : TRI.render(trilha, dur);
+    var clipes = linha.clipes.filter(function (c) { return c.vol > 0.001; });
+    var pc = Promise.all(clipes.map(function (c) { return AUDIO.extrair(c.url).then(function (b) { return Object.assign({ buffer: b }, c); }); }));
+    var p = Promise.all([pm, pc]).then(function (x) {
+      return AUDIO.mixar({ dur: dur, musica: x[0], volume: m.volume == null ? 1 : m.volume, abaixar: m.abaixar !== false, clipes: x[1] });
+    });
+    _audioCache = { chave: chave, p: p };
+    return p;
+  }
+
+  var _musicaPedido = 0;
+  function carregarMusica() {
+    var st = document.getElementById('stMusicaSt'), pedido = ++_musicaPedido, linha = player.linha;
+    var chave = assinaturaAudio(linha);
+    if (player.audioChave === chave) return;
+    if (ed.trilha === 'aparelho' && !ed.arquivo) { if (st) st.textContent = 'Escolha de novo a música do celular (aba Música).'; }
+    else if (st) st.textContent = ed.trilha === 'nenhuma' && !linha.clipes.length ? '' : 'Preparando o som…';
+    audioPara(linha).then(function (buf) {
+      if (pedido !== _musicaPedido || !player) return;
+      player.audio = buf; player.audioChave = chave;
+      if (st && !(ed.trilha === 'aparelho' && !ed.arquivo)) st.textContent = buf || ed.trilha === 'nenhuma' ? '' : 'Este navegador não toca a trilha; o vídeo sai sem música.';
+      player.reiniciarAudio();
+    });
+  }
+
+  function novoPlayer(canvas) {
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    var largura = Math.max(240, Math.round(canvas.getBoundingClientRect().width * dpr)) || 540;
+    canvas.width = largura; canvas.height = Math.round(largura * 16 / 9);
+    var ctx = canvas.getContext('2d', { alpha: false }), esc = canvas.width / MOT.W;
+    var scrub = document.getElementById('stScrub'), tempo = document.getElementById('stTempo');
+    var bPlay = document.getElementById('stPlay'), bPP = document.getElementById('stPP');
+    var pl = { linha: null, audio: null, audioChave: null, t: 0, tocando: false, actx: null, fonte: null, base: 0, raf: 0, arrastando: false, capa: true };
+    function relogio() { return pl.fonte && pl.actx ? pl.actx.currentTime - pl.base : performance.now() / 1000 - pl.base; }
+    function pintar() {
+      if (!pl.linha) return;
+      var t = pl.capa ? Math.min(2.2, pl.linha.duracao / 2) : pl.t;
+      if (pl.linha.sincronizar) pl.linha.sincronizar(t, pl.tocando);
+      ctx.setTransform(esc, 0, 0, esc, 0, 0);
+      pl.linha.desenhar(ctx, t);
+      if (!pl.arrastando) scrub.value = String(Math.round(pl.t / pl.linha.duracao * 1000));
+      tempo.textContent = mmss(pl.t) + ' / ' + mmss(pl.linha.duracao);
+    }
+    /* com o vídeo parado, o quadro novo chega depois do "seeked": redesenha */
+    var _ouvindo = [];
+    function ouvirVideos() {
+      _ouvindo.forEach(function (el) { el.removeEventListener('seeked', aoBuscar); });
+      _ouvindo = Object.keys(videosCache).map(function (u) { return videosCache[u].el; });
+      _ouvindo.forEach(function (el) { el.addEventListener('seeked', aoBuscar); });
+    }
+    function aoBuscar() { if (!pl.tocando) { ctx.setTransform(esc, 0, 0, esc, 0, 0); pl.linha.desenhar(ctx, pl.capa ? Math.min(2.2, pl.linha.duracao / 2) : pl.t); } }
+    function laco() {
+      if (!pl.tocando) return;
+      pl.t = relogio();
+      if (pl.t >= pl.linha.duracao) { pl.t = pl.linha.duracao; pintar(); pl.pausar(); pl.t = 0; return; }
+      pintar();
+      pl.raf = requestAnimationFrame(laco);
+    }
+    function pararFonte() { if (pl.fonte) { try { pl.fonte.onended = null; pl.fonte.stop(); } catch (x) {} pl.fonte = null; } }
+    function iniciarFonte() {
+      pararFonte();
+      if (!pl.audio) { pl.base = performance.now() / 1000 - pl.t; return; }
+      try {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!pl.actx) pl.actx = new AC();
+        if (pl.actx.state === 'suspended') pl.actx.resume();
+        pl.fonte = pl.actx.createBufferSource(); pl.fonte.buffer = pl.audio; pl.fonte.connect(pl.actx.destination);
+        pl.fonte.start(0, Math.min(pl.t, pl.audio.duration - 0.01));
+        pl.base = pl.actx.currentTime - pl.t;
+      } catch (x) { pl.fonte = null; pl.base = performance.now() / 1000 - pl.t; }
+    }
+    function icone() {
+      bPlay.classList.toggle('tocando', pl.tocando);
+      bPlay.setAttribute('aria-label', pl.tocando ? 'Pausar prévia' : 'Assistir prévia');
+      bPP.setAttribute('aria-label', pl.tocando ? 'Pausar' : 'Tocar');
+      bPP.innerHTML = pl.tocando ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>' : '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+    }
+    pl.tocar = function () { if (!pl.linha) return; pl.capa = false; if (pl.t >= pl.linha.duracao - 0.05) pl.t = 0; pl.tocando = true; iniciarFonte(); icone(); cancelAnimationFrame(pl.raf); pl.raf = requestAnimationFrame(laco); };
+    pl.pausar = function () { if (pl.tocando) pl.t = Math.min(relogio(), pl.linha.duracao); pl.tocando = false; pararFonte(); cancelAnimationFrame(pl.raf); icone(); if (pl.linha && pl.linha.pararVideos) pl.linha.pararVideos(); };
+    pl.alternar = function () { if (pl.tocando) pl.pausar(); else pl.tocar(); };
+    pl.trocar = function (linha) { pl.linha = linha; ouvirVideos(); pl.t = Math.min(pl.t, linha.duracao - 0.05); if (pl.tocando) { pl.t = Math.min(relogio(), linha.duracao - 0.05); iniciarFonte(); } else pintar(); };
+    pl.reiniciarAudio = function () { if (pl.tocando) { pl.t = relogio(); iniciarFonte(); } };
+    pl.pintarJa = function () { pintar(); };
+    pl.destruir = function () { pl.pausar(); _ouvindo.forEach(function (el) { el.removeEventListener('seeked', aoBuscar); }); try { if (pl.actx) pl.actx.close(); } catch (x) {} };
+    bPlay.onclick = pl.alternar; bPP.onclick = pl.alternar;
+    scrub.oninput = function () { pl.capa = false; pl.arrastando = true; pl.t = Number(scrub.value) / 1000 * pl.linha.duracao; if (pl.tocando) iniciarFonte(); pintar(); };
+    scrub.onchange = function () { pl.arrastando = false; };
+    document.addEventListener('visibilitychange', function () { if (document.hidden && pl.tocando) pl.pausar(); });
+    return pl;
+  }
+
+  function pararPlayer() { if (player) { player.destruir(); player = null; } }
+
+  function atualizarBarra() {
+    if (!ed) { barra.classList.remove('on'); return; }
+    barra.classList.add('on');
+    var c = dados.cota, jaGerado = ed.video && ed.video.gerado_em;
+    btnGerar.disabled = !ed.pronto;
+    btnGerar.textContent = jaGerado ? 'Gerar de novo' : 'Gerar vídeo';
+    var dur = player && player.linha ? ' · ' + Math.round(player.linha.duracao) + ' s' : '';
+    if (jaGerado) barraTxt.textContent = 'Refazer este vídeo não gasta cota' + dur;
+    else if (c && c.limite == null) barraTxt.textContent = 'Pro: vídeos ilimitados' + dur;
+    else if (c && c.restante > 1) barraTxt.textContent = 'Usa 1 dos seus ' + c.restante + ' vídeos grátis deste mês' + dur;
+    else if (c && c.restante === 1) barraTxt.textContent = 'Usa o último vídeo grátis deste mês' + dur;
+    else barraTxt.textContent = 'Vídeos grátis do mês esgotados';
+  }
+
+  /* ── 3. gerar ───────────────────────────────────────────────── */
+  btnGerar.onclick = function () { if (ed && ed.pronto) gerar(); };
+
+  function gerar() {
+    var c = dados.cota, jaGerado = ed.video && ed.video.gerado_em;
+    if (!jaGerado && c && c.limite != null && c.restante <= 0) return folhaCota();
+    if (!dados.perfil.publico || !dados.perfil.slug) return toast(FIELDO.Studio.MSG.perfil_privado);
+    if (ed.trilha === 'aparelho' && !ed.arquivo) { ed.aba = 'musica'; desenharEditorAbas(); return toast('Escolha de novo a música do celular, ou uma trilha do Fieldo.'); }
+    var duracaoPrev = player && player.linha ? player.linha.duracao : linhaDoTempo().duracao;
+    if (duracaoPrev > 119) return toast('O vídeo passou de 2 minutos. Encurte os vídeos ou tire cenas na aba Cenas.');
+    if (player) player.pausar();
+    var sinal = { cancelado: false }, travaTela = null;
+    var modal = document.createElement('div');
+    modal.className = 'st-modal';
+    modal.innerHTML = '<div class="st-gerando" role="dialog" aria-modal="true" aria-labelledby="stGerTit"><canvas id="stMini" width="216" height="384"></canvas>' +
+      '<h2 id="stGerTit">Gravando seu vídeo</h2><p id="stGerFase">Conferindo as fotos e o seu plano…</p>' +
+      '<div class="st-prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="stProgBar"><i id="stProg"></i></div><div class="st-pct" id="stPct">0%</div>' +
+      '<p style="margin-top:1rem">Feito aqui no celular. Deixe esta tela aberta até terminar.</p>' +
+      '<button type="button" class="st-cancelar" id="stCancelar">Cancelar</button></div>';
+    document.body.appendChild(modal);
+    var mini = document.getElementById('stMini').getContext('2d'), escMini = 216 / MOT.W;
+    document.getElementById('stCancelar').onclick = function () { sinal.cancelado = true; this.disabled = true; this.textContent = 'Cancelando…'; };
+    function fase(t) { document.getElementById('stGerFase').textContent = t; }
+    function prog(p) {
+      var pct = Math.round(p * 100);
+      document.getElementById('stProg').style.width = pct + '%';
+      document.getElementById('stPct').textContent = pct + '%';
+      document.getElementById('stProgBar').setAttribute('aria-valuenow', String(pct));
+    }
+    function fechar() { if (modal.parentNode) modal.parentNode.removeChild(modal); if (travaTela) try { travaTela.release(); } catch (x) {} }
+
+    var roteiro = roteiroFinal(), modelo = ed.modelo, marca = !pro() || ed.marca, trilha = ed.trilha;
+    var duracao = duracaoPrev;
+    var temSom = trilha !== 'nenhuma' || (roteiro.videos || []).some(function (c) { return c.vol > 0; });
+    /* o formato que de fato vai sair (sem AAC/Opus por WebCodecs, a música vai pelo gravador) */
+    var formato = !caps ? 'mp4' : (caps.caminho === 'webcodecs' && temSom && !caps.audio && caps.gravador) ? caps.gravador.formato : caps.formato;
+    var salvo = null, linha = null, origem = null;
+    if (navigator.wakeLock && navigator.wakeLock.request) navigator.wakeLock.request('screen').then(function (w) { travaTela = w; }, function () {});
+
+    S.salvar({ id: ed.video && ed.video.id, reportId: ed.sv.id, modelo: modelo, trilha: trilha, roteiro: roteiro, marca: marca }).then(function (r) {
+      salvo = r;
+      if (sinal.cancelado) throw cancelado();
+      return S.exportar(r.id, formato, duracao * 1000);
+    }).then(function (x) {
+      origem = x.origem;
+      if (x.cota) dados.cota = x.cota;
+      var link = FIELDO.perfilUrl({ slug: dados.perfil.slug, id: dados.perfil.id }, origem);
+      linha = linhaDoTempo(link);
+      fase(temSom ? 'Preparando o som…' : 'Montando as cenas…');
+      return (temSom ? audioPara(linha) : Promise.resolve(null)).then(function (audio) {
+        fase('Montando as cenas…');
+        var ultimoMini = -1;
+        return EXP.exportar({ linha: linha, audio: audio, sinal: sinal, onProgresso: function (p, f) {
+          prog(p);
+          if (f === 'tempo-real') fase('Gravando em tempo real (este aparelho não tem o modo rápido)…');
+          else if (f === 'audio') fase('Juntando a música…');
+          else if (f === 'carrossel') fase('Este aparelho não grava vídeo: preparando as imagens…');
+          var q = Math.floor(p * 20);
+          if (q !== ultimoMini) { ultimoMini = q; mini.setTransform(escMini, 0, 0, escMini, 0, 0); linha.desenhar(mini, Math.min(linha.duracao, p * linha.duracao)); }
+        } }).then(function (out) { if (linha.pararVideos) linha.pararVideos(); return out; });
+      });
+    }).then(function (out) {
+      prog(1); fechar();
+      /* atualiza a lista local sem nova ida ao servidor */
+      var v = { id: salvo.id, codigo: salvo.codigo, report_id: ed.sv.id, modelo: modelo, trilha: trilha, roteiro: roteiro, marca: marca,
+        gerado_em: (ed.video && ed.video.gerado_em) || new Date().toISOString(), compartilhado_em: ed.video && ed.video.compartilhado_em,
+        visitas: ed.video ? ed.video.visitas : 0, whatsapp: ed.video ? ed.video.whatsapp : 0, ligacoes: ed.video ? ed.video.ligacoes : 0 };
+      videos = [v].concat(videos.filter(function (x) { return x.id !== v.id; }));
+      ed.video = v;
+      telaPronto(out, v, FIELDO.perfilUrl({ slug: dados.perfil.slug, id: dados.perfil.id }, origem));
+    }).catch(function (err) {
+      fechar();
+      if (err && err.code === 'cancelado') { toast('Gravação cancelada.' + (salvo ? ' Refazer este vídeo não gasta outro da cota.' : '')); if (salvo) ed.video = ed.video || { id: salvo.id, gerado_em: origem ? new Date().toISOString() : null }; atualizarBarra(); return; }
+      if (salvo && !ed.video) ed.video = { id: salvo.id, gerado_em: origem ? new Date().toISOString() : null };
+      if (err && err.code === 'cota_esgotada') { if (err.detalhe && err.detalhe.cota) dados.cota = err.detalhe.cota; atualizarBarra(); return folhaCota(); }
+      if (err && err.code === 'pro_necessario') return folhaPro('Seu plano Pro venceu. Volte ao modelo Clássico ou renove o Pro.');
+      toast((err && err.message) || 'Não foi possível gravar o vídeo.');
+      atualizarBarra();
+    });
+  }
+  function cancelado() { var x = new Error('cancelado'); x.code = 'cancelado'; return x; }
+
+  /* ── 4. pronto ──────────────────────────────────────────────── */
+  var _urlsBlob = [];
+  function soltarBlobs() { _urlsBlob.forEach(function (u) { URL.revokeObjectURL(u); }); _urlsBlob = []; }
+
+  function telaPronto(out, v, link) {
+    pararPlayer(); barra.classList.remove('on'); soltarBlobs();
+    var slug = (dados.perfil.slug || 'perfil').slice(0, 40), nomeBase = 'fieldo-' + slug + '-' + v.codigo;
+    var arquivos = [], midia = '';
+    if (out.blob) {
+      var ext = out.formato === 'webm' ? 'webm' : 'mp4';
+      arquivos = [new File([out.blob], nomeBase + '.' + ext, { type: out.mime })];
+      var u = URL.createObjectURL(out.blob); _urlsBlob.push(u);
+      midia = '<video src="' + u + '" controls playsinline autoplay muted loop preload="auto" aria-label="Seu vídeo pronto"></video>';
+    } else {
+      arquivos = out.imagens.map(function (b, i) { return new File([b], nomeBase + '-' + (i + 1) + '.jpg', { type: 'image/jpeg' }); });
+      midia = '<div class="st-carrossel">' + out.imagens.map(function (b) { var u = URL.createObjectURL(b); _urlsBlob.push(u); return '<img src="' + u + '" alt="Imagem do carrossel"/>'; }).join('') + '</div>';
+    }
+    var podeCompartilhar = !!(navigator.canShare && navigator.canShare({ files: arquivos }));
+    var mb = out.blob ? (out.blob.size / 1048576).toFixed(1).replace('.', ',') + ' MB' : plural(arquivos.length, 'imagem', 'imagens');
+    var texto = 'Olha como ficou este serviço! Peça seu orçamento: ' + link;
+
+    main.innerHTML = topo('<button type="button" class="st-voltar" id="stVoltarIni">‹ Studio</button>') +
+      '<div class="st-eyebrow">Pronto</div><h1 class="st-tit">Seu vídeo <em>está pronto</em></h1>' +
+      '<div class="st-pronto"><div>' + midia + '</div><div class="st-acoes">' +
+        (out.formato === 'carrossel' ? '<div class="st-alerta"><div>Este navegador não grava vídeo, então saiu um <b>carrossel de ' + arquivos.length + ' imagens</b>. Em um Chrome atualizado sai o vídeo.</div></div>' : '') +
+        (out.formato === 'webm' ? '<div class="st-alerta"><div>Este navegador gravou em WebM. Se o WhatsApp não aceitar, abra o Fieldo no Chrome atualizado e gere de novo — não gasta cota.</div></div>' : '') +
+        (podeCompartilhar ? '<button type="button" class="st-cta st-cta--full st-cta--wa" id="stShare"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>Compartilhar no WhatsApp, Instagram…</button>' : '') +
+        '<button type="button" class="st-cta st-cta--full ' + (podeCompartilhar ? 'st-cta--sec' : '') + '" id="stBaixar">Baixar ' + (out.blob ? 'o vídeo' : 'as imagens') + ' <small style="font-weight:400;opacity:.8">(' + mb + ')</small></button>' +
+        '<ol class="st-passos"><li><b>Status do WhatsApp:</b> Status → galeria → escolha o vídeo.</li><li><b>Reels ou TikTok:</b> novo post → galeria → o vídeo já está no tamanho certo.</li><li>Na legenda, cole o link do seu perfil.</li></ol>' +
+        '<div class="st-link" id="stLink">' + e(link) + '</div>' +
+        '<button type="button" class="st-cta st-cta--sec st-cta--full" id="stCopiar">Copiar link do perfil</button>' +
+        '<div class="st-rastreio"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:none"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg>' +
+          '<span>Quem abrir seu perfil pelo QR ou pelo link deste vídeo aparece em <b>Meus vídeos</b>. Quando chegar a primeira visita, avisamos você.</span></div>' +
+        '<button type="button" class="st-cta st-cta--ink st-cta--full" id="stOutro">Fazer vídeo de outro serviço</button>' +
+      '</div></div>';
+
+    document.getElementById('stVoltarIni').onclick = function () { soltarBlobs(); ed = null; telaInicio(v.id); };
+    document.getElementById('stOutro').onclick = function () { soltarBlobs(); ed = null; telaInicio(); };
+    var bs = document.getElementById('stShare');
+    if (bs) bs.onclick = function () {
+      navigator.share({ files: arquivos, text: texto, title: 'Meu trabalho no Fieldo' }).then(function () {
+        S.compartilhado(v.id); v.compartilhado_em = v.compartilhado_em || new Date().toISOString(); toast('Compartilhado!');
+      }).catch(function (err) { if (!err || err.name !== 'AbortError') toast('Não deu para abrir o compartilhamento. Use o Baixar.'); });
+    };
+    document.getElementById('stBaixar').onclick = function () {
+      arquivos.forEach(function (f, i) {
+        setTimeout(function () {
+          var u = URL.createObjectURL(f), a = document.createElement('a');
+          a.href = u; a.download = f.name; document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(function () { URL.revokeObjectURL(u); }, 8000);
+        }, i * 350);
+      });
+      S.compartilhado(v.id);
+      toast(out.blob ? 'Vídeo salvo no aparelho.' : 'Imagens salvas no aparelho.');
+    };
+    document.getElementById('stCopiar').onclick = function () {
+      var ok = function () { toast('Link copiado.'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(ok, function () { selecionar(); });
+      else selecionar();
+      function selecionar() { var r = document.createRange(); r.selectNodeContents(document.getElementById('stLink')); var s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Selecionado: copie o link.'); }
+    };
+    window.scrollTo(0, 0);
+  }
+
+  /* ── folhas de plano ────────────────────────────────────────── */
+  function folha(html) {
+    var f = document.createElement('div');
+    f.className = 'st-folha';
+    f.innerHTML = '<div class="st-folha-in" role="dialog" aria-modal="true">' + html + '</div>';
+    f.onclick = function (ev) { if (ev.target === f || ev.target.hasAttribute('data-fechar')) f.remove(); };
+    document.body.appendChild(f);
+    var foco = f.querySelector('a,button'); if (foco) foco.focus();
+  }
+  function folhaPro(titulo) {
+    folha('<h2>' + e(titulo) + '</h2><p>Com o Fieldo Pro, o Studio fica completo:</p>' +
+      '<ul><li>Vídeos ilimitados, todo mês</li><li>Modelos Impacto e Editorial</li><li>Cor de destaque e vídeo sem a marca do Fieldo</li></ul>' +
+      '<a class="st-cta st-cta--full" href="planos.html">Conhecer o Pro</a><button type="button" class="st-cta st-cta--sec st-cta--full" style="margin-top:.5rem" data-fechar>Agora não</button>');
+  }
+  function folhaCota() {
+    var c = dados.cota || {};
+    folha('<h2>Os ' + (c.limite || 2) + ' vídeos grátis de ' + new Date().toLocaleDateString('pt-BR', { month: 'long' }) + ' já foram</h2>' +
+      '<p>A cota renova em ' + e(dataBR(c.renova_em)) + '. Os vídeos que você já fez podem ser refeitos e baixados de novo à vontade.</p>' +
+      '<ul><li>No Pro, vídeos ilimitados e todos os modelos</li></ul>' +
+      '<a class="st-cta st-cta--full" href="planos.html">Ver o Pro</a><button type="button" class="st-cta st-cta--sec st-cta--full" style="margin-top:.5rem" data-fechar>Entendi</button>');
+  }
+
+  window.addEventListener('pagehide', function () { pararPlayer(); soltarBlobs(); });
+  carregar();
+})();
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

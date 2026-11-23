@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+<script src="/app-play.js"></script>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#f5f2ec"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Fieldo · Entrar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-title" content="Fieldo"/>
+  <style>
+    /* ── Layout de onboarding ── */
+    body { background: var(--bg); }
+
+    .ob-wrap {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.25rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Detalhe decorativo de fundo */
+    .ob-wrap::after {
+      content: '';
+      position: fixed;
+      top: -120px; right: -120px;
+      width: 420px; height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(154,114,24,.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ob-box {
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Logo ── */
+    .ob-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2.5rem;
+    }
+    /* v10.34 · mesma troca de identidade do fieldo.css (.logo-icon):
+       sem badge circular, o traço é a própria marca. */
+    .ob-logo-mark {
+      width: 46px; height: 46px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem;
+      color: var(--ink);
+      animation: fadeUp .4s ease both;
+    }
+    .ob-logo-mark svg { width: 100%; height: 100%; }
+    .ob-logo-name {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--ink);
+      animation: fadeUp .4s .08s ease both;
+    }
+    .ob-logo-name em { font-style: normal; color: var(--gold-l); }
+
+    /* ── Steps container ── */
+    .ob-step {
+      display: none;
+      animation: fadeUp .3s ease both;
+    }
+    .ob-step.active { display: block; }
+
+    /* ── Step header ── */
+    .ob-eyebrow {
+      font-family: var(--mono);
+      font-size: .58rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--gold-text);
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      margin-bottom: .5rem;
+    }
+    .ob-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 14px; height: 1px;
+      background: var(--gold);
+    }
+    .ob-title {
+      font-family: var(--serif);
+      font-size: clamp(1.8rem, 6vw, 2.4rem);
+      font-weight: 300;
+      line-height: 1.08;
+      color: var(--ink);
+      margin-bottom: .5rem;
+      letter-spacing: -.02em;
+    }
+    .ob-title em { font-style: italic; color: var(--gold-text); }
+    .ob-sub {
+      font-size: .86rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 1.75rem;
+    }
+
+    /* ── Campo Phone ── */
+    .phone-wrap {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+    .phone-prefix {
+      position: absolute;
+      left: .95rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: var(--mono);
+      font-size: .88rem;
+      color: var(--muted);
+      pointer-events: none;
+      user-select: none;
+    }
+    #phoneInput {
+      padding-left: 3.2rem;
+      font-family: var(--mono);
+      font-size: 1.1rem;
+      letter-spacing: .05em;
+    }
+
+    /* ── OTP inputs ── */
+    .otp-row {
+      display: flex;
+      gap: .55rem;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .otp-digit {
+      width: 52px; height: 58px;
+      background: var(--paper2);
+      border: 1.5px solid var(--border2);
+      border-radius: var(--r);
+      font-family: var(--mono);
+      font-size: 1.4rem;
+      font-weight: 500;
+      text-align: center;
+      color: var(--ink);
+      outline: none;
+      transition: border-color var(--t), box-shadow var(--t), background var(--t);
+      caret-color: var(--gold);
+    }
+    .otp-digit:focus {
+      border-color: var(--gold-bd);
+      background: var(--paper);
+      box-shadow: 0 0 0 3px var(--gold-bg);
+    }
+    .otp-digit.filled { border-color: var(--gold-bd); background: var(--gold-bg); }
+
+    .otp-phone-display {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .otp-phone-display strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+    .otp-resend {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: .75rem;
+    }
+    .otp-resend button {
+      color: var(--gold-d);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: .72rem;
+      padding: 0;
+      text-decoration: underline;
+    }
+    .otp-resend button:disabled { color:var(--muted); text-decoration: none; cursor: default; }
+
+    /* ── Step 2: Nicho + Cidade ── */
+    /* v10.7 · busca de profissão (substituiu .nicho-grid) */
+    .busca-prof { position: relative; }
+    .sug-lista {
+      list-style: none; margin: .3rem 0 0; padding: 0;
+      position: absolute; left: 0; right: 0; top: 100%; z-index: 20;
+      background: var(--paper); border: 1px solid var(--border2);
+      border-radius: var(--r-l); overflow: hidden;
+      box-shadow: 0 8px 24px rgba(14,14,20,.10);
+      display: none; max-height: 254px; overflow-y: auto;
+    }
+    .sug-lista.aberta { display: block; }
+    .sug-item {
+      padding: .72rem .9rem; cursor: pointer; font-size: .92rem;
+      display: flex; align-items: baseline; gap: .5rem;
+      border-bottom: 1px solid var(--border);
+      /* 44px de alvo de toque: é lista de dedo, em obra, no sol */
+      min-height: 44px; box-sizing: border-box;
+    }
+    .sug-item:last-child { border-bottom: 0; }
+    .sug-item:hover, .sug-item.ativo { background: var(--gold-bg); }
+    .sug-item em { font-style: normal; font-weight: 600; color: var(--gold-d); }
+    .sug-item .sug-cat {
+      margin-left: auto; font-family: var(--mono); font-size: .62rem;
+      letter-spacing: .06em; text-transform: uppercase; color: var(--subtle);
+      white-space: nowrap;
+    }
+    .cat-detectada {
+      font-family: var(--mono); font-size: .66rem; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--green); margin-top: .45rem;
+      min-height: 1em;
+    }
+    .sug-comuns { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1.25rem; }
+    .sug-comuns button {
+      background: var(--paper2); border: 1px solid var(--border2);
+      border-radius: 999px; padding: .5rem .85rem; font-size: .82rem;
+      color: var(--text2); cursor: pointer; font-family: var(--sans);
+      min-height: 36px;
+    }
+    .sug-comuns button:hover { border-color: var(--gold-bd); color: var(--gold-d); }
+    /* v12.25 · outras profissões: escondido atrás de um link, para o
+       cadastro de quem faz uma coisa só continuar do mesmo tamanho */
+    .link-outras {
+      background: none; border: 0; padding: .35rem 0; min-height: 36px; cursor: pointer;
+      font: 500 .88rem var(--sans); color: var(--gold-d); text-decoration: underline; text-underline-offset: 3px;
+    }
+    .link-outras:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .opcional { font-weight: 400; color: var(--muted); }
+
+    /* ── Step 3: Sucesso ── */
+    .ob-success {
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .ob-success-seal {
+      width: 72px; height: 72px;
+      background: var(--green-bg);
+      border: 2px solid var(--green-bd);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 1.8rem;
+      animation: bounceIn .4s var(--ez) both;
+    }
+    @keyframes bounceIn {
+      0%   { transform: scale(.5); opacity: 0; }
+      70%  { transform: scale(1.08); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .ob-success-name {
+      font-family: var(--serif);
+      font-size: 1.5rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--ink);
+      margin-bottom: .35rem;
+    }
+    .ob-success-sub {
+      font-family: var(--mono);
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 1.5rem;
+    }
+    .ob-success-desc {
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 2rem;
+      max-width: 300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ── Progress dots ── */
+    .ob-progress {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .4rem;
+      margin-bottom: 2.5rem;
+    }
+    .ob-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--paper4);
+      transition: background .3s, transform .3s;
+    }
+    .ob-dot.active {
+      background: var(--gold);
+      transform: scale(1.4);
+    }
+    .ob-dot.done { background: var(--green-l); }
+
+    /* ── Footer legal ── */
+    .ob-legal {
+      font-family: var(--mono);
+      font-size: .62rem;
+      color:var(--muted);
+      text-align: center;
+      margin-top: 1.25rem;
+      line-height: 1.6;
+    }
+    .ob-legal a { color: var(--muted); text-decoration: underline; }
+
+    /* ── Back button ── */
+    .ob-back {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      margin-bottom: 1.5rem;
+      transition: color var(--t);
+    }
+    .ob-back:hover { color: var(--text); }
+
+    /* ── Error state ── */
+    .field-error {
+      font-family: var(--mono);
+      font-size: .65rem;
+      color: var(--red);
+      margin-top: .35rem;
+      display: none;
+    }
+    .field-error.visible { display: block; }
+    /* v12.19e · o aviso do formulário precisa ser lido, não decifrado */
+    #perfilError.visible { font-family: var(--sans); font-size: .88rem; line-height: 1.5; background: var(--red-bg);
+      border: 1px solid var(--red-bd); border-radius: 10px; padding: .65rem .8rem; }
+
+    @media(max-width:380px) {
+      .otp-digit { width: 44px; height: 52px; font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ob-wrap">
+  <div class="ob-box">
+
+    <!-- Logo -->
+    <div class="ob-logo">
+      <div class="ob-logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      <div class="ob-logo-name">Field<em>o</em></div>
+    </div>
+
+
+    <!-- Progress dots -->
+    <div class="ob-progress">
+      <div class="ob-dot active" id="dot0"></div>
+      <div class="ob-dot" id="dot1"></div>
+      <div class="ob-dot" id="dot2"></div>
+    </div>
+
+
+    <!-- ════════════════════════════════
+         STEP 1 — WhatsApp (login principal em v4.0)
+    ════════════════════════════════ -->
+    <div class="ob-step active" id="step1">
+      <!-- v9.15 · A MESMA PROMESSA DAS DUAS PORTAS.
+           comece.html dizia "Mais cliente, sem correr atrás — seu perfil
+           no Google" com o botão "Criar minha vitrine grátis".
+           Esta tela dizia "Comece a registrar — funciona sem internet"
+           com o botão "Criar meu espaço". Duas portas do mesmo produto,
+           duas promessas, dois nomes pro mesmo objeto — na PRIMEIRA
+           tela que alguém vê.
+           "Funciona sem internet" continua verdade e continua dito, mas
+           como o alívio que é, não como a promessa central: ninguém
+           procura um app pra funcionar offline; procura pra ter mais
+           cliente. Ver VOCABULARIO.md. -->
+      <div class="ob-eyebrow">Bem-vindo</div>
+      <h1 class="ob-title">Seu trabalho vira<br><em>um perfil público</em></h1>
+      <p class="ob-sub">
+        Cada serviço que você registra entra no seu perfil público, com foto
+        e avaliação de quem contratou — o que o cliente acha sozinho.
+        Leva um minuto.
+      </p>
+
+      <!-- v10.6 · este botão dizia "Criar meu perfil" — o MESMO texto do
+           botão que aparece no fim do formulário seguinte. Quem clicava
+           aqui acreditava que tinha criado, e então via um formulário: a
+           promessa era cumprida e retirada na mesma tela. -->
+      <button class="btn btn--primary btn--full btn--lg" id="btnComecar" onclick="comecar()">
+        Começar — leva 1 minuto
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+
+      <!-- v10.12 · a volta deixou de ser nota de rodapé.
+           Era um link de .78rem embaixo do botão dourado, com o texto
+           "Já usa o Fieldo em outro aparelho? Recuperar com meu código".
+           O dono do produto abriu esta tela, procurou como voltar para a
+           conta dele e concluiu que "só aparece pra criar conta nova" —
+           com o link ali, funcionando. Se ele não achou, ninguém acha.
+
+           Três coisas mudaram:
+
+           1. Virou BOTÃO, não link. Quem perdeu o acesso não está lendo
+              a página, está procurando uma saída.
+           2. Ghost e não dourado, de propósito: dois botões dourados
+              para destinos diferentes na mesma tela é o defeito que a
+              v9.13, a v9.14 e a v10.7 já corrigiram três vezes aqui.
+              Secundário no peso visual, primário na clareza.
+           3. O texto passou a ser o que a pessoa PENSA. Ela não pensa
+              "recuperar com meu código" — ela pensa "eu já tenho conta".
+              O código é o meio, não a intenção. E quando a recuperação
+              por e-mail entrar, este mesmo botão continua servindo, sem
+              trocar palavra nenhuma. -->
+      <button class="btn btn--ghost btn--full" id="btnJaTenho"
+              onclick="irStep(2)" style="margin-top:.9rem">
+        Já tenho conta — entrar
+      </button>
+      <p class="ob-sub" style="margin:.75rem 0 0;text-align:center;font-size:.75rem">
+        Trocou de celular? Seus serviços e avaliações voltam com você.
+      </p>
+    </div>
+
+    <div class="ob-step" id="step2">
+      <button class="ob-back" onclick="irStep(1)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Voltar
+      </button>
+
+      <!-- v12.12 · TESTE: entrar com e-mail e senha. O código de 16
+           caracteres continua logo abaixo, recolhido, para quem ainda
+           não criou o acesso por e-mail. -->
+      <div class="ob-eyebrow">Entrar</div>
+      <h1 class="ob-title">Bem-vindo<br><em>de volta</em></h1>
+      <p class="ob-sub">Entre com o e-mail e a senha da sua conta.</p>
+
+      <div class="field-group" style="margin-bottom:.9rem">
+        <label class="field-label" for="loginEmail">E-mail</label>
+        <input class="field-input" id="loginEmail" type="email" autocomplete="username" inputmode="email" placeholder="seu@email.com"/>
+      </div>
+      <div class="field-group" style="margin-bottom:1.1rem">
+        <label class="field-label" for="loginSenha">Senha</label>
+        <input class="field-input" id="loginSenha" type="password" autocomplete="current-password" placeholder="Sua senha"/>
+      </div>
+      <button class="btn btn--primary btn--full btn--lg" id="btnEntrarEmail" onclick="entrarEmail()">
+        Entrar
+      </button>
+      <p class="ob-sub" style="margin:1rem 0 0;text-align:center;font-size:.78rem">
+        Esqueceu a senha?
+        <a href="https://wa.me/5512988406425?text=Esqueci%20a%20senha%20do%20meu%20perfil%20no%20Fieldo"
+           target="_blank" rel="noopener" style="color:var(--gold);text-decoration:underline">Fale com a gente no WhatsApp</a>
+      </p>
+
+      <details class="ob-codigo-antigo" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem">
+      <summary style="cursor:pointer;font-size:.85rem;color:var(--text2);min-height:44px;display:flex;align-items:center">Tenho o código antigo de 16 caracteres</summary>
+      <p class="ob-sub" style="margin-top:.5rem">
+        Os 16 caracteres que o Fieldo mostrou quando você criou seu perfil.
+        Depois de entrar, crie seu e-mail e senha em Configurações.
+      </p>
+
+      <div class="field-group">
+        <label class="field-label" for="inpRecovery">Código</label>
+        <input class="field-input" id="inpRecovery" type="text" inputmode="text"
+               autocapitalize="characters" autocomplete="one-time-code" spellcheck="false"
+               maxlength="19" placeholder="XXXX-XXXX-XXXX-XXXX"
+               style="font-family:var(--mono);letter-spacing:.12em;text-align:center"/>
+        <div class="field-hint" id="recoveryHint">Letras e números, sem I, L, O ou U.</div>
+      </div>
+
+      <button class="btn btn--ghost btn--full" id="btnRecuperar" onclick="recuperar()">
+        Entrar com o código
+      </button>
+      </details>
+
+    </div>
+
+    <div class="ob-step" id="step3">
+      <div class="ob-eyebrow">Perfil profissional</div>
+      <!-- v10.7 · "especialidade" era um quinto nome pro mesmo objeto.
+           A coluna no banco é `profissao`. O meu-perfil.html, que a
+           pessoa abre logo depois, já pergunta "Sua profissão" num campo
+           de texto livre — e o onboarding era o único lugar do app que
+           obrigava a escolher entre oito categorias nossas. As duas
+           telas discordavam sobre a mesma pergunta. -->
+      <h1 class="ob-title">Qual é a sua<br><em>profissão?</em></h1>
+      <p class="ob-sub">É o que aparece embaixo do seu nome — e o que o cliente digita no Google quando procura alguém na sua cidade.</p>
+
+      <!-- v10.7 · A GRADE DE 8 CARTÕES VIROU UM CAMPO DE BUSCA.
+           ─────────────────────────────────────────────────────────
+           A grade obrigava a pessoa a encontrar o próprio ofício
+           dentro de OITO categorias do nosso vocabulário, e depois
+           gravava a CATEGORIA como profissão. Quem é eletricista
+           escolhia "Elétrica" e o perfil dizia "Elétrica" — no título
+           do Google, no orçamento, no relatório. Quem é jardineiro,
+           gesseiro, chaveiro ou piscineiro caía em "Outro".
+
+           Agora ela digita o que faz. Guardamos as DUAS coisas:
+             · `profissao` = a palavra dela ("Eletricista")
+             · `niche`     = a chave estável, deduzida ("eletrica")
+
+           E a palavra dela é justamente a que o cliente digita no
+           Google — "eletricista em Caraguatatuba", não "elétrica". -->
+      <div class="field-group" style="margin-bottom:.5rem">
+        <label class="field-label" for="profInput">Sua profissão <span class="required">*</span></label>
+        <div class="busca-prof">
+          <input class="field-input" id="profInput" type="text" autocomplete="off"
+                 role="combobox" aria-expanded="false" aria-autocomplete="list"
+                 aria-controls="profSugestoes" aria-describedby="profHint"
+                 placeholder="Ex: Eletricista residencial"/>
+          <ul class="sug-lista" id="profSugestoes" role="listbox" aria-label="Sugestões de profissão"></ul>
+        </div>
+        <div class="field-hint" id="profHint">Escreva do seu jeito — sugerimos enquanto você digita.</div>
+        <div class="cat-detectada" id="catDetectada" aria-live="polite"></div>
+      </div>
+
+      <!-- Atalho para quem não quer digitar. Não é a grade de volta:
+           são cinco, sem emoji, subordinadas ao campo. -->
+      <div class="sug-comuns" id="sugComuns" aria-label="Profissões mais comuns"></div>
+
+      <!-- v12.25 · OUTRAS PROFISSÕES. Pedido de quem se cadastrou em
+           31/10: "não dá pra adicionar mais profissões?". Quem é
+           eletricista e também instala ar-condicionado aparece na busca
+           das duas. A primeira continua sendo a principal (título e
+           endereço do perfil). -->
+      <div class="field-group" id="outrasProfGrupo" style="margin-top:-.6rem;margin-bottom:1.25rem">
+        <button type="button" class="link-outras" id="btnOutrasProf" aria-expanded="false" aria-controls="outrasProfBox">+ Faço mais de um serviço</button>
+        <div id="outrasProfBox" hidden>
+          <label class="field-label" for="outrasProfInput">Outras profissões <span class="opcional">(opcional, até 3)</span></label>
+          <div id="outrasProf"></div>
+          <div class="field-hint">Você aparece na busca de cada uma. A que você escreveu acima continua sendo a principal.</div>
+        </div>
+      </div>
+
+      <div class="field-group" style="margin-bottom:1.25rem">
+        <label class="field-label">Seu nome <span class="required">*</span></label>
+        <input
+          class="field-input"
+          id="nomeInput"
+          type="text"
+          placeholder="Ex: Marcelo Ferreira"
+          autocomplete="name"
+        />
+        <div class="field-hint">É o que o cliente vê no orçamento e no relatório.</div>
+      </div>
+
+      <!-- v12.19e · WHATSAPP NO CADASTRO.
+           Sem WhatsApp o perfil não entra na busca e a barra de contato
+           some (painel.html, faltaCadastro). O cadastro não pedia: a
+           pessoa terminava, abria o painel e a primeira coisa que lia era
+           "Ainda não aparece na busca: falta preencher seu WhatsApp" —
+           ao lado de um balão prometendo que o primeiro serviço já abria
+           o perfil. Em 30/10, 3 dos 8 cadastros do mês estavam assim,
+           sem WhatsApp e sem nenhum serviço. -->
+      <div class="field-group" style="margin-bottom:1.25rem">
+        <label class="field-label" for="whatsInput">Seu WhatsApp <span class="required">*</span></label>
+        <input class="field-input" id="whatsInput" type="tel" inputmode="tel" autocomplete="tel" placeholder="(12) 99999-9999"/>
+        <div class="field-hint">É por ele que o cliente te chama. Aparece no seu perfil.</div>
+      </div>
+
+      <div class="field-group" style="margin-bottom:1.25rem">
+        <label class="field-label">Cidade principal <span class="required">*</span></label>
+        <input
+          class="field-input"
+          id="cidadeInput"
+          type="text"
+          placeholder="Ex: Campinas – SP"
+          autocomplete="address-level2"
+        />
+        <div class="field-hint">Aparece no seu perfil e ajuda quem procura na sua cidade a te achar.</div>
+      </div>
+
+      <!-- v12.36 · LGPD: o campo de e-mail opcional saiu daqui. Ele era
+           gravado em signup_leads no momento em que a pessoa saía do
+           campo, antes de terminar o cadastro, com a promessa de "mandar
+           o link de volta" — e o Fieldo não envia e-mail. Coletar só o
+           que se usa. Quem quiser e-mail na conta cadastra depois, em
+           Configurações, para entrar com e-mail e senha. -->
+
+      <!-- v12.36 · aceite dos Termos e da Política. Desmarcado, obrigatório,
+           e gravado no banco com versão, data, navegador e IP
+           (FIELDO.Aceite → registrar_aceite). A idade mínima vai junto:
+           os Termos pedem 18 anos ou mais. -->
+      <div class="field-group" style="margin-bottom:1rem">
+        <label for="chkAceite" style="display:flex;gap:.6rem;align-items:flex-start;font-size:.9rem;line-height:1.45;cursor:pointer;color:var(--text)">
+          <input type="checkbox" id="chkAceite" style="margin-top:3px;width:20px;height:20px;flex-shrink:0"/>
+          <span>Tenho 18 anos ou mais e aceito os <a href="/termos" target="_blank" rel="noopener" style="text-decoration:underline;color:inherit;font-weight:600">Termos de Uso</a> e a <a href="/privacidade" target="_blank" rel="noopener" style="text-decoration:underline;color:inherit;font-weight:600">Política de Privacidade</a>.</span>
+        </label>
+      </div>
+
+      <div class="field-error" id="perfilError" style="margin-bottom:.75rem">
+        Informe sua profissão, seu nome, seu WhatsApp e sua cidade.
+      </div>
+
+      <button class="btn btn--primary btn--full btn--lg" id="btnCriarPerfil" onclick="criarPerfil()">
+        Criar meu perfil
+        <span class="btn__spin" id="spinPerfil"></span>
+      </button>
+      <!-- v12.46 · este formulário era beco sem saída: quem caía aqui (por
+           um rascunho antigo, ou depois de sair da conta) não tinha como
+           entrar, só cadastrar de novo. -->
+      <button class="btn btn--ghost btn--full" type="button" onclick="irStep(2)" style="margin-top:.9rem">
+        Já tenho conta — entrar
+      </button>
+    </div>
+
+    <!-- ════════════════════════════════
+         STEP 4 — Sucesso
+    ════════════════════════════════ -->
+    <div class="ob-step" id="step4">
+      <div class="ob-success">
+        <div class="ob-success-seal">✓</div>
+        <div class="ob-success-name" id="successName">Bem-vindo!</div>
+        <div class="ob-success-sub">Perfil criado · Fieldo</div>
+
+        <!-- v12.12 · TESTE: no lugar do código, a pessoa cria e-mail e
+             senha. O código continua sendo gerado e anexado por baixo,
+             como rede de segurança; só aparece se o acesso por e-mail
+             não puder ser salvo agora. -->
+        <div class="callout" id="blocoAcesso" style="text-align:left;margin:1.25rem 0">
+          <div class="callout-label">Crie seu acesso</div>
+          <p style="font-size:.8rem;color:var(--muted);line-height:1.6;margin:.3rem 0 .8rem">
+            É com ele que você entra em outro celular ou no computador.
+          </p>
+          <div class="field-group" style="margin-bottom:.7rem">
+            <label class="field-label" for="acessoEmail">E-mail</label>
+            <input class="field-input" id="acessoEmail" type="email" autocomplete="username" inputmode="email" placeholder="seu@email.com"/>
+          </div>
+          <div class="field-group" style="margin-bottom:.4rem">
+            <label class="field-label" for="acessoSenha">Senha</label>
+            <input class="field-input" id="acessoSenha" type="password" autocomplete="new-password" placeholder="Pelo menos 8 caracteres"/>
+          </div>
+          <label style="display:flex;gap:.5rem;align-items:center;font-size:.78rem;color:var(--muted);margin-bottom:.8rem;cursor:pointer">
+            <input type="checkbox" onchange="document.getElementById('acessoSenha').type=this.checked?'text':'password'"/> Mostrar senha
+          </label>
+          <div class="field-error" id="acessoErro" style="margin-bottom:.6rem"></div>
+          <button class="btn btn--primary btn--full" id="btnSalvarAcesso" onclick="salvarAcesso()">
+            Salvar e continuar
+            <span class="btn__spin" id="spinAcesso"></span>
+          </button>
+          <!-- v12.19e · quem não tem e-mail ficava preso: os dois botões
+               de saída só liberavam depois do acesso criado -->
+          <p style="margin:.9rem 0 0;text-align:center;font-size:.84rem">
+            <a href="#" onclick="usarCodigo();return false" style="color:var(--muted);text-decoration:underline">Não tenho e-mail: usar um código de recuperação</a>
+          </p>
+        </div>
+
+        <!-- Reserva: o código só aparece se o acesso por e-mail falhar. -->
+        <div class="callout" id="blocoCodigo" style="text-align:left;margin:1.25rem 0;display:none">
+          <div class="callout-label">Guarde este código</div>
+          <div id="recoveryCode" style="font-family:var(--mono);font-size:1.05rem;
+               letter-spacing:.14em;color:var(--ink);word-break:break-all;
+               margin:.6rem 0;font-weight:500">••••-••••-••••-••••</div>
+          <p style="font-size:.76rem;color:var(--muted);line-height:1.6;margin:0">
+            É a única forma de recuperar seus dados se você trocar de celular
+            ou limpar o navegador. O Fieldo não guarda cópia dele.
+          </p>
+          <div style="display:flex;gap:.5rem;margin-top:.75rem">
+            <button class="btn btn--ghost btn--sm" style="flex:1" onclick="copiarCodigo()">Copiar</button>
+            <button class="btn btn--ghost btn--sm" style="flex:1" onclick="baixarCodigo()">Baixar .txt</button>
+          </div>
+        </div>
+
+        <label id="blocoSalvou" style="display:none;gap:.6rem;align-items:flex-start;text-align:left;
+                      font-size:.8rem;color:var(--muted);margin-bottom:1rem;cursor:pointer">
+          <input type="checkbox" id="chkSalvou" onchange="toggleSalvou()" style="margin-top:.2rem"/>
+          <span>Salvei meu código de recuperação em local seguro.</span>
+        </label>
+        <!-- v10.7 · O TEXTO E OS BOTÕES DESTA TELA MUDARAM.
+             ───────────────────────────────────────────────────────
+             Dizia: "Seu perfil está pronto. Registre seu primeiro
+             serviço agora e comece a construir sua reputação
+             verificável." — com um botão dourado "Registrar primeiro
+             serviço".
+
+             Dois problemas.
+
+             1) NÃO ESTAVA PRONTO. O perfil nasce is_public=false. A
+                própria faixa do painel diz, na tela seguinte, que ele
+                "abre" depois do primeiro serviço. Dizer "pronto" aqui
+                e "falta" ali é o app se contradizendo em dois toques.
+
+             2) A PESSOA ACABOU DE TRABALHAR. Ela preencheu um
+                cadastro, copiou um código de 16 caracteres e marcou um
+                checkbox. O primeiro retorno que recebe não pode ser
+                mais uma tarefa — e "registre seu primeiro serviço" é
+                uma tarefa.
+
+             O produto não pede trabalho novo: pede um trabalho que ela
+             JÁ FEZ. Essa é a diferença entre "registre um serviço" e
+             "traga um serviço que você já fez". A segunda é a verdade,
+             e não soa como cobrança.
+
+             O botão secundário virou "Depois eu faço" em vez de "Ver
+             dashboard": dá permissão explícita de sair. Quem sai é
+             recebido pelo cartão de próximo passo do painel, que já
+             explica o motivo com calma. -->
+        <p class="ob-success-desc">
+          Seu perfil existe, mas está vazio. Traga um serviço que você
+          <em>já fez</em> — com foto e data — e ele vira sua primeira prova pública.
+        </p>
+        <button class="btn btn--primary btn--full btn--lg" id="btnPrimeiro" disabled
+                onclick="irParaServico()">
+          Trazer um serviço que já fiz
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+        <button class="btn btn--ghost btn--full" id="btnDash" disabled
+                style="margin-top:.6rem" onclick="irParaDashboard()">
+          Depois eu faço
+        </button>
+
+        <!-- v10.7 · O BLOCO DE PLANOS SAIU DAQUI.
+             Ele trazia "5 relatórios por mês", "R$ 35/mês" e um botão
+             "Ver o que o Pro inclui" — três coisas competindo, na tela
+             cuja única tarefa crítica é fazer a pessoa salvar o código.
+             A intenção original (transparência de preço no primeiro
+             minuto) era boa, mas o momento é o pior possível: ela ainda
+             não recebeu nada do produto e o primeiro número que vê é um
+             limite e um preço.
+             Fica a informação que tranquiliza, sem a que cobra. O preço
+             continua a um toque no menu e em planos.html. -->
+        <p style="margin-top:1.6rem;padding-top:1.2rem;border-top:1px solid var(--border);
+                  font-size:.78rem;color:var(--subtle);line-height:1.7;text-align:left">
+          Você está no plano gratuito, sem prazo pra acabar.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /ob-box -->
+</div><!-- /ob-wrap -->
+
+<!-- Toast -->
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="db.js" onerror="document.documentElement.innerHTML='&lt;div style=\'font-family:system-ui;padding:2rem;text-align:center\'&gt;&lt;h2 style=\'font-weight:500\'&gt;Falha ao carregar&lt;/h2&gt;&lt;p style=\'color:#666;line-height:1.6\'&gt;Verifique a conexão. Seus dados continuam salvos.&lt;/p&gt;&lt;button onclick=\'location.reload(true)\' style=\'padding:.8rem 1.5rem;border:0;border-radius:8px;background:#9a7218;color:#fff;font-size:.9rem\'&gt;Recarregar&lt;/button&gt;&lt;/div&gt;'"></script>
+<script>
+/* ════════════════════════════════════════════════════════════════
+   Fieldo v5.0 · Onboarding
+
+   Substitui o fluxo de telefone + OTP da v4. Não há mais login:
+   `signInAnonymously()` cria um usuário real em auth.users, com
+   uuid e JWT — sem e-mail, sem senha, sem espera por SMS.
+
+   Este é o ÚNICO ponto assíncrono de bootstrap do app. Todas as
+   outras páginas seguem usando `Auth.isLoggedIn()` síncrono.
+
+   Limitação assumida: o primeiro boot precisa de internet uma vez.
+   Não existe forma de emitir identidade verificável offline.
+════════════════════════════════════════════════════════════════ */
+/* v5.7.6: guarda contra falha de carregamento.
+
+   Se db.js não carregar (rede instável, load parcial, aba anônima com
+   restrição), `FIELDO` fica indefinido e a PRIMEIRA linha do IIFE lança
+   ReferenceError. Nenhuma função é definida, os botões viram no-op e a
+   tela continua com aparência perfeita — o usuário toca e nada acontece,
+   sem erro nenhum.
+
+   Falhar em silêncio numa tela de recuperação de conta é o pior caso
+   possível: a pessoa acha que perdeu os dados. */
+(function () {
+  'use strict';
+
+  function falhaCritica(msg, err) {
+    if (err) console.error('[onboarding]', err);
+    var box = document.createElement('div');
+    box.setAttribute('role', 'alert');
+    box.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:9999;' +
+      'background:#7a2020;color:#fff;padding:1rem 1.25rem;font-family:system-ui,sans-serif;' +
+      'font-size:.85rem;line-height:1.5';
+    var p = document.createElement('div');
+    p.textContent = msg;
+    var b = document.createElement('button');
+    b.textContent = 'Recarregar';
+    b.style.cssText = 'margin-top:.7rem;width:100%;padding:.7rem;border:0;border-radius:8px;' +
+      'background:#fff;color:#7a2020;font-weight:600;font-family:inherit;font-size:.85rem';
+    b.onclick = function () { location.reload(true); };
+    box.appendChild(p); box.appendChild(b);
+    document.body.appendChild(box);
+  }
+
+  if (typeof FIELDO === 'undefined' || !FIELDO.Auth || !FIELDO.Auth.Session) {
+    falhaCritica('O app não carregou por completo. Verifique a conexão e recarregue — seus dados continuam salvos.');
+    return;
+  }
+
+  /* Qualquer erro não tratado daqui pra frente também precisa aparecer,
+     em vez de deixar botão morto. */
+  window.addEventListener('error', function (ev) {
+    if (window.__fieldoErroMostrado) return;
+    window.__fieldoErroMostrado = true;
+    falhaCritica('Ocorreu um erro nesta tela. Recarregue para tentar de novo.', ev.error || ev.message);
+  });
+
+  var Session = FIELDO.Auth.Session;
+  var state   = { nicho: null, profissao: '', nome: '', cidade: '', code: null, email: '', whatsapp: '', outras: [] };
+
+  /* ── v10.6 · RASCUNHO ────────────────────────────────────────────
+   * O formulário vivia só na memória da página. Quem era interrompido —
+   * cliente ligou, app foi pro fundo, aba fechou — voltava e encontrava
+   * a tela inicial, do zero, sem nem saber que já tinha começado.
+   *
+   * Fica só neste aparelho, sem servidor: é rascunho de cadastro, não
+   * dado de ninguém ainda. Some no sucesso. */
+  var RASCUNHO = 'fieldo_cadastro_rascunho';
+
+  function salvarRascunho() {
+    try {
+      localStorage.setItem(RASCUNHO, JSON.stringify({
+        nicho: state.nicho, profissao: state.profissao,
+        nome: state.nome, cidade: state.cidade, email: state.email, whatsapp: state.whatsapp,
+        outras: state.outras,
+      }));
+    } catch (e) { /* modo privado, cota cheia: seguir sem rascunho */ }
+  }
+
+  function limparRascunho() {
+    try { localStorage.removeItem(RASCUNHO); } catch (e) {}
+  }
+
+  function restaurarRascunho() {
+    var d;
+    try { d = JSON.parse(localStorage.getItem(RASCUNHO) || 'null'); } catch (e) { return false; }
+    if (!d || (!d.profissao && !d.nome && !d.cidade)) return false;
+
+    state.nicho     = d.nicho || null;
+    state.profissao = d.profissao || '';
+    state.nome      = d.nome || '';
+    state.cidade    = d.cidade || '';
+    state.email     = d.email || '';
+    state.whatsapp  = d.whatsapp || '';
+    state.outras    = (FIELDO.OutrasProfissoes ? FIELDO.OutrasProfissoes.limpar(d.outras) : []);
+    if (state.outras.length && window.__abrirOutrasProf) window.__abrirOutrasProf();
+    var w  = document.getElementById('whatsInput');  if (w) w.value = state.whatsapp;
+
+    var pr = document.getElementById('profInput');   if (pr) pr.value = state.profissao;
+    var n  = document.getElementById('nomeInput');   if (n) n.value = state.nome;
+    var c  = document.getElementById('cidadeInput'); if (c) c.value = state.cidade;
+    var e  = document.getElementById('emailInput');  if (e) e.value = state.email;
+    return true;
+  }
+
+  /* Sufixo do slug: aleatório, sem relação com o relógio. Ver o
+     comentário longo em criarPerfil. */
+  function sufixoAleatorio() {
+    try {
+      var b = new Uint8Array(3);
+      crypto.getRandomValues(b);
+      return Array.prototype.map.call(b, function (x) {
+        return (x % 36).toString(36);
+      }).join('') + (Math.floor(Math.random() * 36)).toString(36);
+    } catch (e) {
+      return Math.random().toString(36).slice(2, 6);
+    }
+  }
+
+  /* ── v10.6 · FUNIL ───────────────────────────────────────────────
+   * Antes desta versão o funil só era legível por arqueologia em
+   * auth.users — e mal, porque a conta nascia no clique. Agora que ela
+   * nasce no envio, precisamos registrar o topo em outro lugar.
+   *
+   * Sem PII: passo, nicho, origem. Nunca nome, e-mail ou cidade — a
+   * pessoa ainda não concluiu nada e não consentiu com nada. */
+  function marcarFunil(passo) {
+    if (!FIELDO.rest || !FIELDO.rest.postPublic) return;
+    FIELDO.rest.postPublic('/funnel_events', {
+      step:   passo,
+      niche:  state.nicho || null,
+      origem: FIELDO.Origem.valor(),
+    }).catch(function (err) {
+      /* nunca pode atrapalhar quem está se cadastrando */
+      console.error('[onboarding] funil não registrado (cadastro segue):', err);
+    });
+  }
+
+  /* Se já existe sessão completa, não faz sentido reonboardar */
+  if (FIELDO.Auth.isLoggedIn()) {
+    try { localStorage.removeItem('fieldo_cadastro_rascunho'); } catch (e) {}
+    window.location.replace('painel.html');
+    return;
+  }
+
+  /* v10.6 · quem foi interrompido volta de onde parou, em vez de
+     recomeçar na tela de boas-vindas. Só pula direto para o formulário
+     se havia progresso real — um nicho escolhido ou um campo digitado. */
+  var _tinhaRascunho = restaurarRascunho();
+
+  /* ── Navegação entre steps ─────────────────────────────────── */
+  function irStep(n) {
+    ['step1', 'step2', 'step3', 'step4'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('active', id === 'step' + n);
+    });
+    /* v12.19e · as bolinhas ficavam sempre na primeira */
+    var etapa = n >= 4 ? 2 : (n >= 3 ? 1 : 0);
+    [0, 1, 2].forEach(function (i) {
+      var d = document.getElementById('dot' + i);
+      if (d) { d.classList.toggle('active', i === etapa); d.classList.toggle('done', i < etapa); }
+    });
+    window.scrollTo(0, 0);
+  }
+  window.irStep = irStep;
+
+  function busy(btn, on, label) {
+    if (!btn) return;
+    btn.disabled = on;
+    btn.dataset.label = btn.dataset.label || btn.innerHTML;
+    btn.innerHTML = on ? (label || 'Aguarde…') : btn.dataset.label;
+  }
+
+  function toast(msg) {
+    if (FIELDO.UI && FIELDO.UI.toast) return FIELDO.UI.toast(msg);
+    alert(msg);
+  }
+
+
+  /* Mensagem genérica esconde a causa e trava o diagnóstico em campo,
+     onde não há DevTools. Cada falha aqui tem uma ação concreta. */
+  function explicarErro(err) {
+    /* v12.19e · sem "Config:", "Supabase" ou "anon key" para quem está se
+       cadastrando: o detalhe técnico vai para o console. */
+    var code = String((err && (err.code || err.message)) || '');
+    if (navigator.onLine === false || /Failed to fetch|NetworkError|Load failed|abort|timeout/i.test(code)) {
+      return 'Sem conexão com a internet agora. Seus dados ficaram guardados neste celular: toque em "Criar meu perfil" de novo quando o sinal voltar.';
+    }
+    if (/over_request_rate_limit|rate limit|429/i.test(code)) {
+      return 'Muitas tentativas seguidas. Espere um minuto e toque de novo.';
+    }
+    if (/crypto_indisponivel/.test(code)) {
+      return 'Este navegador não conseguiu criar sua conta com segurança. Abra fieldo-zelo.com.br no Chrome ou no Safari e tente de novo.';
+    }
+    return 'Não deu para criar seu perfil agora. Seus dados ficaram guardados: toque em "Criar meu perfil" de novo.';
+  }
+
+  /* ── Passo 1: só abre o formulário ──────────────────────────
+   *
+   * v10.6 · A CONTA NÃO NASCE MAIS AQUI.
+   *
+   * Este botão chamava Session.ensure(), que cria um usuário real em
+   * auth.users antes da pessoa digitar qualquer coisa. Duas consequências
+   * que a auditoria de 22/08 mediu:
+   *
+   *   · Qualquer robô que clicasse no botão principal virava uma linha em
+   *     auth.users. Em 19/08 nasceram três contas anônimas às 12:01,
+   *     12:02 e 12:02 — dois minutos, três contas, nenhuma voltou.
+   *   · A métrica ficava impossível de ler: "conta sem perfil" misturava
+   *     quem desistiu com quem nem era gente.
+   *
+   * `criarPerfil()` já chama `Session.ensure()` antes de tudo, então a
+   * conta continua existindo na hora certa — no envio. Aqui só abrimos o
+   * formulário, que é instantâneo e não precisa de rede.
+   *
+   * O erro de signInAnonymously, que era tratado neste botão, agora
+   * aparece no botão de criar perfil — que é onde a chamada acontece. O
+   * catch de lá já usa explicarErro(). */
+  window.comecar = function () {
+    marcarFunil('form_visto');
+    irStep(3);
+  };
+
+  /* ── Passo 2: recuperação em outro aparelho ────────────────── */
+  var inpRec = document.getElementById('inpRecovery');
+  if (inpRec) {
+    /* Formata em blocos de 4 enquanto digita, sem atrapalhar backspace */
+    inpRec.addEventListener('input', function () {
+      var raw = this.value.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 16);
+      this.value = (raw.match(/.{1,4}/g) || []).join('-');
+    });
+  }
+
+  window.recuperar = function () {
+    var btn  = document.getElementById('btnRecuperar');
+    var code = (inpRec.value || '').replace(/[^0-9A-Z]/gi, '').toUpperCase();
+
+    if (code.length !== 16) return toast('O código tem 16 caracteres.');
+
+    busy(btn, true, 'Recuperando…');
+    Session.recoverWithCode(code)
+      .then(function () { return FIELDO.Professionals.me(); })
+      .then(function (prof) {
+        if (!prof) throw new Error('perfil_ausente');
+        FIELDO.Auth.setSession(prof);
+        /* v12.46 · quem começou o cadastro e depois entrou pela conta que já
+           tinha deixava o rascunho para trás; ao sair, esta tela abria direto
+           no formulário de cadastro, sem caminho para entrar. */
+        limparRascunho();
+        window.location.replace('painel.html');
+      })
+      .catch(function (err) {
+        busy(btn, false);
+        toast(err && err.message === 'perfil_ausente'
+          ? 'Código válido, mas sem perfil vinculado. Fale com a gente no WhatsApp.'
+          : (navigator.onLine === false ? 'Sem internet. Confira o sinal e tente de novo.'
+              : 'Código não encontrado. Confira os 16 caracteres.'));
+        console.error('[onboarding] recover', err);
+      });
+  };
+
+  /* ── v12.12 · TESTE: entrar com e-mail e senha ─────────────── */
+  window.entrarEmail = function () {
+    var btn = document.getElementById('btnEntrarEmail');
+    var email = (document.getElementById('loginEmail').value || '').trim();
+    var senha = document.getElementById('loginSenha').value || '';
+    if (!email || !senha) return toast('Preencha e-mail e senha.');
+    busy(btn, true, 'Entrando…');
+    Session.loginEmailSenha(email, senha)
+      .then(function () { return FIELDO.Professionals.me(); })
+      .then(function (prof) {
+        if (!prof) throw new Error('perfil_ausente');
+        FIELDO.Auth.setSession(prof);
+        /* v12.46 · quem começou o cadastro e depois entrou pela conta que já
+           tinha deixava o rascunho para trás; ao sair, esta tela abria direto
+           no formulário de cadastro, sem caminho para entrar. */
+        limparRascunho();
+        window.location.replace('painel.html');
+      })
+      .catch(function (err) {
+        busy(btn, false);
+        var m = String(err && (err.code || err.message) || '');
+        toast(m === 'perfil_ausente' ? 'Entrou, mas não achamos um perfil nesta conta.'
+          : /invalid_credentials|Invalid login/i.test(m) ? 'E-mail ou senha não conferem.'
+          : /not.confirmed/i.test(m) ? 'Este e-mail ainda não foi confirmado.'
+          : 'Não foi possível entrar agora. Confira a internet e tente de novo.');
+        console.error('[onboarding] login e-mail', err);
+      });
+  };
+  ['loginEmail', 'loginSenha'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', function (e) { if (e.key === 'Enter') window.entrarEmail(); });
+  });
+
+  /* Depois do perfil criado: grava e-mail e senha na conta */
+  function liberarSaida() {
+    ['btnPrimeiro', 'btnDash'].forEach(function (id) { var b = document.getElementById(id); if (b) b.disabled = false; });
+  }
+  function mostrarCodigoReserva() {
+    document.getElementById('blocoCodigo').style.display = '';
+    document.getElementById('blocoSalvou').style.display = 'flex';
+  }
+  window.usarCodigo = function () {
+    document.getElementById('blocoAcesso').style.display = 'none';
+    mostrarCodigoReserva();
+  };
+  window.salvarAcesso = function () {
+    var btn = document.getElementById('btnSalvarAcesso');
+    var err = document.getElementById('acessoErro');
+    var email = (document.getElementById('acessoEmail').value || '').trim();
+    var senha = document.getElementById('acessoSenha').value || '';
+    err.textContent = ''; err.style.display = 'none';
+    function erro(t) { err.textContent = t; err.style.display = 'block'; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return erro('Confira o e-mail.');
+    if (senha.length < 8) return erro('A senha precisa ter pelo menos 8 caracteres.');
+    busy(btn, true, 'Salvando…');
+    Session.definirAcesso(email, senha)
+      .then(function () {
+        busy(btn, false);
+        document.getElementById('blocoAcesso').innerHTML =
+          '<div class="callout-label">Acesso criado</div>' +
+          '<p style="font-size:.85rem;line-height:1.6;margin:.3rem 0 0">Você entra com <strong>' + escapar(email) + '</strong> e a senha que acabou de criar.</p>';
+        liberarSaida();
+      })
+      .catch(function (e) {
+        busy(btn, false);
+        var c = e && e.code;
+        if (c === 'email_em_uso') return erro('Este e-mail já está em outra conta do Fieldo.');
+        if (c === 'email_invalido') return erro('Confira o e-mail.');
+        if (c === 'senha_curta' || c === 'senha_fraca') return erro('Escolha uma senha mais forte, com pelo menos 8 caracteres.');
+        /* Servidor fora: não deixa a pessoa sem saída — mostra o código */
+        erro('Não deu para salvar o acesso agora. Guarde o código abaixo; depois crie o e-mail e senha em Configurações.');
+        mostrarCodigoReserva();
+        console.error('[onboarding] definir acesso', e);
+      });
+  };
+
+  /* ── Passo 3: perfil ───────────────────────────────────────── */
+  function atualizarBotao() {
+    var b = document.getElementById('btnCriarPerfil');
+    /* v8.8: o nome entrou como obrigatório. Sem ele o cadastro fabricava
+       "<especialidade> · <cidade>" e o cliente recebia orçamento assinado
+       por "Elétrica · Caraguatatuba". */
+    /* v10.7 · exige a profissão DIGITADA, não a categoria escolhida.
+       O nicho é derivado dela e nunca fica vazio (cai em 'outro'), então
+       validar o nicho não validava nada. */
+    /* v12.19e · O BOTÃO NÃO DESABILITA MAIS.
+       Ficava desabilitado até os três campos estarem certos — mas com a
+       mesma cor de habilitado. A pessoa tocava e nada acontecia, sem
+       dizer o que faltava (auditoria de 30/10: 16 viram o formulário em
+       30 dias, 8 enviaram). Agora o toque sempre responde: cria o perfil
+       ou mostra o que falta e leva o cursor até lá. */
+    if (b && !b.dataset.ocupado) b.disabled = false;
+    if (faltando().length === 0) mostrarFalta(null);
+  }
+
+  function faltando() {
+    var f = [];
+    if ((state.profissao || '').length < 3) f.push({ id: 'profInput', txt: 'sua profissão' });
+    if (state.nome.length < 2) f.push({ id: 'nomeInput', txt: 'seu nome' });
+    /* mesma regra do botão "Chamar no WhatsApp" do perfil (UI.waNumero):
+       se lá o número não vira link, aqui ele não passa. */
+    var wd = String(state.whatsapp || '').replace(/\D/g, '');
+    var waOk = (window.FIELDO && FIELDO.UI && FIELDO.UI.waNumero)
+      ? !!FIELDO.UI.waNumero(state.whatsapp)
+      : (wd.replace(/^0+/, '').length >= 10 && wd.length <= 13);
+    if (!waOk) f.push({ id: 'whatsInput', txt: wd ? 'o WhatsApp completo, com DDD' : 'seu WhatsApp' });
+    if (state.cidade.length < 3) f.push({ id: 'cidadeInput', txt: 'sua cidade' });
+    /* v12.36 · sem o aceite marcado não cria conta */
+    var ac = document.getElementById('chkAceite');
+    if (ac && !ac.checked) f.push({ id: 'chkAceite', txt: 'marcar que tem 18 anos ou mais e aceita os Termos e a Política' });
+    return f;
+  }
+  function mostrarFalta(lista, html) {
+    var el = document.getElementById('perfilError');
+    if (!el) return;
+    if (!lista && !html) { el.classList.remove('visible'); el.innerHTML = ''; return; }
+    var t = (lista || []).map(function (x) { return x.txt; });
+    var frase = t.length > 1 ? t.slice(0, -1).join(', ') + ' e ' + t[t.length - 1] : (t[0] || '');
+    el.innerHTML = html || ('Falta ' + frase + '.');
+    el.classList.add('visible');
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     v10.7 · BUSCA DE PROFISSÃO
+     ══════════════════════════════════════════════════════════════
+     O dicionário mapeia o que a PESSOA diz para a chave que o SISTEMA
+     usa. Os dois lados importam e são diferentes:
+
+       · `profissao` (o que ela digitou) vai pro título do Google, pro
+         orçamento e pro relatório. "Eletricista", não "Elétrica".
+       · `niche` (a chave) agrupa a busca por categoria, alimenta o
+         explorar e as páginas /eletricista-em-<cidade>.
+
+     Uma profissão fora da lista não é erro: fica como texto livre com
+     niche 'outro'. Metade dos cadastros reais de Caraguatatuba é
+     jardineiro, piscineiro, paisagista e acabamento — gente que a
+     grade de 8 categorias mandava pra "Outro" e apagava o ofício. */
+  var OFICIOS = [
+    ['Eletricista', 'eletrica'], ['Eletricista predial', 'eletrica'],
+    ['Instalador de energia solar', 'eletrica'], ['Automação residencial', 'eletrica'],
+    ['Encanador', 'hidraulica'], ['Bombeiro hidráulico', 'hidraulica'],
+    ['Desentupidor', 'hidraulica'], ['Caça-vazamento', 'hidraulica'],
+    ['Pintor', 'pintura'], ['Pintor residencial', 'pintura'],
+    ['Aplicador de textura e grafiato', 'pintura'], ['Marmorato', 'pintura'],
+    ['Técnico em ar-condicionado', 'ar-condicionado'],
+    ['Técnico em refrigeração', 'ar-condicionado'], ['Instalador de split', 'ar-condicionado'],
+    ['Pedreiro', 'alvenaria'], ['Azulejista', 'alvenaria'],
+    ['Aplicador de porcelanato', 'alvenaria'], ['Reformas em geral', 'alvenaria'],
+    ['Gesseiro', 'alvenaria'], ['Drywall', 'alvenaria'], ['Telhadista', 'alvenaria'],
+    ['Técnico de informática', 'informatica'], ['Instalador de redes', 'informatica'],
+    ['Instalador de câmeras (CFTV)', 'informatica'],
+    ['Serralheiro', 'serralheria'], ['Soldador', 'serralheria'],
+    ['Instalador de portões', 'serralheria'],
+    /* Os que a grade antiga jogava em "Outro" — e que são, na base
+       real, boa parte de quem se cadastra. */
+    ['Jardineiro', 'outro'], ['Piscineiro', 'outro'], ['Paisagista', 'outro'],
+    ['Marceneiro', 'outro'], ['Montador de móveis', 'outro'], ['Vidraceiro', 'outro'],
+    ['Chaveiro', 'outro'], ['Tapeceiro', 'outro'], ['Dedetizador', 'outro'],
+    ['Limpeza e higienização', 'outro'], ['Diarista', 'outro'], ['Zelador', 'outro'],
+    ['Locação de equipamentos', 'outro'], ['Serviços gerais', 'outro'],
+  ];
+
+  /* Palavras que a pessoa pode digitar e não são o nome do ofício —
+     o termo da categoria, o jeito de falar dela, erro comum. */
+  var SINONIMOS = {
+    'eletrica': 'eletrica', 'eletrico': 'eletrica', 'eletricidade': 'eletrica',
+    'hidraulica': 'hidraulica', 'encanamento': 'hidraulica', 'encanacao': 'hidraulica',
+    'pintura': 'pintura', 'grafiato': 'pintura', 'textura': 'pintura',
+    'ar condicionado': 'ar-condicionado', 'refrigeracao': 'ar-condicionado',
+    'climatizacao': 'ar-condicionado', 'split': 'ar-condicionado',
+    'alvenaria': 'alvenaria', 'obra': 'alvenaria', 'reforma': 'alvenaria',
+    'construcao': 'alvenaria', 'acabamento': 'alvenaria', 'porcelanato': 'alvenaria',
+    'informatica': 'informatica', 'computador': 'informatica', 'redes': 'informatica',
+    'cftv': 'informatica', 'camera': 'informatica',
+    'serralheria': 'serralheria', 'solda': 'serralheria', 'portao': 'serralheria',
+    'jardim': 'outro', 'piscina': 'outro', 'limpeza': 'outro',
+  };
+
+  var CAT_ROTULO = {
+    eletrica: 'Elétrica', hidraulica: 'Hidráulica', pintura: 'Pintura',
+    'ar-condicionado': 'Ar-condicionado', alvenaria: 'Alvenaria',
+    informatica: 'Informática', serralheria: 'Serralheria', outro: 'Outro',
+  };
+
+  var COMUNS = ['Eletricista', 'Pedreiro', 'Pintor', 'Encanador', 'Jardineiro'];
+
+  function normal(t) {
+    return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  /* Deduz a categoria a partir do texto livre. Não é adivinhação
+     silenciosa: o resultado aparece na tela ("Categoria: Elétrica"),
+     porque quem digita tem o direito de ver onde vai parar. */
+  /* v12.9 · a dedução passou para FIELDO.Profissoes (69 profissões, a
+     mesma lista do Novo serviço e do perfil). O que não está na lista
+     ganha categoria com o nome digitado — não cai mais em 'outro'.
+     O código antigo abaixo fica só como reserva se o db.js faltar. */
+  function deduzirNicho(texto) {
+    if (window.FIELDO && FIELDO.Profissoes) return FIELDO.Profissoes.nicho(texto);
+    var t = normal(texto);
+    if (!t) return null;
+    for (var i = 0; i < OFICIOS.length; i++) {
+      if (normal(OFICIOS[i][0]) === t) return OFICIOS[i][1];
+    }
+    if (SINONIMOS[t]) return SINONIMOS[t];
+    for (var k in SINONIMOS) {
+      if (Object.prototype.hasOwnProperty.call(SINONIMOS, k) && t.indexOf(k) !== -1) return SINONIMOS[k];
+    }
+    for (var j = 0; j < OFICIOS.length; j++) {
+      var n = normal(OFICIOS[j][0]);
+      if (t.indexOf(n) !== -1 || n.indexOf(t) === 0) return OFICIOS[j][1];
+    }
+    return 'outro';
+  }
+
+  var elProf = document.getElementById('profInput');
+  var elSug  = document.getElementById('profSugestoes');
+  var elCat  = document.getElementById('catDetectada');
+  var _sugAtiva = -1;
+
+  function mostrarCategoria() {
+    if (!elCat) return;
+    elCat.textContent = (state.profissao && state.nicho)
+      ? 'Aparece na busca como: ' + ((window.FIELDO && FIELDO.Profissoes) ? FIELDO.Profissoes.rotulo(state.nicho) : (CAT_ROTULO[state.nicho] || 'Outro'))
+      : '';
+  }
+
+  function fecharSugestoes() {
+    if (!elSug) return;
+    elSug.classList.remove('aberta');
+    elSug.innerHTML = '';
+    _sugAtiva = -1;
+    if (elProf) elProf.setAttribute('aria-expanded', 'false');
+  }
+
+  function escapar(t) {
+    return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function abrirSugestoes(termo) {
+    if (!elSug) return;
+    var t = normal(termo);
+    if (t.length < 2) return fecharSugestoes();
+
+    var achados = (window.FIELDO && FIELDO.Profissoes)
+      ? FIELDO.Profissoes.buscar(termo, 6).map(function (p) { return [p.label, p.key]; })
+      : OFICIOS.filter(function (o) { return normal(o[0]).indexOf(t) !== -1; })
+      /* quem começa com o que foi digitado vem primeiro */
+      .sort(function (a, b) {
+        var ia = normal(a[0]).indexOf(t), ib = normal(b[0]).indexOf(t);
+        return ia - ib || a[0].length - b[0].length;
+      })
+      .slice(0, 6);
+
+    if (!achados.length) return fecharSugestoes();
+
+    elSug.innerHTML = achados.map(function (o, i) {
+      var pos = normal(o[0]).indexOf(t);
+      var marcado = pos === -1 ? escapar(o[0])
+        : escapar(o[0].slice(0, pos)) + '<em>' + escapar(o[0].slice(pos, pos + t.length)) +
+          '</em>' + escapar(o[0].slice(pos + t.length));
+      return '<li class="sug-item" role="option" aria-selected="false" data-i="' + i +
+             '" data-nome="' + escapar(o[0]) + '" data-nicho="' + o[1] + '">' +
+             '<span>' + marcado + '</span>' +
+             '</li>';
+    }).join('');
+    elSug.classList.add('aberta');
+    elProf.setAttribute('aria-expanded', 'true');
+    _sugAtiva = -1;
+  }
+
+  function escolher(nome, nicho) {
+    state.profissao = nome;
+    state.nicho = nicho || deduzirNicho(nome);
+    if (elProf) elProf.value = nome;
+    fecharSugestoes();
+    mostrarCategoria();
+    atualizarBotao();
+    salvarRascunho();
+  }
+  window.escolherOficio = escolher;
+
+  if (elProf) {
+    elProf.addEventListener('input', function () {
+      state.profissao = this.value.trim();
+      state.nicho = deduzirNicho(state.profissao);
+      abrirSugestoes(this.value);
+      mostrarCategoria();
+      atualizarBotao();
+      salvarRascunho();
+    });
+
+    /* Teclado: seta pra navegar, Enter pra escolher, Esc pra fechar.
+       Sem isso a lista existe só pro dedo, e quem usa teclado fica
+       preso numa caixa que abre e não responde. */
+    elProf.addEventListener('keydown', function (ev) {
+      var itens = elSug ? elSug.querySelectorAll('.sug-item') : [];
+      if (!itens.length) return;
+      if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        _sugAtiva += (ev.key === 'ArrowDown' ? 1 : -1);
+        if (_sugAtiva < 0) _sugAtiva = itens.length - 1;
+        if (_sugAtiva >= itens.length) _sugAtiva = 0;
+        Array.prototype.forEach.call(itens, function (el, i) {
+          el.classList.toggle('ativo', i === _sugAtiva);
+          el.setAttribute('aria-selected', i === _sugAtiva ? 'true' : 'false');
+        });
+      } else if (ev.key === 'Enter' && _sugAtiva >= 0) {
+        ev.preventDefault();
+        var alvo = itens[_sugAtiva];
+        escolher(alvo.dataset.nome, alvo.dataset.nicho);
+      } else if (ev.key === 'Escape') {
+        fecharSugestoes();
+      }
+    });
+
+    elProf.addEventListener('blur', function () {
+      /* atraso pra não fechar antes do clique na sugestão registrar */
+      setTimeout(fecharSugestoes, 160);
+    });
+  }
+
+  if (elSug) elSug.addEventListener('mousedown', function (ev) {
+    var li = ev.target.closest ? ev.target.closest('.sug-item') : null;
+    if (!li) return;
+    ev.preventDefault();
+    escolher(li.dataset.nome, li.dataset.nicho);
+  });
+
+  var elComuns = document.getElementById('sugComuns');
+  if (elComuns) {
+    elComuns.innerHTML = COMUNS.map(function (n) {
+      return '<button type="button" data-nome="' + escapar(n) + '">' + escapar(n) + '</button>';
+    }).join('');
+    elComuns.addEventListener('click', function (ev) {
+      var b = ev.target.closest ? ev.target.closest('button') : null;
+      if (b) escolher(b.dataset.nome, null);
+    });
+  }
+
+  /* v12.25 · outras profissões (FIELDO.OutrasProfissoes, em db.js) */
+  (function () {
+    var btn = document.getElementById('btnOutrasProf'), box = document.getElementById('outrasProfBox');
+    var alvo = document.getElementById('outrasProf'), ctl = null;
+    if (!btn || !box || !alvo || !FIELDO.OutrasProfissoes) { if (btn) btn.hidden = true; return; }
+    function abrir(focar) {
+      if (!ctl) {
+        ctl = FIELDO.OutrasProfissoes.montar(alvo, {
+          id: 'outrasProf', classe: 'field-input', valor: state.outras,
+          principal: function () { return state.nicho; },
+          aoMudar: function (l) { state.outras = l; salvarRascunho(); },
+        });
+      }
+      box.hidden = false; btn.hidden = true; btn.setAttribute('aria-expanded', 'true');
+      if (focar) { var i = document.getElementById('outrasProfInput'); if (i) i.focus(); }
+    }
+    window.__abrirOutrasProf = function () { abrir(false); };
+    btn.addEventListener('click', function () { abrir(true); });
+    if (state.outras.length) abrir(false);
+  })();
+
+  var inpNome = document.getElementById('nomeInput');
+  if (inpNome) inpNome.addEventListener('input', function () {
+    state.nome = this.value.trim();
+    atualizarBotao();
+    salvarRascunho();
+  });
+
+  var inpWhats = document.getElementById('whatsInput');
+  if (inpWhats) inpWhats.addEventListener('input', function () {
+    state.whatsapp = this.value.trim();
+    atualizarBotao();
+    salvarRascunho();
+  });
+
+  var inpCidade = document.getElementById('cidadeInput');
+  if (inpCidade) inpCidade.addEventListener('input', function () {
+    state.cidade = this.value.trim();
+    atualizarBotao();
+    salvarRascunho();
+  });
+
+  var _leadCapturado = ''; /* v7.6: evita reinserir o mesmo e-mail a cada blur */
+  function capturarLead() {
+    /* v12.36 · desligada: ver o comentário onde ficava o campo de e-mail. */
+    return;
+    var el = document.getElementById('emailInput');
+    var val = (el.value || '').trim();
+    state.email = val;
+    salvarRascunho();
+    /* validação bem simples de propósito — não é a validação que vale,
+       é só filtrar "digitou alguma coisa que parece e-mail" antes de
+       gastar uma requisição */
+    if (!val || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) return;
+    if (val === _leadCapturado) return;
+    _leadCapturado = val;
+    FIELDO.rest.postPublic('/signup_leads', {
+      email: val,
+      niche: state.nicho || null,
+      city:  state.cidade || null,
+      /* v9.4: de onde essa pessoa veio. Sem isto, o lead do anúncio
+         pago e o lead do rodapé do relatório são a mesma linha. */
+      origem: FIELDO.Origem.valor(),
+    }).catch(function (err) {
+      /* v8.8: deixou de ser silencioso. Continua SEM atrapalhar o cadastro —
+         capturar lead nunca pode travar quem está se inscrevendo — mas o erro
+         vai pro console. O catch mudo de antes esconderia uma policy errada
+         ou um grant faltando para sempre: signup_leads ficaria em zero e
+         pareceria "ninguém digitou e-mail". Foi essa leitura errada que o
+         bug do onblur já custou uma vez. */
+      console.error('[onboarding] falha ao gravar lead (o cadastro segue normal):', err);
+    });
+  }
+  /* O onblur inline do #emailInput (linha ~495) resolve no escopo GLOBAL, e
+     esta função vive dentro do IIFE — sem esta linha era ReferenceError a cada
+     blur e a captura de lead nunca rodou (signup_leads ficou com 0 linhas).
+     Mesmo padrão já usado por window.criarPerfil logo abaixo. */
+  window.capturarLead = capturarLead;
+
+  function slugify(s) {
+    return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  /* v12.19e · a base do endereço do perfil sai da PROFISSÃO que a pessoa
+     escreveu, não da chave da categoria. Com a chave, quem não estava na
+     lista virava /p/outro-caraguatatuba-x7k2 (5 perfis assim em 30/10) e
+     o pintor virava "pintura-…". Até 4 palavras e 32 letras, sem a
+     cidade (que já vem depois) e sem "de/e/em" sobrando no fim:
+       "Higienização de Estofados e Automotiva em Caraguatatuba"
+         → higienizacao-de-estofados
+       "Eletricista Residencial e Comercial" → eletricista-residencial */
+  function baseDoEndereco(profissao, cidade, nicho) {
+    var daCidade = slugify(cidade || '').split('-');
+    var palavras = slugify(profissao || '').split('-').filter(function (w) { return w && daCidade.indexOf(w) < 0; });
+    var SOLTAS = { e: 1, em: 1, de: 1, da: 1, do: 1, das: 1, dos: 1, para: 1, a: 1, o: 1, no: 1, na: 1 };
+    var out = [];
+    for (var i = 0; i < palavras.length && out.length < 4; i++) {
+      if (out.concat(palavras[i]).join('-').length > 32) break;
+      out.push(palavras[i]);
+    }
+    while (out.length && SOLTAS[out[out.length - 1]]) out.pop();
+    return out.join('-') || (nicho && nicho !== 'outro' ? slugify(nicho) : '') || 'servicos';
+  }
+  window.__baseDoEndereco = baseDoEndereco;   /* usado pelos testes */
+
+  window.criarPerfil = function () {
+    var btn = document.getElementById('btnCriarPerfil');
+    if (btn && btn.dataset.ocupado) return;           /* toque duplo */
+    var falta = faltando();
+    if (falta.length) {
+      mostrarFalta(falta);
+      var alvo = document.getElementById(falta[0].id);
+      if (alvo) { alvo.focus(); alvo.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      return;
+    }
+    mostrarFalta(null);
+
+    /* v10.7 · a profissão é o que a PESSOA escreveu.
+       Era `LABELS[state.nicho]`, ou seja, a categoria: quem é
+       eletricista virava "Elétrica" no título do Google, no orçamento e
+       no relatório — e o Marcelo teve que corrigir à mão depois. */
+    var profissao   = state.profissao.trim();
+    var cidadeCurta = state.cidade.split(/[–\-,]/)[0].trim();
+
+    /* Gerado no dispositivo. Desde a v6.5 o servidor realmente não vê
+       o código: guarda o SHA-256 dele no e-mail sintético e o bcrypt
+       como senha — nenhum dos dois reversível. Até a v6.4 o e-mail
+       era `fd-<codigo>@...`, ou seja, o código em texto claro no banco.
+       ele só recebe o e-mail sintético derivado e o hash da senha. */
+    var code = Session.generateRecoveryCode();
+    state.code = code;
+    /* v5.4: guarda localmente para o Perfil poder reexibir. Fica só
+       neste aparelho. O servidor só conhece o hash. */
+    try { localStorage.setItem('fieldo_recovery_code', code); } catch (e) {}
+
+    busy(btn, true, 'Criando perfil…');
+    if (btn) btn.dataset.ocupado = '1';
+    marcarFunil('form_enviado');
+
+    /* v10.6 · A ORDEM MUDOU, E É A CORREÇÃO MAIS IMPORTANTE DESTA TELA.
+     * ────────────────────────────────────────────────────────────────
+     * Era assim:
+     *
+     *     ensure() → attachRecoveryCode() → Professionals.create()
+     *
+     * `attachRecoveryCode` faz PUT /auth/v1/user trocando e-mail E senha.
+     * O GoTrue rotaciona a sessão e revoga os refresh tokens nesse
+     * momento. O insert logo em seguida ia com o token velho, levava 401,
+     * e a retentativa do db.js chamava Session.refresh() — com o refresh
+     * token que acabou de ser revogado. Falhava também.
+     *
+     * A policy não perdoa: prof_insert exige WITH CHECK (id = auth.uid()).
+     * Sem JWT válido não há perfil.
+     *
+     * A auditoria de 22/08 encontrou 5 contas exatamente nesse estado:
+     * e-mail sintético gravado (logo, o PUT funcionou), perfil nenhum, e
+     * uma delas com ZERO sessões em auth.sessions. Eram 5 de 21 do
+     * "gargalo do cadastro" — um quarto da perda não era desistência,
+     * era esta linha na ordem errada. Essas pessoas preencheram tudo e
+     * receberam "Não conseguimos criar seu perfil agora".
+     *
+     * Agora o perfil vem primeiro. Se o código de recuperação falhar
+     * depois, a pessoa TEM perfil e pega outro código nas configurações.
+     * O inverso não tinha conserto.
+     *
+     * ── mas o e-mail sintético é derivado ANTES de tudo ──
+     * A v6.5 falhava de propósito antes de criar o perfil quando
+     * `crypto.subtle` não existe (http comum), para ninguém ficar com
+     * conta sem recuperação possível e só descobrir ao trocar de
+     * celular. Essa proteção continua: `recoveryEmailFor` é a metade que
+     * depende do crypto, e roda primeiro. Se ela falhar, nada foi
+     * criado. O PUT — a metade que derruba a sessão — é que foi para o
+     * fim. */
+    Session.ensure()
+      .then(function () { return Session.recoveryEmailFor(code); })
+      .then(function (emailRecuperacao) {
+        state.emailRecuperacao = emailRecuperacao;
+        return FIELDO.Professionals.create({
+          /* v8.8: o NOME que a pessoa digitou. Antes era
+             `profissao + ' · ' + cidadeCurta`, e o profissional aparecia
+             como "Elétrica · Caraguatatuba" no orçamento do cliente. Quem
+             se incomodava ia no perfil consertar à mão, cada um de um
+             jeito — e alguns despejaram nome+profissão+cidade no campo
+             Especialidade, que é o que faz o cabeçalho repetir tudo. */
+          name:      state.nome,
+          profissao: profissao,
+          niche:     state.nicho || null, /* v7.3: chave estável do nicho — profissao é texto livre editável, isso não é */
+          city:      state.cidade,
+          whatsapp:  state.whatsapp || null,   /* v12.19e */
+          /* v12.25 · só vai quando tem: perfil de uma profissão só grava igual a antes */
+          outras_profissoes: state.outras && state.outras.length ? state.outras : undefined,
+          email:     null, /* v12.36 · o cadastro não pede mais e-mail (LGPD: coletar só o que usa). Antes: state.email, vindo do campo opcional. */
+          /* v10.6 · sufixo ALEATÓRIO, não derivado do relógio.
+             Era `Date.now().toString(36).slice(-4)`: quatro dígitos
+             base36 do relógio em ms voltam ao mesmo valor a cada
+             36^4 ms = 27,99 minutos. Como professionals.slug é UNIQUE,
+             dois eletricistas de Caraguatatuba cadastrando com 28
+             minutos (ou 56, ou 84) de diferença colidiam, e o segundo
+             levava 409 — com o mesmo sintoma de "cadastro falhou no
+             último clique".
+             Improvável com 25 cadastros; provável exatamente quando o
+             produto crescer, porque depende de gente do MESMO nicho na
+             MESMA cidade. */
+          /* v10.7 · o slug usa a CHAVE do nicho, não o texto livre.
+             "Aplicador de textura e grafiato" viraria uma URL de 40
+             caracteres; "pintura-caraguatatuba-x7k2" é o que o cliente
+             lê e o que casa com /pintor-em-caraguatatuba. */
+          slug:      slugify(baseDoEndereco(profissao, cidadeCurta, state.nicho) + '-' + cidadeCurta + '-' + sufixoAleatorio()),
+          is_public: false, /* entra no marketplace após 3 serviços */
+          /* v9.4: PRIMEIRO toque, capturado no boot de db.js. A v9.1
+             pôs ?de=relatorio no convite dos documentos e nada gravava
+             do outro lado — o parâmetro chegava e caía no chão. */
+          origem:    FIELDO.Origem.valor(),
+        });
+      })
+      .then(function (prof) {
+        /* v10.6 · agora sim o código de recuperação. Se falhar aqui, o
+           perfil já existe: a pessoa entra no app normalmente e pode
+           gerar outro código em Configurações. Por isso o catch é local
+           e não derruba o fluxo. */
+        return Session.attachRecoveryCode(code, state.emailRecuperacao)
+          .catch(function (err) {
+            console.error('[onboarding] perfil criado, código não anexado:', err);
+            state.codigoFalhou = true;
+          })
+          .then(function () { return prof; });
+      })
+      .then(function (prof) {
+        /* v-fase3-instrumentacao · faltava o passo final do funil.
+           marcarFunil já registrava 'form_visto' (clicou em Começar) e
+           'form_enviado' (clicou em Criar meu perfil) — mas nenhum
+           evento marcava que o perfil FOI criado com sucesso. Pra saber
+           isso hoje era preciso olhar direto a tabela de profissionais.
+           Mesma função, mesmo insert-only, mesmo best-effort — só um
+           passo novo na régua. */
+        marcarFunil('cadastro_concluido');
+        /* v12.36 · prova do aceite. Se a rede falhar, fica pendente no
+           aparelho e o db.js reenvia na próxima página com sessão. */
+        try {
+          var L = window.FIELDO_LEGAL || {};
+          FIELDO.Aceite.registrar([
+            { documento: 'termos',      versao: L.termosVersao || '2026-11-11',      origem: 'cadastro_profissional' },
+            { documento: 'privacidade', versao: L.privacidadeVersao || '2026-11-11', origem: 'cadastro_profissional' },
+          ]);
+        } catch (eAc) { console.error('[onboarding] aceite não registrado:', eAc); }
+        limparRascunho();
+        if (btn) delete btn.dataset.ocupado;
+        FIELDO.Auth.setSession(prof);
+        document.getElementById('successName').textContent = prof.name || 'Bem-vindo!';
+        document.getElementById('recoveryCode').textContent =
+          (code.match(/.{1,4}/g) || []).join('-');
+        busy(btn, false);
+        var ae = document.getElementById('acessoEmail'); if (ae && state.email) ae.value = state.email;
+        irStep(4);
+        if (state.codigoFalhou) {
+          toast('Perfil criado. O código de recuperação não foi salvo — gere outro em Configurações.');
+        }
+      })
+      .catch(function (err) {
+        busy(btn, false);
+        if (btn) delete btn.dataset.ocupado;
+        console.error('[onboarding] criarPerfil', err);
+        /* v12.19e · a pessoa via "Falha ao criar perfil: {"code":…}".
+           Agora: o que aconteceu, que os dados estão guardados e o que
+           fazer — no próprio formulário, com saída para o WhatsApp. */
+        var texto = explicarErro(err);
+        mostrarFalta(null, escapar(texto) +
+          ' <a href="https://wa.me/5512988406425?text=' + encodeURIComponent('Não consigo criar meu perfil no Fieldo') +
+          '" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;white-space:nowrap">Falar com a gente</a>');
+        toast(texto);
+      });
+  };
+
+  /* v10.6 · o salto acontece aqui, no fim: `atualizarBotao` e os
+     listeners já existem, então o botão de criar perfil chega ao
+     formulário no estado certo (habilitado se o rascunho já bastava). */
+  if (_tinhaRascunho) {
+    atualizarBotao();
+    irStep(3);
+  }
+
+  /* ── Passo 4: código de recuperação ────────────────────────── */
+  function codigoFormatado() {
+    return (state.code || '').match(/.{1,4}/g).join('-');
+  }
+
+  window.copiarCodigo = function () {
+    var txt = codigoFormatado();
+    (navigator.clipboard
+      ? navigator.clipboard.writeText(txt)
+      : Promise.reject()
+    ).then(function () { toast('Código copiado.'); })
+     .catch(function () { toast('Copie manualmente: ' + txt); });
+  };
+
+  window.baixarCodigo = function () {
+    var conteudo =
+      'FIELDO — CÓDIGO DE RECUPERAÇÃO\n\n' + codigoFormatado() +
+      '\n\nGuarde este arquivo. É a única forma de recuperar seus dados\n' +
+      'em outro aparelho. O Fieldo não mantém cópia deste código.\n\n' +
+      'Gerado em ' + new Date().toLocaleString('pt-BR') + '\n';
+    var blob = new Blob([conteudo], { type: 'text/plain;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'fieldo-codigo-recuperacao.txt';
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  };
+
+  /* Libera os CTAs só depois da confirmação explícita. Fricção
+     deliberada: perder este código é perder a conta. */
+  window.toggleSalvou = function () {
+    var ok = document.getElementById('chkSalvou').checked;
+    ['btnPrimeiro', 'btnDash'].forEach(function (id) {
+      var b = document.getElementById(id);
+      if (b) b.disabled = !ok;
+    });
+  };
+
+  window.irParaServico   = function () { window.location.href = 'servico.html'; };
+  window.irParaDashboard = function () { window.location.href = 'painel.html'; };
+
+  /* ── v12.17 · chegada pela landing ─────────────────────────────
+     A landing deixa a pessoa escolher profissão e cidade e manda para
+     cá com ?criar=1&p=…&c=…. Antes ela caía na tela de boas-vindas,
+     que repetia a promessa da landing e pedia mais um toque ("Começar")
+     — e depois digitava de novo o que já tinha dito. Agora vai direto
+     ao formulário, com os dois campos preenchidos: falta o nome.
+     ?entrar=1 (o link "Entrar" da landing) vai direto ao login. */
+  (function chegada() {
+    var q; try { q = new URLSearchParams(location.search); } catch (e) { return; }
+    if (q.get('entrar')) { irStep(2); return; }
+    if (!q.get('criar')) return;
+    var limpa = function (v) { return String(v || '').replace(/[<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60); };
+    var p = limpa(q.get('p')), c = limpa(q.get('c'));
+    var elP = document.getElementById('profInput'), elC = document.getElementById('cidadeInput');
+    if (p && elP) { elP.value = p; elP.dispatchEvent(new Event('input', { bubbles: true })); }
+    if (c && elC) { elC.value = c; elC.dispatchEvent(new Event('input', { bubbles: true })); }
+    marcarFunil('form_visto');
+    irStep(3);
+    /* Com profissão e cidade já ditas, a tela pergunta o que falta: o
+       nome vai para o topo e os atalhos de profissão saem do caminho. */
+    /* v12.19d · só a profissão veio (sem cidade): a tela abria com
+       "Qual é a sua profissão?", como se a escolha tivesse sido ignorada */
+    if (p && !c) {
+      var st3b = document.getElementById('step3');
+      var titb = st3b && st3b.querySelector('.ob-title');
+      var subb = st3b && st3b.querySelector('.ob-title + .ob-sub');
+      if (titb) titb.innerHTML = 'Quase pronto:<br><em>nome, WhatsApp e cidade</em>';
+      if (subb) subb.textContent = 'A profissão veio da página anterior. Falta o seu nome, o seu WhatsApp e a cidade onde você atende.';
+      var nomeGb = document.getElementById('nomeInput') && document.getElementById('nomeInput').closest('.field-group');
+      var whatsGb = document.getElementById('whatsInput') && document.getElementById('whatsInput').closest('.field-group');
+      var profGb = elP && elP.closest('.field-group');
+      if (nomeGb && profGb && profGb.parentNode) profGb.parentNode.insertBefore(nomeGb, profGb);
+      if (whatsGb && profGb && profGb.parentNode) profGb.parentNode.insertBefore(whatsGb, profGb);
+      var comunsb = document.getElementById('sugComuns'); if (comunsb) comunsb.style.display = 'none';
+    }
+    if (p && c) {
+      var st3 = document.getElementById('step3');
+      var tit = st3 && st3.querySelector('.ob-title');
+      var sub = st3 && st3.querySelector('.ob-title + .ob-sub');
+      if (tit) tit.innerHTML = 'Falta só<br><em>nome e WhatsApp</em>';
+      if (sub) sub.textContent = 'Profissão e cidade vieram da página anterior. Confira e crie seu perfil.';
+      var nomeG = document.getElementById('nomeInput') && document.getElementById('nomeInput').closest('.field-group');
+      var whatsG = document.getElementById('whatsInput') && document.getElementById('whatsInput').closest('.field-group');
+      var profG = elP && elP.closest('.field-group');
+      if (nomeG && profG && profG.parentNode) profG.parentNode.insertBefore(nomeG, profG);
+      if (whatsG && profG && profG.parentNode) profG.parentNode.insertBefore(whatsG, profG);
+      var comuns = document.getElementById('sugComuns'); if (comuns) comuns.style.display = 'none';
+    }
+    /* fecha a lista de sugestões que o input acima abriu */
+    setTimeout(function () {
+      var sug = document.getElementById('profSugestoes');
+      if (sug) { sug.classList.remove('aberta'); sug.innerHTML = ''; }
+      if (elP) elP.setAttribute('aria-expanded', 'false');
+      var foco = !p ? elP : document.getElementById('nomeInput');
+      if (foco) try { foco.focus({ preventScroll: true }); } catch (e) { foco.focus(); }
+    }, 0);
+  })();
+})();
+</script>
+
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

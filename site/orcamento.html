@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+<script src="/app-play.js"></script>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#f5f2ec"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <title>Orçamento · Fieldo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-title" content="Fieldo"/>
+  <style>
+    /* Itens */
+    .items-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.75rem}
+    .item-row{display:grid;grid-template-columns:1fr auto auto;gap:.5rem;align-items:center;background:var(--paper2);border:1px solid var(--border2);border-radius:var(--r);padding:.65rem .85rem}
+    .item-desc{font-size:.85rem;color:var(--text)}
+    .item-val{font-family:var(--mono);font-size:.82rem;color:var(--gold-d);white-space:nowrap}
+    .item-del{width:26px;height:26px;border-radius:6px;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
+    .item-del:hover{border-color:var(--red-bd);color:var(--red);background:var(--red-bg)}
+
+    .add-item-row{display:grid;grid-template-columns:1fr auto 80px;gap:.5rem;align-items:end}
+    @media(max-width:460px){.add-item-row{grid-template-columns:1fr;} }
+
+    /* Atalhos */
+    .atalhos{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem}
+    .atalho{font-family:var(--mono);font-size:.65rem;padding:.3rem .7rem;border-radius:var(--r);background:var(--paper2);border:1px solid var(--border2);color:var(--muted);cursor:pointer;transition:.15s}
+    .atalho:hover{background:var(--paper3);color:var(--text)}
+
+    /* Resumo */
+    .resumo-box{background:var(--paper2);border:1px solid var(--border2);border-radius:var(--r-l);padding:1rem 1.1rem}
+    .resumo-row{display:flex;justify-content:space-between;align-items:center;padding:.35rem 0;border-bottom:1px solid var(--border)}
+    .resumo-row:last-child{border-bottom:none;padding-top:.65rem}
+    .resumo-lbl{font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .resumo-val{font-family:var(--mono);font-size:.82rem;color:var(--text)}
+    .resumo-total .resumo-lbl{font-size:.72rem;font-weight:500;color:var(--ink)}
+    .resumo-total .resumo-val{font-family:var(--serif);font-size:1.25rem;font-weight:300;color:var(--gold-d)}
+
+    /* CTA bar */
+    .cta-bar{position:fixed;bottom:0;left:0;right:0;z-index:150;height:var(--cta-h);background:var(--veu);backdrop-filter:blur(20px);border-top:1px solid var(--border2);display:flex;align-items:center;padding:0 1.25rem;gap:.65rem}
+    .cta-hint{flex:1;min-width:0;font-size:.72rem;line-height:1.3;color:var(--muted);white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical} /* v12.8 · era 1 linha cortada: "Preencha cli…" não dizia o que faltava */
+
+    /* Results overlay */
+    .res-overlay{position:fixed;inset:0;z-index:800;background:rgba(14,14,20,.72);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;padding:1.25rem;animation:fadeIn .25s ease}
+    .res-box{background:var(--paper);border:1px solid var(--border2);border-radius:var(--r-xl);width:100%;max-width:400px;overflow:hidden;position:relative}
+    .res-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold) 35%,var(--gold-l) 65%,transparent)}
+    .res-top{padding:2rem 1.75rem 1.5rem;text-align:center}
+    .res-seal{width:56px;height:56px;border-radius:50%;background:var(--green-bg);border:2px solid var(--green-bd);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.4rem;animation:bounceIn .4s var(--ez) both}
+    @keyframes bounceIn{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+    .res-title{font-family:var(--serif);font-size:1.5rem;font-weight:300;color:var(--ink);margin-bottom:.3rem}
+    .res-title em{font-style:italic;color:var(--gold)}
+    .res-sub{font-size:.8rem;color:var(--muted);line-height:1.65}
+    .res-actions{padding:1.25rem 1.75rem 1.75rem;display:flex;flex-direction:column;gap:.5rem}
+  
+    /* v10.0 · alvo de toque de 44px. Medido nas 22 páginas em 360/390/430 com o overflow-x desligado. */
+    .atalho{min-height:44px;display:inline-flex;align-items:center}
+  
+    /* v10.0 · alvo de toque */
+    .btn,.atalho,button.btn{min-height:44px}
+    .bar .btn{min-height:44px}
+
+    /* v10.24 · "Mais opções" — <details> nativo: sem dependência, sem
+       JS de toggle, funciona offline, e o navegador já cuida de
+       acessibilidade (teclado, leitor de tela) de graça. */
+    .mo-details > summary{ cursor:pointer; list-style:none; min-height:44px; display:flex; align-items:center; }
+    .mo-details > summary::-webkit-details-marker{ display:none }
+    .mo-summary-row{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; width:100%; }
+    .mo-summary-label{ font-family:var(--mono); font-size:.62rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-d); white-space:nowrap; }
+    .mo-summary-label::before{ content:'+ '; }
+    .mo-details[open] .mo-summary-label::before{ content:'− '; }
+    .mo-summary-hint{ font-family:var(--mono); font-size:.58rem; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .mo-body{ display:flex; flex-direction:column; gap:1rem; margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--border2); }
+    @media(max-width:480px){ .mo-summary-hint{ display:none } }
+
+    /* v12.30 · origem do cliente */
+    .orig{border:0;padding:0;margin:0;min-width:0}
+    .orig legend{padding:0;margin-bottom:.45rem}
+    .orig-ops{display:flex;flex-wrap:wrap;gap:.45rem}
+    .orig-op{position:relative;display:inline-flex}
+    .orig-op input{position:absolute;opacity:0;width:1px;height:1px}
+    .orig-op span{display:inline-flex;align-items:center;min-height:44px;padding:0 .95rem;border-radius:999px;border:1px solid var(--border2);background:var(--paper);font-size:.85rem;color:var(--text);cursor:pointer}
+    .orig-op input:checked + span{border-color:var(--gold);background:var(--gold-bg, var(--paper2));color:var(--ink);font-weight:500}
+    .orig-op input:focus-visible + span{outline:2px solid var(--gold);outline-offset:2px}
+    .orig-dica{margin:.45rem 0 0;font-size:.74rem;color:var(--muted);line-height:1.45}
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="painel.html" class="topbar-logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      <span class="topbar-brand">Field<em>o</em></span>
+    </a>
+    <button class="hbg-btn" id="menuBtn" onclick="HBG.toggle()" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="menuDrawer">
+      <span class="hbg-line"></span><span class="hbg-line"></span><span class="hbg-line"></span>
+    </button>
+  </div>
+</header>
+
+<div class="menu-overlay" aria-hidden="true" id="menuOverlay" onclick="HBG.close()"></div>
+<div class="menu-drawer" id="menuDrawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Menu de navegação">
+  <div class="menu-drawer-head">
+    <div class="menu-drawer-brand"><div class="logo-icon" style="width:22px;height:22px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>Field<em>o</em></div>
+    <button class="menu-drawer-close" onclick="HBG.close()" aria-label="Fechar menu">✕</button>
+  </div>
+  <div class="menu-section-lbl">Navegação</div>
+  <nav class="menu-nav" aria-label="Navegação principal">
+    <!-- v12.8 · MESMO menu em todas as páginas logadas. Antes só o
+         painel tinha Configurações, Suporte e Sair: de dentro do
+         orçamento ou do Novo Serviço não havia como sair da conta. -->
+    <a href="/painel.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>Painel</span></a>
+    <a href="/servico.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span>Novo serviço</span></a>
+    <a href="/obra.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></span><span>Obras</span></a>
+    <a href="/orcamento.html" class="menu-nav-item active" aria-current="page"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span>Novo orçamento</span></a>
+    <a href="/assistente.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><span>Assistente Fiel</span></a>
+    <div class="menu-divider"></div>
+    <a href="/meu-perfil.html#editar" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Editar perfil</span></a>
+    <a href="/perfil.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Ver meu perfil público</span></a>
+    <a href="/configuracoes.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span>Configurações</span></a>
+    <a href="/suporte.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><span>Suporte</span></a>
+    <button type="button" class="menu-nav-item" onclick="FIELDO.Nav.confirmLogout()"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span>Sair</span></button>
+  </nav>
+  <div class="menu-drawer-foot">Fieldo · <span id="fieldoVerFoot">v10.0</span></div>
+</div>
+
+<div class="page page--narrow" style="padding-bottom:6rem">
+  <div class="page-eyebrow">Proposta comercial</div>
+  <h1 class="page-title" style="margin-bottom:.4rem">Novo <em>orçamento</em></h1>
+  <p class="page-sub" style="margin-bottom:1.5rem">Crie uma proposta profissional e envie para aprovação pelo WhatsApp.</p>
+
+  <div style="display:flex;flex-direction:column;gap:1rem">
+
+    <!-- Cliente -->
+    <div class="card">
+      <div class="card-title">Cliente</div>
+      <div class="field-group">
+        <label class="field-label">Nome do cliente <span class="required">*</span></label>
+        <input class="field-input" id="fCliente" type="text" placeholder="Ex: Maria Aparecida" oninput="atualizarResumo()"/>
+      </div>
+      <div class="field-group" style="margin-top:.75rem">
+        <label class="field-label">WhatsApp <span style="text-transform:none;letter-spacing:0;color:var(--subtle)">(opcional)</span></label>
+        <input class="field-input" id="fWppCliente" type="tel" placeholder="(11) 99999-9999"/>
+      </div>
+      <!-- v12.30 · auditoria SEO/GEO, Fase 5 (P14): a primeira medida de
+           quantos clientes o perfil e o Google trazem. Opcional; nada
+           marcado = não informado. -->
+      <fieldset class="field-group orig" style="margin-top:.75rem">
+        <legend class="field-label">Como esse cliente chegou até você? <span style="text-transform:none;letter-spacing:0;color:var(--subtle)">(opcional)</span></legend>
+        <div class="orig-ops">
+          <label class="orig-op"><input type="radio" name="fOrigem" value="fieldo"/><span>Pelo Fieldo</span></label>
+          <label class="orig-op"><input type="radio" name="fOrigem" value="indicacao"/><span>Indicação</span></label>
+          <label class="orig-op"><input type="radio" name="fOrigem" value="redes"/><span>Instagram ou Facebook</span></label>
+          <label class="orig-op"><input type="radio" name="fOrigem" value="ja_cliente"/><span>Já era meu cliente</span></label>
+          <label class="orig-op"><input type="radio" name="fOrigem" value="outro"/><span>Outro</span></label>
+        </div>
+        <p class="orig-dica">“Pelo Fieldo” é quem achou seu perfil no Google, no site ou pela mensagem “Vi seu perfil no Fieldo”.</p>
+      </fieldset>
+    </div>
+
+    <!-- Serviço -->
+    <div class="card">
+      <div class="card-title">Serviço</div>
+      <div class="field-group">
+        <label class="field-label">O que você vai fazer?</label>
+        <textarea class="field-textarea" id="fDesc" placeholder="Ex: Instalação de 6 tomadas e troca do quadro elétrico"></textarea>
+      </div>
+    </div>
+
+    <!-- Itens -->
+    <div class="card">
+      <div class="card-title">Itens e valor</div>
+
+      <div class="items-list" id="itemsList"></div>
+
+      <div class="atalhos">
+        <button class="atalho" onclick="addAtalho('Mão de obra','')">+ Mão de obra</button>
+        <button class="atalho" onclick="addAtalho('Material','')">+ Material</button>
+        <button class="atalho" onclick="addAtalho('Deslocamento','')">+ Deslocamento</button>
+      </div>
+
+      <div class="add-item-row">
+        <div class="field-group" style="margin-bottom:0">
+          <input class="field-input" id="newItemDesc" type="text" placeholder="Descrição do item" onkeydown="if(event.key==='Enter')addItem()"/>
+        </div>
+        <div class="field-group" style="margin-bottom:0">
+          <input class="field-input" id="newItemVal" type="number" min="0" step="0.01" placeholder="R$ 0,00" style="width:110px" onkeydown="if(event.key==='Enter')addItem()"/>
+        </div>
+        <button class="btn btn--gold" onclick="addItem()">Adicionar</button>
+      </div>
+    </div>
+
+    <!-- Resumo -->
+    <div class="card">
+      <div class="card-title">Resumo</div>
+      <div class="resumo-box">
+        <div class="resumo-row"><span class="resumo-lbl">Subtotal</span><span class="resumo-val" id="rSubtotal">R$ 0,00</span></div>
+        <div class="resumo-row"><span class="resumo-lbl">Desconto</span><span class="resumo-val" id="rDesconto">—</span></div>
+        <div class="resumo-row resumo-total"><span class="resumo-lbl">Total</span><span class="resumo-val" id="rTotal">R$ 0,00</span></div>
+      </div>
+    </div>
+
+    <!-- v10.24 · Progressive disclosure: nº/data/título/local/desconto/
+         condições/observações continuam existindo — banco, cálculo,
+         documento final e envio usam os mesmos campos de sempre (mesmos
+         ids, mesmas funções). Só saíram da rolagem principal porque
+         nenhum deles é necessário pra gerar um orçamento válido; ficam
+         a um toque de distância pra quem precisar. Ver AUDITORIA-orcamento.md. -->
+    <details class="card mo-details">
+      <summary class="mo-summary-row">
+        <span class="mo-summary-label">Mais opções</span>
+        <span class="mo-summary-hint">título · data · local · desconto · prazo · pagamento · garantia · observações</span>
+      </summary>
+      <div class="mo-body">
+        <div class="fields-row-2">
+          <div class="field-group">
+            <label class="field-label">Nº do orçamento</label>
+            <input class="field-input" id="fNumero" type="text" placeholder="2026-0001" readonly style="cursor:default;opacity:.7"/>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Data de emissão</label>
+            <input class="field-input" id="fData" type="date"/>
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Título da proposta</label>
+          <input class="field-input" id="fTitulo" type="text" placeholder="Ex: Instalação elétrica residencial" oninput="atualizarResumo()"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Local / Cidade</label>
+          <input class="field-input" id="fLocal" type="text" placeholder="Campinas – SP"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Desconto</label>
+          <input class="field-input" id="fDesconto" type="number" min="0" step="0.01" placeholder="R$ 0,00" oninput="calcularTotais()"/>
+        </div>
+        <div class="fields-row-2">
+          <div class="field-group">
+            <label class="field-label">Prazo de execução</label>
+            <input class="field-input" id="fPrazo" type="text" placeholder="Ex: 3 dias úteis"/>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Validade da proposta</label>
+            <input class="field-input" id="fValidade" type="text" placeholder="Ex: 7 dias"/>
+          </div>
+        </div>
+        <div class="fields-row-2">
+          <div class="field-group">
+            <label class="field-label">Forma de pagamento</label>
+            <input class="field-input" id="fPagamento" type="text" placeholder="Ex: Pix à vista"/>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Garantia</label>
+            <input class="field-input" id="fGarantia" type="text" placeholder="Ex: 90 dias"/>
+          </div>
+        </div>
+        <div class="field-group" style="margin-bottom:0">
+          <label class="field-label">Observações</label>
+          <textarea class="field-textarea" id="fObs" placeholder="Informações adicionais…" style="min-height:70px"></textarea>
+        </div>
+      </div>
+    </details>
+
+  </div>
+</div>
+
+<!-- CTA BAR -->
+<div class="cta-bar">
+  <div class="cta-hint" id="ctaHint">Falta: cliente e um item</div>
+  <a href="painel.html" class="btn btn--ghost btn--sm">Cancelar</a>
+  <button class="btn btn--primary" id="btnGerar" onclick="gerarOrcamento()">
+    Gerar orçamento
+    <span class="btn__spin" id="spinGerar"></span>
+  </button>
+</div>
+
+<!-- RESULTS OVERLAY -->
+<div class="res-overlay" id="resOverlay" style="display:none">
+  <div class="res-box">
+    <div class="res-top">
+      <div class="res-seal">📋</div>
+      <div class="res-title">Orçamento <em>gerado</em></div>
+      <p class="res-sub" id="resSub">Pronto para enviar para aprovação</p>
+    </div>
+    <div class="res-actions">
+      <button class="btn-action btn-action--wa" id="btnWA" onclick="enviarWA()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.98 9.98 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.114.552 4.1 1.522 5.832L0 24l6.337-1.51A11.956 11.956 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+        Enviar pelo WhatsApp
+      </button>
+      <button class="btn-action btn-action--gold" onclick="baixarPDF()" id="btnBaixarPDF">📄 Baixar PDF</button>
+      <button class="btn-action btn-action--gold" onclick="baixarHTML()">Baixar HTML</button>
+      <button class="btn-action btn-action--gold" onclick="abrirHTML()">Pré-visualizar</button>
+      <button class="btn-action btn-action--sec" onclick="fecharRes();window.location.href='painel.html'">Ir ao dashboard</button>
+    </div>
+  </div>
+</div>
+
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="db.js" onerror="document.documentElement.innerHTML='&lt;div style=\'font-family:system-ui;padding:2rem;text-align:center\'&gt;&lt;h2 style=\'font-weight:500\'&gt;Falha ao carregar&lt;/h2&gt;&lt;p style=\'color:#666;line-height:1.6\'&gt;Verifique a conexão. Seus dados continuam salvos.&lt;/p&gt;&lt;button onclick=\'location.reload(true)\' style=\'padding:.8rem 1.5rem;border:0;border-radius:8px;background:#9a7218;color:#fff;font-size:.9rem\'&gt;Recarregar&lt;/button&gt;&lt;/div&gt;'"></script>
+<script>
+'use strict';
+if(!FIELDO.Auth.isLoggedIn()) window.location.href='entrar.html';
+
+/* v10.14 · A NAVEGAÇÃO INFERIOR NÃO ENTRA AQUI.
+   Esta linha era `FIELDO.NavInf.montar();` e escondia o produto.
+
+   A .nav-inf é `position:fixed; bottom:0; z-index:300`. A .cta-bar
+   desta tela é `position:fixed; bottom:0; z-index:150`. As duas ocupam
+   a mesma faixa e a nav ganha — o botão "Gerar Orçamento" e o
+   "Cancelar" ficavam COBERTOS, não escondidos por scroll. Não havia
+   como emitir um orçamento pelo celular.
+
+   O conserto é remover a barra, não empurrar a CTA para cima, porque
+   é o que o desenho já decidiu: a nav tem cinco DESTINOS e o "+" é
+   criação. Esta tela é o que o "+" abre. O servico.html — o outro
+   alvo do "+", com a mesma .cta-bar — nunca montou a nav, e é por
+   isso que ele nunca teve este problema.
+
+   Saída da tela: o "Cancelar" da própria .cta-bar, que volta a
+   aparecer, mais o menu do topo. Igual ao servico.html. */
+
+var _itens   = [];
+var _orcId   = null;
+/* v5.4: token que habilita Aprovar/Recusar no link do cliente */
+var _orcToken = null;
+var _prof    = null;
+
+document.addEventListener('DOMContentLoaded', function(){
+  var hoje = new Date().toISOString().split('T')[0];
+  document.getElementById('fData').value = hoje;
+
+  FIELDO.Professionals.me().then(function(p){
+    _prof = p;
+    /* Gera número de orçamento */
+    return FIELDO.Budgets.list(999);
+  }).then(function(orcamentos){
+    document.getElementById('fNumero').value = FIELDO.Budgets.buildNumber(orcamentos.length);
+  }).catch(function(){
+    document.getElementById('fNumero').value = FIELDO.Budgets.buildNumber(0);
+  });
+
+  /* v4.2: Auto-save de rascunho */
+  if (FIELDO.LocalDB && FIELDO.LocalDB.isSupported()) {
+    var formContainer = document.querySelector('main') || document.body;
+    FIELDO.Draft.attach('orcamento', formContainer, {
+      exclude: ['fData', 'fNumero']
+    });
+    FIELDO.Draft.exists('orcamento').then(function (has) {
+      if (has) {
+        if (confirm('Você tem um orçamento não salvo. Continuar de onde parou?')) {
+          FIELDO.Draft.restore('orcamento', formContainer);
+        } else {
+          FIELDO.Draft.clear('orcamento');
+        }
+      }
+    });
+  }
+});
+
+/* ── ITENS ── */
+function addItem(){
+  var desc = (document.getElementById('newItemDesc').value||'').trim();
+  var val  = parseFloat(document.getElementById('newItemVal').value)||0;
+  if(!desc){ FIELDO.UI.toast('Informe a descrição do item'); return; }
+  /* v4.4 M1: padroniza {descricao, valor}. Antes salvava {desc, val}
+     e o buildOrcamentoHTML lia {descricao, qtd, preco} → tabela em branco.
+     Compat: leitura via _itemDesc()/_itemValor() trata os 2 formatos. */
+  _itens.push({descricao: desc, valor: val});
+  document.getElementById('newItemDesc').value='';
+  document.getElementById('newItemVal').value='';
+  document.getElementById('newItemDesc').focus();
+  renderItens();
+  calcularTotais();
+}
+
+/* v4.4 M1: helpers de leitura compatíveis com 2 formatos:
+   - novo (v4.4+): {descricao, valor}
+   - legacy v4.3-: {desc, val}
+   Também aceita {descricao, qtd, preco} (formato que o buildHTML antigo
+   esperava ler mas que NUNCA era gravado — orçamentos antigos no banco
+   estão no formato {desc, val} pela trilha addItem). */
+function _itemDesc(it)  { return String(it && (it.descricao || it.desc) || '').trim(); }
+function _itemValor(it) {
+  if (it && typeof it.valor !== 'undefined') return parseFloat(it.valor) || 0;
+  if (it && typeof it.val   !== 'undefined') return parseFloat(it.val)   || 0;
+  /* fallback: formato {qtd, preco} se algum dia for usado */
+  if (it && typeof it.qtd !== 'undefined' && typeof it.preco !== 'undefined') {
+    return (parseFloat(it.qtd)||0) * (parseFloat(it.preco)||0);
+  }
+  return 0;
+}
+
+function addAtalho(desc, val){
+  document.getElementById('newItemDesc').value = desc;
+  document.getElementById('newItemVal').value  = val||'';
+  document.getElementById('newItemVal').focus();
+}
+
+function removeItem(i){
+  _itens.splice(i,1);
+  renderItens();
+  calcularTotais();
+}
+
+function renderItens(){
+  var list = document.getElementById('itemsList');
+  if(!_itens.length){ list.innerHTML=''; return; }
+  list.innerHTML = _itens.map(function(item,i){
+    return '<div class="item-row">'+
+      '<div class="item-desc">'+esc(_itemDesc(item))+'</div>'+
+      '<div class="item-val">'+FIELDO.UI.brl(_itemValor(item))+'</div>'+
+      '<button class="item-del" onclick="removeItem('+i+')" title="Remover">'+
+        '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'+
+      '</button>'+
+    '</div>';
+  }).join('');
+}
+
+/* ── TOTAIS ── */
+function calcularTotais(){
+  var subtotal = _itens.reduce(function(s,i){ return s+_itemValor(i); },0);
+  var desc     = parseFloat(document.getElementById('fDesconto').value)||0;
+  var total    = Math.max(0, subtotal - desc);
+  setText('rSubtotal', FIELDO.UI.brl(subtotal));
+  setText('rDesconto', desc>0 ? '- '+FIELDO.UI.brl(desc) : '—');
+  setText('rTotal',    FIELDO.UI.brl(total));
+  atualizarResumo();
+  return {subtotal:subtotal, desconto:desc, total:total};
+}
+
+function atualizarResumo(){
+  var cliente = (document.getElementById('fCliente').value||'').trim();
+  /* v12.8 · diz o que falta, não uma regra genérica */
+  var falta = [];
+  if (!cliente) falta.push('cliente');
+  if (!_itens.length) falta.push('um item');
+  var hint = falta.length ? 'Falta: ' + falta.join(' e ') : 'Pronto para gerar';
+  setText('ctaHint', hint);
+}
+
+/* ── GERAR ── */
+function gerarOrcamento(){
+  var cliente = (document.getElementById('fCliente').value||'').trim();
+  if(!cliente){ FIELDO.UI.toast('Informe o nome do cliente'); return; }
+  if(!_itens.length){ FIELDO.UI.toast('Adicione ao menos um item'); return; }
+
+  setLoading(true);
+  var totais = calcularTotais();
+
+  var data = {
+    number:       document.getElementById('fNumero').value,
+    titulo:       document.getElementById('fTitulo').value.trim()||null,
+    client_name:  cliente,
+    client_phone: document.getElementById('fWppCliente').value.trim()||null,
+    local:        document.getElementById('fLocal').value.trim()||null,
+    descricao:    document.getElementById('fDesc').value.trim()||null,
+    items:        _itens,
+    subtotal:     totais.subtotal,
+    desconto:     totais.desconto,
+    total:        totais.total,
+    prazo:        document.getElementById('fPrazo').value.trim()||null,
+    validade:     document.getElementById('fValidade').value.trim()||null,
+    pagamento:    document.getElementById('fPagamento').value.trim()||null,
+    garantia:     document.getElementById('fGarantia').value.trim()||null,
+    observacoes:  document.getElementById('fObs').value.trim()||null,
+    emissao:      document.getElementById('fData').value||null,
+    status:       'pendente',
+  };
+  /* v12.30 · só vai quando marcado (ver Budgets.create: sem a coluna, o
+     orçamento sai do mesmo jeito, sem a origem) */
+  var origem = document.querySelector('input[name="fOrigem"]:checked');
+  if (origem) data.origem = origem.value;
+
+  FIELDO.Budgets.create(data).then(function(orc){
+    _orcId    = orc.id;
+    _orcToken = orc.approval_token || null;
+
+    /* Hash determinístico: dados estruturais + UUID do orçamento */
+    var hashInput = { client: cliente, total: totais.total, titulo: data.titulo, id: orc.id };
+    var hashPromise = (window.crypto && window.crypto.subtle)
+      ? FIELDO.Hashes.sha256(hashInput)
+      : Promise.resolve(Math.abs(
+          Object.keys(hashInput).sort().map(function(k){return String(hashInput[k]);}).join('').split('').reduce(function(h,c){ return ((h<<5)-h+c.charCodeAt(0))|0; },0)
+        ).toString(16));
+
+    return hashPromise.then(function(hash){
+      return FIELDO.Hashes.register(hash, 'orcamento', orc.id, {
+        client: cliente, valor: totais.total, status: 'pendente'
+      }).catch(function(){ /* não bloqueia se hash falhar */ });
+    });
+  }).then(function(){
+    setLoading(false);
+    setText('resSub', 'Orçamento para '+cliente+' — '+FIELDO.UI.brl(totais.total));
+    document.getElementById('resOverlay').style.display='flex';
+
+    /* v4.2: limpa rascunho após sucesso */
+    if (FIELDO.Draft) FIELDO.Draft.clear('orcamento');
+  }).catch(function(e){
+    setLoading(false);
+    FIELDO.UI.handleError(e);
+  });
+}
+
+/* ── WHATSAPP ── */
+function enviarWA(){
+  var cliente = document.getElementById('fCliente').value.trim();
+  var total   = calcularTotais().total;
+  var wppCliente = document.getElementById('fWppCliente').value.replace(/\D/g,'');
+  var prof    = _prof || {};
+
+  var msg = '📋 *Orçamento Fieldo*\n\n'+
+    'Olá, '+cliente+'!\n\n'+
+    '📌 *'+((document.getElementById('fTitulo').value)||'Proposta de serviço')+'*\n'+
+    '💰 Total: '+FIELDO.UI.brl(total)+'\n'+
+    (document.getElementById('fPrazo').value ? '⏱ Prazo: '+document.getElementById('fPrazo').value+'\n' : '')+
+    (document.getElementById('fValidade').value ? '⏳ Válido por: '+document.getElementById('fValidade').value+'\n' : '')+
+    '\nQualquer dúvida estou à disposição!';
+
+  /* v5.5.2: era `'wa.me/55'+numero` com prefixo cego — quem digitasse o
+     WhatsApp do cliente já com o DDI virava wa.me/5555..., URL inválida
+     que abre o app em branco.
+     O fallback também estava errado: usava o número do PRÓPRIO
+     profissional, abrindo conversa consigo mesmo. Sem número do cliente,
+     o certo é o seletor de contatos. */
+  var url = FIELDO.UI.waLink(wppCliente, msg) || FIELDO.UI.waPicker(msg);
+  window.open(url,'_blank');
+}
+
+/* ─── HTML LOCAL DO ORÇAMENTO ─── */
+function buildOrcamentoHTML() {
+  /* v4.4 M3: identidade Fieldo (pergaminho/gold/serif), consome TODOS os
+     campos do banco, CSS print otimizado pra A4, slot pro QR Code (M4),
+     compat de itens via _itemDesc/_itemValor (M1). */
+  var prof    = _prof || {};
+  var numero  = (document.getElementById('fNumero')||{}).value || '';
+  var titulo  = (document.getElementById('fTitulo')||{}).value || 'Proposta de serviço';
+  var cliente = (document.getElementById('fCliente')||{}).value.trim();
+  var wppCli  = (document.getElementById('fWppCliente')||{}).value.trim();
+  var local   = (document.getElementById('fLocal')||{}).value.trim();
+  var descSrv = (document.getElementById('fDesc')||{}).value.trim();
+  var prazo   = (document.getElementById('fPrazo')||{}).value.trim();
+  var valid   = (document.getElementById('fValidade')||{}).value.trim();
+  var pgto    = (document.getElementById('fPagamento')||{}).value.trim();
+  var garant  = (document.getElementById('fGarantia')||{}).value.trim();
+  var obs     = (document.getElementById('fObs')||{}).value.trim();
+  var emissao = (document.getElementById('fData')||{}).value || new Date().toISOString().slice(0,10);
+  var totais  = calcularTotais();
+
+  var profLogo = prof.logo_url
+    ? '<img src="' + esc(prof.logo_url) + '" style="width:100%;height:100%;object-fit:cover"/>'
+    : '<span style="font-family:Georgia,serif;font-size:1.5rem;font-style:italic;color:#fff">' + esc((prof.name||'F').charAt(0)) + '</span>';
+
+  /* WhatsApp sanitizado pro link no rodapé do PDF */
+  var rawProfWpp = String(prof.whatsapp||prof.phone||'').replace(/\D/g,'');
+  var waProf = rawProfWpp.length>=10 ? (rawProfWpp.length<=11?'55'+rawProfWpp:rawProfWpp) : '';
+
+  /* Tabela de itens via helpers compat (M1) */
+  var itensRows = _itens.map(function (it) {
+    return '<tr>' +
+      '<td class="it-desc">' + esc(_itemDesc(it)) + '</td>' +
+      '<td class="it-val">' + FIELDO.UI.brl(_itemValor(it)) + '</td>' +
+    '</tr>';
+  }).join('');
+
+  var pixBlock = prof.pix_key
+    ? '<div class="pix">' +
+        '<div class="pix-lbl">Pagamento via Pix' + (prof.pix_tipo ? ' · '+esc(prof.pix_tipo) : '') + '</div>' +
+        '<div class="pix-key">' + esc(prof.pix_key) + '</div>' +
+      '</div>'
+    : '';
+
+  /* Bloco de condições (cada linha só aparece se preenchida) */
+  var condRows = [
+    prazo  ? {l:'Prazo de execução',  v:prazo}  : null,
+    valid  ? {l:'Validade da proposta', v:valid} : null,
+    pgto   ? {l:'Forma de pagamento', v:pgto}   : null,
+    garant ? {l:'Garantia',           v:garant} : null,
+  ].filter(Boolean).map(function(r){
+    return '<div class="cond-row"><div class="cond-l">'+esc(r.l)+'</div><div class="cond-v">'+esc(r.v)+'</div></div>';
+  }).join('');
+
+  /* Data formatada */
+  var dataFmt = '';
+  try { dataFmt = new Date(emissao+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}); }
+  catch(e){ dataFmt = emissao; }
+
+  return '<!DOCTYPE html><html lang="pt-BR"><head>' +
+    '<meta charset="UTF-8"/>' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1.0"/>' +
+    '<title>Orçamento · ' + esc(cliente) + ' · Fieldo</title>' +
+    '<meta name="description" content="Orçamento de ' + esc(cliente) + ' — ' + FIELDO.UI.brl(totais.total) + '"/>' +
+    '<meta property="og:title" content="Orçamento · ' + esc(cliente) + '"/>' +
+    '<meta property="og:description" content="' + esc(titulo) + ' · ' + FIELDO.UI.brl(totais.total) + '"/>' +
+    '<meta property="og:type" content="website"/>' +
+    '<style>' +
+      /* Reset + tipografia base */
+      '*{box-sizing:border-box;margin:0;padding:0}' +
+      'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f5f2ec;color:#2a2a36;padding:1.5rem 1rem 4rem;line-height:1.55;-webkit-font-smoothing:antialiased}' +
+      '.page{max-width:680px;margin:0 auto;background:#fff;border:1px solid rgba(14,14,20,.1);border-radius:18px;overflow:hidden;box-shadow:0 8px 40px rgba(14,14,20,.08)}' +
+
+      /* Header pergaminho-escuro */
+      '.head{background:#0e0e14;color:#fff;padding:1.4rem 1.75rem;display:flex;align-items:flex-start;gap:1rem;position:relative;overflow:hidden}' +
+      '.head::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 100% 0%,rgba(196,154,48,.18) 0%,transparent 60%);pointer-events:none}' +
+      '.head .av{width:52px;height:52px;border-radius:11px;background:#9a7218;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative}' +
+      '.head .who{flex:1;min-width:0;position:relative}' +
+      '.head .eye{font-family:"DM Mono",monospace;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:#c49a30;margin-bottom:.25rem}' +
+      '.head .who h1{font-family:Georgia,serif;font-size:1.3rem;font-weight:300;color:#fff;line-height:1.2;letter-spacing:-.01em}' +
+      '.head .who h1 em{font-style:italic;color:#c49a30}' +
+      '.head .sub{font-size:.72rem;color:rgba(255,255,255,.6);margin-top:.2rem}' +
+      '.head .num{position:relative;text-align:right;flex-shrink:0;font-family:"DM Mono",monospace}' +
+      '.head .num-lbl{font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.15rem}' +
+      '.head .num-v{font-size:.78rem;color:#c49a30;letter-spacing:.05em}' +
+      '.head .data{font-size:.62rem;color:rgba(255,255,255,.5);margin-top:.35rem}' +
+
+      /* Body */
+      '.body{padding:1.6rem 1.75rem 1.25rem}' +
+      '.lbl{font-family:"DM Mono",monospace;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:#7a7570;margin-bottom:.2rem}' +
+      '.val{font-size:.92rem;color:#1a1a24}' +
+      '.bigval{font-family:Georgia,serif;font-size:1.25rem;font-weight:300;color:#0e0e14;line-height:1.3}' +
+
+      /* Bloco cliente */
+      '.client{display:grid;grid-template-columns:1fr;gap:.65rem;padding:1rem 1.1rem;background:rgba(154,114,24,.05);border:1px solid rgba(154,114,24,.15);border-radius:12px;margin-bottom:1.25rem}' +
+      '.client-row{display:flex;justify-content:space-between;gap:1rem;align-items:baseline}' +
+      '.client-row .lbl{margin-bottom:0;flex-shrink:0;min-width:84px}' +
+
+      /* Proposta + descrição */
+      '.section{margin-bottom:1.25rem}' +
+      '.desc-box{padding:.9rem 1.05rem;background:rgba(14,14,20,.025);border-left:3px solid rgba(154,114,24,.4);border-radius:0 8px 8px 0;font-size:.86rem;line-height:1.65;color:#3a3a48;white-space:pre-wrap}' +
+
+      /* Tabela itens */
+      '.itens-wrap{margin-bottom:1.25rem}' +
+      'table.itens{width:100%;border-collapse:collapse}' +
+      'table.itens th{font-family:"DM Mono",monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:#7a7570;text-align:left;padding:.55rem .4rem;border-bottom:1.5px solid #ddd;font-weight:600}' +
+      'table.itens th.r{text-align:right}' +
+      'table.itens td{padding:.65rem .4rem;border-bottom:1px solid #eee;font-size:.88rem;color:#1a1a24}' +
+      'table.itens td.it-desc{color:#1a1a24}' +
+      'table.itens td.it-val{text-align:right;font-family:"DM Mono",monospace;color:#7a5a10;font-weight:500;white-space:nowrap}' +
+
+      /* Totais */
+      '.totals{background:rgba(154,114,24,.06);border:1px solid rgba(154,114,24,.2);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}' +
+      '.tot-row{display:flex;justify-content:space-between;align-items:baseline;padding:.32rem 0;font-size:.86rem;color:#4a4855}' +
+      '.tot-row .v{font-family:"DM Mono",monospace}' +
+      '.tot-row.disc .v{color:#2d7a4f}' +
+      '.tot-row.big{font-family:Georgia,serif;font-size:1.35rem;font-weight:400;border-top:1px solid rgba(154,114,24,.25);margin-top:.5rem;padding-top:.7rem;color:#7a5a10}' +
+      '.tot-row.big .v{font-family:"DM Mono",monospace;font-size:1.25rem;font-weight:500}' +
+
+      /* Condições */
+      '.cond-wrap{padding:1rem 1.15rem;background:#fafaf7;border:1px solid #eee;border-radius:12px;margin-bottom:1.25rem}' +
+      '.cond-row{display:flex;justify-content:space-between;gap:1rem;align-items:baseline;padding:.35rem 0;border-bottom:1px dashed #e8e6e0}' +
+      '.cond-row:last-child{border-bottom:none}' +
+      '.cond-l{font-family:"DM Mono",monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:#7a7570;flex-shrink:0}' +
+      '.cond-v{font-size:.85rem;color:#1a1a24;text-align:right}' +
+
+      /* Observações */
+      '.obs-box{padding:.9rem 1.1rem;background:#fcfcf8;border:1px solid #ece9df;border-radius:10px;margin-bottom:1.25rem;font-size:.82rem;line-height:1.6;color:#5a5a68;white-space:pre-wrap}' +
+
+      /* Pix */
+      '.pix{background:rgba(154,114,24,.08);border:1px solid rgba(154,114,24,.22);border-radius:10px;padding:.85rem 1.1rem;margin-bottom:1.25rem}' +
+      '.pix-lbl{font-family:"DM Mono",monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#7a5a10;margin-bottom:.2rem}' +
+      '.pix-key{font-family:"DM Mono",monospace;font-size:.86rem;color:#7a5a10;word-break:break-all}' +
+
+      /* Footer */
+      '.foot{padding:1rem 1.75rem 1.25rem;background:rgba(14,14,20,.025);border-top:1px solid #ece9df;font-family:"DM Mono",monospace;font-size:.62rem;color:#7a7570;display:flex;justify-content:space-between;align-items:center;letter-spacing:.04em;flex-wrap:wrap;gap:.5rem}' +
+      '.foot .brand{color:#7a5a10}' +
+      '.foot .contato{color:#5a5a68}' +
+
+      /* Botões (escondem na impressão) */
+      '.bar{position:fixed;bottom:0;left:0;right:0;background:rgba(245,242,236,.97);backdrop-filter:blur(20px);border-top:1px solid #ddd;padding:.75rem 1rem;display:flex;gap:.5rem;justify-content:center;z-index:50}' +
+      '.bar .btn{padding:.7rem 1.1rem;border-radius:9px;font-size:.85rem;font-weight:500;text-decoration:none;border:none;cursor:pointer;font-family:inherit}' +
+      '.bar .btn-p{background:#9a7218;color:#fff}' +
+      '.bar .btn-p:hover{background:#7a5a10}' +
+      '.bar .btn-w{background:#1d7a46;color:#fff}' +
+      '.bar .btn-w:hover{background:#17663a}' +
+      'body{padding-bottom:5rem}' +
+
+      /* @media print: otimizado pra A4, sem barras, cores fiéis */
+      '@page{size:A4;margin:14mm}' +
+      '@media print{' +
+        'body{background:#fff !important;padding:0 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.page{box-shadow:none !important;border-radius:0 !important;border:none !important;max-width:none !important}' +
+        '.bar{display:none !important}' +
+        '.head{-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.head .av{-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+        '.totals,.client,.pix,.cond-wrap,.obs-box{page-break-inside:avoid}' +
+        'table.itens{page-break-inside:auto}' +
+        'tr{page-break-inside:avoid;page-break-after:auto}' +
+      '}' +
+    '</style></head><body>' +
+
+    /* Página */
+    '<div class="page">' +
+      '<div class="head">' +
+        '<div class="av">' + profLogo + '</div>' +
+        '<div class="who">' +
+          '<div class="eye">Orçamento · Fieldo</div>' +
+          '<h1><em>' + esc(prof.name || 'Profissional') + '</em></h1>' +
+          '<div class="sub">' + esc(FIELDO.UI.subtitulo(prof)) + '</div>' +
+        '</div>' +
+        (numero ? '<div class="num"><div class="num-lbl">Nº</div><div class="num-v">'+esc(numero)+'</div><div class="data">'+esc(dataFmt)+'</div></div>' : '') +
+      '</div>' +
+      '<div class="body">' +
+
+        /* Cliente */
+        '<div class="client">' +
+          '<div class="client-row"><div class="lbl">Cliente</div><div class="val">'+esc(cliente)+'</div></div>' +
+          (wppCli ? '<div class="client-row"><div class="lbl">WhatsApp</div><div class="val">'+esc(wppCli)+'</div></div>' : '') +
+          (local ? '<div class="client-row"><div class="lbl">Local</div><div class="val">'+esc(local)+'</div></div>' : '') +
+        '</div>' +
+
+        /* Título proposta */
+        '<div class="section">' +
+          '<div class="lbl">Proposta</div>' +
+          '<div class="bigval">' + esc(titulo) + '</div>' +
+        '</div>' +
+
+        /* Descrição (se houver) */
+        (descSrv
+          ? '<div class="section">' +
+              '<div class="lbl" style="margin-bottom:.4rem">Descrição do serviço</div>' +
+              '<div class="desc-box">' + esc(descSrv) + '</div>' +
+            '</div>'
+          : '') +
+
+        /* Itens */
+        (_itens.length
+          ? '<div class="itens-wrap">' +
+              '<div class="lbl" style="margin-bottom:.5rem">Itens do orçamento</div>' +
+              '<table class="itens">' +
+                '<thead><tr><th>Descrição</th><th class="r">Valor</th></tr></thead>' +
+                '<tbody>' + itensRows + '</tbody>' +
+              '</table>' +
+            '</div>'
+          : '') +
+
+        /* Totais */
+        '<div class="totals">' +
+          '<div class="tot-row"><span>Subtotal</span><span class="v">' + FIELDO.UI.brl(totais.subtotal) + '</span></div>' +
+          (totais.desconto > 0 ? '<div class="tot-row disc"><span>Desconto</span><span class="v">− ' + FIELDO.UI.brl(totais.desconto) + '</span></div>' : '') +
+          '<div class="tot-row big"><span>Total</span><span class="v">' + FIELDO.UI.brl(totais.total) + '</span></div>' +
+        '</div>' +
+
+        /* Condições (se houver alguma) */
+        (condRows
+          ? '<div class="cond-wrap">' +
+              '<div class="lbl" style="margin-bottom:.5rem">Condições</div>' +
+              condRows +
+            '</div>'
+          : '') +
+
+        /* Observações */
+        (obs
+          ? '<div class="section">' +
+              '<div class="lbl" style="margin-bottom:.4rem">Observações</div>' +
+              '<div class="obs-box">' + esc(obs) + '</div>' +
+            '</div>'
+          : '') +
+
+        pixBlock +
+
+      '</div>' +
+
+      /* Footer institucional */
+      '<div class="foot">' +
+        '<div class="brand">Gerado por Fieldo · fieldo-zelo.com.br</div>' +
+        '<div class="contato">' +
+          (prof.name ? esc(prof.name) : '') +
+          (waProf ? ' · WhatsApp ' + esc(waProf.slice(2)) : '') +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
+    /* Barra de ações (escondida no print) */
+    '<div class="bar">' +
+      '<button class="btn btn-p" onclick="window.print()">Baixar PDF / Imprimir</button>' +
+      (waProf ? '<a class="btn btn-w" href="https://wa.me/'+waProf+'" target="_blank" rel="noopener">WhatsApp</a>' : '') +
+    '</div>' +
+
+    '</body></html>';
+}
+
+function baixarHTML() {
+  var html = buildOrcamentoHTML();
+  var cliente = (document.getElementById('fCliente').value || 'cliente').trim().replace(/[^a-z0-9]/gi,'-');
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'orcamento-' + cliente.toLowerCase() + '.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+}
+
+/* v4.4 M3: baixar como PDF via window.print() + @media print otimizado.
+   Estratégia "zero dependência": abre o HTML em nova janela, espera o DOM
+   carregar e dispara o diálogo de impressão nativo. Usuário escolhe
+   "Salvar como PDF" no diálogo (todos browsers modernos têm isso).
+
+   Razões pra escolher esse caminho:
+   - Não adiciona dep (jsPDF/html2canvas seriam ~250KB)
+   - Funciona 100% offline (já que o HTML é self-contained)
+   - Texto fica selecionável no PDF (jsPDF+html2canvas vira imagem)
+   - Mantém a identidade visual exata definida no buildOrcamentoHTML */
+function baixarPDF() {
+  var html = buildOrcamentoHTML();
+
+  /* Patch no HTML antes de abrir: auto-dispara print após um pequeno
+     atraso, dando tempo do layout (fontes, imagens) assentar.
+     Tag <script> escapada com '<' + 'script>' pra não fechar o script atual. */
+  var autoPrintScript = '<' + 'script>window.addEventListener("load",function(){setTimeout(function(){try{window.print();}catch(e){}},650);});<\/script>';
+  var patched = html.replace('</body></html>', autoPrintScript + '</body></html>');
+
+  var w = window.open('', '_blank');
+  if (!w) {
+    FIELDO.UI.toast('Permita pop-ups para gerar o PDF, ou use "Pré-visualizar" e imprima pelo navegador.');
+    return;
+  }
+  w.document.open();
+  w.document.write(patched);
+  w.document.close();
+}
+
+function abrirHTML() {
+  var html = buildOrcamentoHTML();
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+}
+
+function fecharRes(){ document.getElementById('resOverlay').style.display='none'; }
+
+/* ── UTILS ── */
+function setLoading(on){
+  var btn = document.getElementById('btnGerar');
+  var sp  = document.getElementById('spinGerar');
+  if(btn) btn.disabled = on;
+  if(sp)  sp.classList.toggle('on', on);
+}
+function setText(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+/* v8.0: era a única das 11 páginas com esc() próprio, e não escapava " nem '.
+   É usada em contexto de ATRIBUTO 4x (img src :486, meta description :539,
+   og:title :540, og:description :541) — um cliente chamado João "Jr" Silva
+   quebrava o <head> do orçamento entregue. Delega como as outras 10. */
+function esc(s){return FIELDO.UI.esc(s);}
+</script>
+<script>
+/* v5.7: registro do PWA. Falha em silêncio — nenhuma funcionalidade
+   do app depende do service worker. */
+(function () {
+  if (!window.FIELDO || !FIELDO.PWA) return;
+  FIELDO.PWA.onUpdate(function () {
+    if (FIELDO.UI && FIELDO.UI.toast) {
+      FIELDO.UI.toast('Nova versão disponível — recarregue para atualizar');
+    }
+  });
+  FIELDO.PWA.registrar();
+})();
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

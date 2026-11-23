@@ -1,0 +1,64 @@
+# Fieldo — v10.1
+# Perfis públicos são o produto: o app existe para o profissional ser
+# encontrado. Por isso o padrão é liberar. Quem não deve indexar já sai
+# com <meta name="robots" content="noindex"> pela edge function
+# perfil-seo, que só libera index,follow a partir de 3 serviços.
+
+User-agent: *
+Allow: /
+
+# v10.1 · "/" agora é a landing pública (era o painel do profissional,
+# que respondia noindex na porta de entrada do domínio). O dashboard
+# mudou de arquivo: index.html -> painel.html.
+#
+# Telas de trabalho do profissional — não têm por que aparecer na busca,
+# e indexá-las só rouba relevância dos perfis.
+Disallow: /painel.html
+Disallow: /admin.html
+Disallow: /admin-cadastros.html
+Disallow: /ativar.html
+Disallow: /planos.html
+Disallow: /configuracoes.html
+Disallow: /servico.html
+Disallow: /orcamento.html
+Disallow: /contratos.html
+Disallow: /busca.html
+Disallow: /funil.html
+Disallow: /entrar.html
+Disallow: /meu-perfil.html
+Disallow: /servicos.html
+
+# v10.11 · painéis de trabalho das duas verticais.
+# Mesma razão dos de cima: zelo/painel.html e locacao/painel.html são
+# telas de trabalho, não conteúdo. Estavam sem Disallow E sem noindex —
+# indexáveis por padrão. Agora têm os dois.
+Disallow: /zelo/painel.html
+Disallow: /locacao/painel.html
+
+# v10.11 · relatorio.html e avaliar.html NÃO entram aqui, de propósito.
+#
+# Eles carregam nome de cliente, valor, fotos e, no caso do avaliar, o
+# token na URL — e por isso ganharam <meta name="robots" content="noindex">.
+# Bloquear o rastreio aqui impediria o Google de LER esse noindex, e a
+# URL poderia acabar indexada só pelo endereço, sem conteúdo. É o mesmo
+# raciocínio explicado logo abaixo para /perfil.html?slug=: quem controla
+# indexação é a meta, e a meta só funciona se a página puder ser lida.
+
+# v10.1 · a URL antiga do perfil NÃO entra aqui, de propósito.
+#
+# /perfil.html?slug=… continua respondendo 200 (já circula em WhatsApp
+# e cartão de visita) e declara canonical para /p/…. Para consolidar as
+# duas num endereço só, o Google PRECISA conseguir buscar a URL antiga
+# e ler esse canonical. Um Disallow aqui o impediria de ler — e ele
+# manteria as duas versões no índice, ou nenhuma.
+#
+# Bloquear duplicata no robots.txt é o erro clássico: robots.txt
+# controla RASTREIO, não indexação. Quem controla indexação é o
+# canonical e a meta robots, e as duas só funcionam se a página puder
+# ser lida.
+
+# v10.18 · domínio próprio. Arquivo estático, sem edge function na
+# frente — é a única linha do projeto com o domínio escrito à mão que
+# nenhuma reescrita alcança. Apontar para o sitemap do endereço antigo
+# anularia boa parte da mudança de endereço no Search Console.
+Sitemap: https://fieldo-zelo.com.br/sitemap.xml

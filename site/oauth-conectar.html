@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+<script src="/app-play.js"></script>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#f5f2ec"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Fieldo · Conectar app externo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <meta name="apple-mobile-web-app-title" content="Fieldo"/>
+
+  <!--
+    Fieldo · oauth-conectar.html — Fase 3 (evolução OAuth), ver
+    MCP-fieldo-auditoria.md, PARTE 3.
+
+    O QUE É ESTA PÁGINA: a "tela de consentimento" do OAuth 2.1 Server
+    do Supabase (ver docs.supabase.com/guides/auth/oauth-server). O
+    Supabase NÃO fornece essa tela pronta — só a lógica por trás dela.
+    Quando um cliente externo (uma IA, um app) pede pra se conectar na
+    conta Fieldo de um profissional via OAuth, o Supabase redireciona
+    o navegador pra cá com `?authorization_id=<id>` na URL. Esta
+    página: (1) confere que o profissional está logado no Fieldo neste
+    navegador, (2) busca os dados de quem está pedindo acesso
+    (getAuthorizationDetails), (3) mostra pro profissional em
+    português simples, e (4) manda a decisão dele de volta
+    (approveAuthorization/denyAuthorization) — que devolve um
+    redirect_url de volta pro app que pediu a conexão.
+
+    ISOLAMENTO DE PROPÓSITO: é a ÚNICA página do projeto que carrega a
+    biblioteca oficial @supabase/supabase-js. Todo o resto do Fieldo
+    fala com o Supabase via fetch cru (ver db.js) — decisão antiga e
+    deliberada (ver comentário grande em cima de `Session` em db.js).
+    Só esta página precisa dos métodos `auth.oauth.*`, que são
+    específicos do OAuth Server e não têm equivalente documentado como
+    chamada REST simples — por isso, só aqui, a biblioteca oficial.
+    Isso não reabre a decisão antiga em nenhum outro lugar do app.
+
+    CONFIGURAÇÃO MANUAL NECESSÁRIA (fora do alcance deste código):
+    no painel do Supabase, em Authentication → OAuth Server, o campo
+    "Authorization Path" precisa apontar pra onde este arquivo for
+    publicado (ex.: /oauth-conectar.html) — ver MCP-fieldo-auditoria.md
+    pra a lista completa de passos manuais desta fase.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="db.js"></script>
+
+  <style>
+    body { background: var(--bg); }
+
+    .ob-wrap {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.25rem;
+      position: relative;
+      z-index: 1;
+    }
+    .ob-wrap::after {
+      content: '';
+      position: fixed;
+      top: -120px; right: -120px;
+      width: 420px; height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(154,114,24,.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ob-box {
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+      z-index: 1;
+    }
+    .ob-logo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .ob-logo-mark {
+      width: 46px; height: 46px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem;
+      color: var(--ink);
+    }
+    .ob-logo-mark svg { width: 100%; height: 100%; }
+    .ob-logo-name { font-family: var(--serif); font-size: 1.6rem; font-weight: 600; color: var(--ink); }
+    .ob-logo-name em { font-style: normal; color: var(--gold-l); }
+
+    .ob-eyebrow {
+      font-family: var(--mono);
+      font-size: .58rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--gold-text);
+      display: flex; align-items: center; gap: .55rem;
+      margin-bottom: .5rem;
+    }
+    .ob-eyebrow::before { content: ''; display: inline-block; width: 14px; height: 1px; background: var(--gold); }
+    .ob-title {
+      font-family: var(--serif);
+      font-size: clamp(1.6rem, 6vw, 2.1rem);
+      font-weight: 300;
+      line-height: 1.15;
+      color: var(--ink);
+      margin-bottom: .6rem;
+      letter-spacing: -.02em;
+    }
+    .ob-title em { font-style: italic; color: var(--gold-text); }
+    .ob-sub { font-size: .86rem; color: var(--muted); line-height: 1.7; margin-bottom: 1.5rem; }
+
+    .oc-step { display: none; animation: fadeUp .3s ease both; }
+    .oc-step.active { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .oc-client-card {
+      display: flex; align-items: center; gap: .85rem;
+      margin-bottom: 1.25rem;
+    }
+    .oc-client-mark {
+      flex: none;
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: var(--paper2);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--serif); font-size: 1.1rem; color: var(--gold-text);
+    }
+    .oc-client-name { font-weight: 500; color: var(--text); font-size: .95rem; }
+    .oc-client-sub { font-size: .74rem; color: var(--muted); font-family: var(--mono); }
+
+    .oc-scopes { margin: 0 0 1.5rem; padding: 0; list-style: none; }
+    .oc-scopes li {
+      display: flex; align-items: flex-start; gap: .6rem;
+      font-size: .82rem; color: var(--text2);
+      padding: .5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .oc-scopes li:last-child { border-bottom: none; }
+    .oc-scopes svg { flex: none; margin-top: .15rem; color: var(--gold); }
+
+    .oc-actions { display: flex; flex-direction: column; gap: .6rem; }
+
+    .oc-spin {
+      display: flex; flex-direction: column; align-items: center; gap: .9rem;
+      padding: 2rem 0; color: var(--muted); font-size: .84rem;
+    }
+    .oc-spin .ring {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2.5px solid var(--border3); border-top-color: var(--gold);
+      animation: spin .8s linear infinite;
+    }
+  </style>
+</head>
+<body>
+
+<div class="ob-wrap">
+  <div class="ob-box">
+
+    <div class="ob-logo">
+      <div class="ob-logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      <div class="ob-logo-name">Field<em>o</em></div>
+    </div>
+
+    <!-- ═══ Carregando ═══ -->
+    <div class="oc-step active" id="stepLoading">
+      <div class="oc-spin">
+        <div class="ring"></div>
+        <div>Carregando o pedido de conexão…</div>
+      </div>
+    </div>
+
+    <!-- ═══ Precisa logar primeiro ═══ -->
+    <div class="oc-step" id="stepLogin">
+      <div class="ob-eyebrow">Conectar app externo</div>
+      <h1 class="ob-title">Primeiro, entre<br><em>na sua conta</em></h1>
+      <p class="ob-sub">
+        Pra autorizar esta conexão, você precisa estar com a sua conta Fieldo
+        aberta neste navegador. Entre e depois volte a abrir este mesmo link
+        (o app que pediu a conexão vai continuar esperando).
+      </p>
+      <a class="btn btn--primary btn--full btn--lg" href="entrar.html">
+        Entrar no Fieldo
+      </a>
+    </div>
+
+    <!-- ═══ Link inválido/expirado ou erro ═══ -->
+    <div class="oc-step" id="stepErro">
+      <div class="ob-eyebrow">Não foi possível continuar</div>
+      <h1 class="ob-title">Este link<br><em>não é válido</em></h1>
+      <p class="ob-sub" id="erroMsg">
+        O link de conexão está incompleto, expirou, ou já foi usado. Volte ao
+        app que pediu a conexão e tente de novo.
+      </p>
+      <a class="btn btn--ghost btn--full" href="painel.html">Voltar pro Fieldo</a>
+    </div>
+
+    <!-- ═══ Consentimento ═══ -->
+    <div class="oc-step" id="stepConsent">
+      <div class="ob-eyebrow">Conectar app externo</div>
+      <h1 class="ob-title">Permitir que este<br><em>app acesse sua conta?</em></h1>
+
+      <div class="card" style="margin-bottom:1.25rem;">
+        <div class="oc-client-card">
+          <div class="oc-client-mark" id="clientInitial">?</div>
+          <div>
+            <div class="oc-client-name" id="clientName">—</div>
+            <div class="oc-client-sub">quer se conectar ao Fieldo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:1.5rem;">
+        <div class="card-title">O que este app vai poder fazer</div>
+        <ul class="oc-scopes" id="scopeList"></ul>
+        <p style="font-size:.74rem;color:var(--muted);margin:.75rem 0 0;line-height:1.6;">
+          Isso não inclui sua senha nem os dados de pagamento.
+        </p>
+      </div>
+
+      <div class="oc-actions">
+        <button class="btn btn--primary btn--full btn--lg" id="btnPermitir" onclick="decidir(true)">
+          Permitir acesso
+        </button>
+        <button class="btn btn--ghost btn--full" id="btnRecusar" onclick="decidir(false)">
+          Recusar
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ Redirecionando de volta ═══ -->
+    <div class="oc-step" id="stepRedirect">
+      <div class="oc-spin">
+        <div class="ring"></div>
+        <div id="redirectMsg">Conectando…</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  function $(id) { return document.getElementById(id); }
+
+  function mostrarStep(id) {
+    ['stepLoading', 'stepLogin', 'stepErro', 'stepConsent', 'stepRedirect'].forEach(function (s) {
+      $(s).classList.toggle('active', s === id);
+    });
+  }
+
+  function mostrarErro(msg) {
+    if (msg) $('erroMsg').textContent = msg;
+    mostrarStep('stepErro');
+  }
+
+  /* Nomes amigáveis pra escopos comuns — se o Fieldo um dia registrar
+     escopos próprios no cliente OAuth, adiciona aqui. Qualquer escopo
+     desconhecido ainda aparece, só que com o texto cru (nunca escondido:
+     esconder um escopo pedido seria mostrar autorização incompleta). */
+  var SCOPE_LABELS = {
+    'openid':  'Confirmar quem é você',
+    'email':   'Ver o e-mail da sua conta',
+    'profile': 'Ver os dados do seu perfil Fieldo',
+  };
+
+  function iconeCheck() {
+    return '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  }
+
+  function montarScopes(scopeStr) {
+    var ul = $('scopeList');
+    ul.innerHTML = '';
+    var scopes = (scopeStr || '').trim().split(/\s+/).filter(Boolean);
+    if (scopes.length === 0) {
+      scopes = ['acesso à sua conta Fieldo (relatórios, orçamentos e perfil)'];
+    }
+    scopes.forEach(function (sc) {
+      var li = document.createElement('li');
+      li.innerHTML = iconeCheck() + '<span>' + (SCOPE_LABELS[sc] || sc) + '</span>';
+      ul.appendChild(li);
+    });
+  }
+
+  var authorizationId = new URLSearchParams(window.location.search).get('authorization_id');
+  var supabase = null;
+  var deciding = false;
+
+  function init() {
+    if (!authorizationId) {
+      mostrarErro('Faltou uma informação no link (authorization_id). Volte ao app que pediu a conexão e tente de novo.');
+      return;
+    }
+
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+      mostrarErro('Não foi possível carregar um componente necessário desta página. Verifique sua internet e recarregue.');
+      return;
+    }
+
+    if (!FIELDO.Auth.isLoggedIn()) {
+      mostrarStep('stepLogin');
+      return;
+    }
+
+    supabase = window.supabase.createClient(FIELDO.config.SUPABASE_URL, FIELDO.config.ANON_KEY);
+
+    FIELDO.Auth.Session.getTokens().then(function (tokens) {
+      if (!tokens) {
+        mostrarStep('stepLogin');
+        return;
+      }
+      return supabase.auth.setSession({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
+      }).then(function (setRes) {
+        if (setRes.error) throw setRes.error;
+        /* Confirma que a sessão pegou de verdade antes de seguir —
+           padrão recomendado pela própria Supabase pra esta tela. */
+        return supabase.auth.getClaims();
+      }).then(function (claimsRes) {
+        if (claimsRes.error || !claimsRes.data) {
+          mostrarStep('stepLogin');
+          return;
+        }
+        return supabase.auth.oauth.getAuthorizationDetails(authorizationId);
+      }).then(function (detailsRes) {
+        if (!detailsRes) return; // já tratado acima (voltou pro login)
+        if (detailsRes.error || !detailsRes.data) {
+          mostrarErro('Este link de conexão não é mais válido — pode já ter expirado ou sido usado. Volte ao app que pediu a conexão e tente de novo.');
+          return;
+        }
+        var d = detailsRes.data;
+        var nome = (d.client && d.client.name) || 'Este app';
+        $('clientName').textContent = nome;
+        $('clientInitial').textContent = nome.trim().charAt(0).toUpperCase() || '?';
+        montarScopes(d.scope);
+        mostrarStep('stepConsent');
+      });
+    }).catch(function (err) {
+      console.error('[oauth-conectar] falha ao preparar a tela', err);
+      mostrarErro('Algo deu errado ao carregar este pedido de conexão. Recarregue a página e tente de novo.');
+    });
+  }
+
+  window.decidir = function (aprovar) {
+    if (deciding || !supabase) return;
+    deciding = true;
+    $('btnPermitir').disabled = true;
+    $('btnRecusar').disabled = true;
+
+    $('redirectMsg').textContent = aprovar ? 'Conectando…' : 'Cancelando…';
+    mostrarStep('stepRedirect');
+
+    var chamada = aprovar
+      ? supabase.auth.oauth.approveAuthorization(authorizationId)
+      : supabase.auth.oauth.denyAuthorization(authorizationId);
+
+    chamada.then(function (res) {
+      if (res.error || !res.data || !res.data.redirect_url) {
+        throw (res.error || new Error('resposta sem redirect_url'));
+      }
+      window.location.href = res.data.redirect_url;
+    }).catch(function (err) {
+      console.error('[oauth-conectar] falha ao decidir autorização', err);
+      deciding = false;
+      $('btnPermitir').disabled = false;
+      $('btnRecusar').disabled = false;
+      mostrarErro('Não foi possível concluir agora. Volte ao app que pediu a conexão e tente de novo.');
+    });
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+-- Impressão digital da ESTRUTURA (rodar aqui e no SQL Editor de produção; os md5 devem bater).
+-- Permissões: ver permissoes.sql (estas não incluem o nome de quem concedeu, que difere entre ambientes).
+with sch as (select oid, nspname from pg_namespace where nspname in ('public','private','gestao'))
+select 'tabelas' k, count(*)::text n, md5(string_agg(c.relname||':'||(select string_agg(a.attname||format_type(a.atttypid,a.atttypmod)||a.attnotnull||coalesce(pg_get_expr(d.adbin,d.adrelid),''),',' order by a.attnum) from pg_attribute a left join pg_attrdef d on d.adrelid=a.attrelid and d.adnum=a.attnum where a.attrelid=c.oid and a.attnum>0 and not a.attisdropped),'|' order by n.nspname,c.relname)) h from pg_class c join sch n on n.oid=c.relnamespace where c.relkind='r'
+union all select 'views', count(*)::text, md5(string_agg(c.relname||pg_get_viewdef(c.oid)||coalesce(c.reloptions::text,''),'|' order by c.relname)) from pg_class c join sch n on n.oid=c.relnamespace where c.relkind='v'
+union all select 'funcoes', count(*)::text, md5(string_agg(pg_get_functiondef(p.oid),'|' order by n.nspname,p.proname,pg_get_function_identity_arguments(p.oid))) from pg_proc p join sch n on n.oid=p.pronamespace where not exists (select 1 from pg_depend d where d.objid=p.oid and d.deptype='e')
+union all select 'constraints', count(*)::text, md5(string_agg(k.conname||pg_get_constraintdef(k.oid),'|' order by k.conname, pg_get_constraintdef(k.oid))) from pg_constraint k join sch n on n.oid=k.connamespace where k.contype in ('p','u','c','f','x')
+union all select 'indices', count(*)::text, md5(string_agg(pg_get_indexdef(i.indexrelid),'|' order by pg_get_indexdef(i.indexrelid))) from pg_index i join pg_class c on c.oid=i.indrelid join sch n on n.oid=c.relnamespace
+union all select 'triggers', count(*)::text, md5(string_agg(pg_get_triggerdef(t.oid),'|' order by pg_get_triggerdef(t.oid))) from pg_trigger t join pg_class c on c.oid=t.tgrelid join sch n on n.oid=c.relnamespace where not t.tgisinternal
+union all select 'policies', count(*)::text, md5(string_agg(schemaname||tablename||policyname||cmd||roles::text||coalesce(qual,'')||coalesce(with_check,''),'|' order by schemaname,tablename,policyname)) from pg_policies where schemaname in ('public','private','gestao')
+order by 1;

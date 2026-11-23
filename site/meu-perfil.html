@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+<script src="/app-play.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0e0e14"/>
+  <meta name="robots" content="noindex,follow"/>
+  <title>Meu perfil · Fieldo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <style>
+    /* ── Cabeçalho de identidade ──
+       Fundo escuro: é a única faixa do app com esse peso, e serve pra
+       dizer "isto é você". O resto da página é papel. */
+    .mp-topo { background: var(--surface-ink); color: #fff; padding: var(--s3) var(--s3) var(--s4); }
+    .mp-id   { display: flex; align-items: center; gap: var(--s2); }
+    .mp-foto { width: 68px; height: 68px; border-radius: 50%; flex-shrink: 0;
+               background: var(--gold); color: var(--on-gold); overflow: hidden;
+               display: flex; align-items: center; justify-content: center;
+               font-family: var(--serif); font-style: italic; font-size: 1.6rem; }
+    .mp-foto img { width: 100%; height: 100%; object-fit: cover; }
+    .mp-txt  { min-width: 0; flex: 1; }
+    .mp-nome { font-family: var(--serif); font-size: var(--t-h1); line-height: 1.2;
+               color: #fff; display: -webkit-box; -webkit-line-clamp: 2;
+               -webkit-box-orient: vertical; overflow: hidden; }
+    .mp-spec { font-family: var(--mono); font-size: var(--t-meta);
+               color: rgba(255,255,255,.55); margin-top: 4px;
+               display: -webkit-box; -webkit-line-clamp: 2;
+               -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* ── Reputação: número COM significado ── */
+    .mp-rep { display: flex; align-items: center; gap: var(--s3);
+              margin-top: var(--s3); padding-top: var(--s3);
+              border-top: 1px solid rgba(255,255,255,.1); }
+    .mp-nota { font-family: var(--serif); font-style: italic; font-size: 2.6rem;
+               line-height: 1; color: var(--gold-l); }
+    .mp-rep-txt { min-width: 0; }
+    .mp-estrelas { color: var(--gold-l); font-size: .95rem; letter-spacing: .1em; }
+    .mp-rep-sub  { font-size: var(--t-sm); color: rgba(255,255,255,.62);
+                   margin-top: 4px; line-height: 1.45; }
+    .mp-sem-nota { font-size: var(--t-sm); color: rgba(255,255,255,.62); line-height: 1.5; }
+
+    /* ── Próximo passo: a única coisa dourada acima da dobra ── */
+    .mp-passo { background: var(--paper); border: 1px solid var(--gold-bd);
+                border-left: 3px solid var(--gold); border-radius: var(--rad-md);
+                padding: var(--s3); margin-bottom: var(--s3); }
+    .mp-passo-lbl { font-family: var(--mono); font-size: var(--t-micro);
+                    letter-spacing: .16em; text-transform: uppercase;
+                    color: var(--gold-text); margin-bottom: var(--s1); }
+    .mp-passo-tit { font-family: var(--serif); font-size: var(--t-h2);
+                    color: var(--text); margin-bottom: 6px; }
+    .mp-passo-txt { font-size: var(--t-sm); line-height: var(--lh-base);
+                    color: var(--muted); margin-bottom: var(--s2); }
+
+    /* ── Progresso ── */
+    .mp-prog-topo { display: flex; justify-content: space-between; align-items: baseline;
+                    margin-bottom: var(--s1); }
+    .mp-prog-pct  { font-family: var(--serif); font-size: var(--t-h2); color: var(--text); }
+    .mp-checks { list-style: none; margin: var(--s2) 0 0; padding: 0;
+                 display: grid; gap: 6px; }
+    .mp-check { display: flex; align-items: flex-start; gap: var(--s1);
+                font-size: var(--t-sm); line-height: 1.45; }
+    .mp-check svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; }
+    .mp-check--ok    { color: var(--muted); }
+    .mp-check--ok svg{ color: var(--green-l); }
+    .mp-check--falta { color: var(--text2); }
+    .mp-check--falta svg { color: var(--paper5); }
+    .mp-check-porque { display: block; color: var(--muted); font-size: var(--t-sm); }
+
+    /* ── Perfil público ── */
+    .mp-pub-status { display: flex; align-items: center; gap: var(--s1);
+                     font-size: var(--t-body); color: var(--text); margin-bottom: 6px; }
+    .mp-pub-sub { font-size: var(--t-sm); color: var(--muted); line-height: var(--lh-base);
+                  margin-bottom: var(--s2); }
+    .mp-pub-acoes { display: flex; gap: var(--s1); }
+    .mp-pub-dica { margin-top: var(--s2); padding-top: var(--s2); border-top: 1px solid var(--border); font-size: var(--t-sm); color: var(--muted); line-height: var(--lh-base); }
+    .mp-pub-dica b { color: var(--text); font-weight: 600; }
+    .mp-pub-dica-link { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1); margin-top: var(--s1); }
+    .mp-pub-dica-link code { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; font-family: var(--mono); font-size: .8rem; color: var(--text); background: var(--paper2); border-radius: 8px; padding: .5rem .6rem; }
+    .mp-pub-dica[hidden] { display: none; }
+    .mp-pub-acoes > * { flex: 1; }
+
+    /* ── Financeiro ── */
+    .mp-fin { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s1); }
+    .mp-fin-val { font-family: var(--serif); font-size: var(--t-h2); color: var(--text); }
+    .mp-fin-lbl { font-size: var(--t-sm); color: var(--muted); margin-top: 2px; }
+
+    /* ── Editor ── */
+    .ed { position: fixed; inset: 0; z-index: 400; display: none;
+          background: rgba(14,14,20,.55); }
+    .ed.aberto { display: block; }
+    .ed-box { position: absolute; inset: auto 0 0 0; max-height: 92vh; overflow-y: auto;
+              background: var(--bg); border-radius: var(--rad-lg) var(--rad-lg) 0 0;
+              animation: sobe .3s var(--ez); }
+    .ed-head { position: sticky; top: 0; z-index: 2; background: var(--bg);
+               display: flex; align-items: center; justify-content: space-between;
+               gap: var(--s2); padding: var(--s3); border-bottom: 1px solid var(--border); }
+    .ed-body { padding: var(--s3); padding-bottom: var(--s6); }
+    .ed-grupo { font-family: var(--mono); font-size: var(--t-micro); letter-spacing: .16em;
+                text-transform: uppercase; color: var(--muted);
+                margin: var(--s4) 0 var(--s2); }
+    .ed-grupo:first-child { margin-top: 0; }
+    .ed-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2); }
+    .ed-rodape { position: sticky; bottom: 0; background: var(--bg);
+                 border-top: 1px solid var(--border); padding: var(--s2) var(--s3)
+                 calc(var(--s2) + env(safe-area-inset-bottom, 0px)); display: flex; gap: var(--s1); }
+    .ed-rodape > * { flex: 1; }
+    .ed-foto { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s3); }
+    .ed-foto-alvo { width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0;
+      background: var(--paper3); color: var(--muted); overflow: hidden; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; border: 1px dashed var(--border3); }
+    .ed-foto-alvo img { width: 100%; height: 100%; object-fit: cover; }
+    .ed-troca { display: flex; align-items: flex-start; gap: var(--s2); }
+  
+    /* v10.0 · alvo de toque de 44px. Medido nas 22 páginas em 360/390/430 com o overflow-x desligado. */
+    .topbar-inner .ds-btn{min-height:44px}
+  </style>
+</head>
+<body>
+<a href="#conteudo" class="sr-only">Pular para o conteúdo</a>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="painel.html" class="topbar-logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      <span class="topbar-brand">Field<em>o</em></span>
+    </a>
+    <button type="button" class="ds-btn ds-btn--ghost" onclick="abrirEditor()"
+      style="padding:0 14px;font-size:.8125rem;color:rgba(255,255,255,.85);border-color:rgba(255,255,255,.2)">
+      Editar
+    </button>
+  </div>
+</header>
+
+<div class="mp-topo ds-dark" id="mpTopo">
+  <div class="mp-id">
+    <div class="mp-foto" id="mpFoto">—</div>
+    <div class="mp-txt">
+      <div class="mp-nome" id="mpNome">Carregando…</div>
+      <div class="mp-spec" id="mpSpec"></div>
+    </div>
+    <span class="ds-badge ds-badge--free" id="mpPlano" style="align-self:flex-start">Free</span>
+  </div>
+
+  <div class="mp-rep" id="mpRep">
+    <div class="mp-sem-nota" id="mpSemNota">Carregando sua reputação…</div>
+  </div>
+</div>
+
+<main id="conteudo" class="ds-page">
+
+  <!-- PRÓXIMO PASSO — sempre uma coisa só -->
+  <section class="mp-passo" id="mpPasso" style="display:none">
+    <div class="mp-passo-lbl">Seu próximo passo</div>
+    <h2 class="mp-passo-tit" id="mpPassoTit"></h2>
+    <p class="mp-passo-txt" id="mpPassoTxt"></p>
+    <a class="ds-btn ds-btn--primary ds-btn--full" id="mpPassoCta" href="#"></a>
+  </section>
+
+  <!-- PERFIL PÚBLICO -->
+  <section class="ds-card ds-sec" id="mpPublico" style="display:none">
+    <div class="mp-pub-status" id="mpPubStatus"></div>
+    <p class="mp-pub-sub" id="mpPubSub"></p>
+    <div class="mp-pub-acoes" id="mpPubAcoes"></div>
+    <!-- v12.28 · auditoria SEO/GEO, Fase 3: quem procura "eletricista
+         perto de mim" vê primeiro o mapa do Google. O Perfil da Empresa
+         no Google com este link no campo Site leva o cliente ao perfil. -->
+    <div class="mp-pub-dica" id="mpPubDica" hidden>
+      <b>Tem Perfil da Empresa no Google?</b> É o que aparece no Google Maps. Coloque o link do seu perfil no campo <i>Site</i>: o cliente que te acha no mapa vê suas fotos e avaliações aqui.
+      <div class="mp-pub-dica-link"><code id="mpPubDicaUrl"></code><button type="button" class="ds-btn ds-btn--ghost" onclick="copiarLinkPerfil()">Copiar link</button></div>
+    </div>
+  </section>
+
+  <!-- PROGRESSO — só quando incompleto -->
+  <section class="ds-card ds-sec" id="mpProgresso" style="display:none">
+    <div class="mp-prog-topo">
+      <span class="ds-sec-tit">Seu perfil</span>
+      <span class="mp-prog-pct" id="mpProgPct">—</span>
+    </div>
+    <div class="ds-prog"><div class="ds-prog-fill" id="mpProgFill" style="width:0"></div></div>
+    <ul class="mp-checks" id="mpProgLista"></ul>
+    <button type="button" class="ds-btn ds-btn--secondary ds-btn--full" style="margin-top:16px"
+      onclick="abrirEditor()">Completar perfil</button>
+  </section>
+
+  <!-- FINANCEIRO — resumo, nunca planilha -->
+  <section class="ds-sec" id="mpFinanceiro" style="display:none">
+    <div class="ds-sec-head"><h2 class="ds-sec-tit">Financeiro</h2></div>
+    <div class="ds-card">
+      <div class="mp-fin">
+        <div><div class="mp-fin-val" id="finRecebido">—</div><div class="mp-fin-lbl">Recebido</div></div>
+        <div><div class="mp-fin-val" id="finPendente">—</div><div class="mp-fin-lbl">A receber</div></div>
+        <div><div class="mp-fin-val" id="finMes">—</div><div class="mp-fin-lbl">Este mês</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AÇÕES -->
+  <section class="ds-sec">
+    <div class="ds-sec-head"><h2 class="ds-sec-tit">Recursos</h2></div>
+    <div id="mpAcoes"></div>
+  </section>
+
+  <!-- CONTA -->
+  <section class="ds-sec">
+    <div class="ds-sec-head"><h2 class="ds-sec-tit">Conta</h2></div>
+    <div id="mpConta"></div>
+  </section>
+</main>
+
+<!-- ══════════════ EDITOR ══════════════
+     v10.0 · O editor antigo tinha VINTE campos numa tela só, e
+     misturava identidade profissional (nome, foto, Pix) com
+     configuração de sistema (tema, código de recuperação, "corrigir
+     app travado"). Coisas diferentes, tempos diferentes: identidade
+     se preenche uma vez no começo; sistema se mexe quando dá problema.
+
+     Aqui ficou só o que o CLIENTE vê. O resto foi pra Configurações. -->
+<div class="ed" id="editor" onclick="fecharEditor(event)">
+  <div class="ed-box" role="dialog" aria-modal="true" aria-labelledby="edTit" onclick="event.stopPropagation()">
+    <div class="ed-head">
+      <h2 class="ds-h1" id="edTit">Editar perfil</h2>
+      <button type="button" class="ds-btn ds-btn--ghost" onclick="fecharEditor()"
+        aria-label="Fechar" style="min-height:40px;padding:0 12px" id="edFechar"></button>
+    </div>
+
+    <div class="ed-body">
+      <div class="ed-grupo">Como o cliente te vê</div>
+
+      <div class="ed-foto">
+        <div class="ed-foto-alvo" id="edFotoAlvo" onclick="document.getElementById('edFoto').click()"
+             role="button" tabindex="0" aria-label="Escolher foto"></div>
+        <div class="ed-troca">
+          <div>
+            <button type="button" class="ds-btn ds-btn--ghost"
+              onclick="document.getElementById('edFoto').click()"
+              style="min-height:38px;padding:0 14px;font-size:.8125rem">Escolher foto</button>
+            <div class="ds-hint">Aparece no seu perfil público e no documento que o cliente recebe.</div>
+          </div>
+        </div>
+        <input type="file" id="edFoto" accept="image/*" style="display:none" onchange="preverFoto(this)"/>
+      </div>
+
+      <div class="ds-field">
+        <label class="ds-label" for="pNome">Seu nome <span class="req">*</span></label>
+        <input class="ds-input" id="pNome" type="text" placeholder="Ex: João da Silva"/>
+      </div>
+      <div class="ds-field">
+        <label class="ds-label" for="pSpec">Sua profissão <span class="req">*</span></label>
+        <input class="ds-input" id="pSpec" type="text" placeholder="Ex: Eletricista residencial"/>
+        <div class="ds-hint">É o que aparece embaixo do seu nome.</div>
+      </div>
+      <div class="ds-field">
+        <label class="ds-label" for="pNichoTxt">Categoria na busca</label>
+        <div class="busca-prof">
+          <input class="ds-input" id="pNichoTxt" type="text" placeholder="Ex.: Eletricista, Jardineiro"/>
+          <ul class="sug-lista" id="pNichoSug" aria-label="Sugestões de profissão"></ul>
+        </div>
+        <input type="hidden" id="pNicho"/>
+        <div class="ds-hint">Digite ou escolha. É por ela que o cliente te acha no Explorar e no Google.</div>
+      </div>
+      <!-- v12.25 · outras profissões (até 3). Aparece na busca de cada uma. -->
+      <div class="ds-field" id="pOutrasCampo" hidden>
+        <label class="ds-label" for="pOutrasInput">Outras profissões</label>
+        <div id="pOutras"></div>
+        <div class="ds-hint">Faz mais de um serviço? Adicione até 3. Você aparece na busca de cada uma.</div>
+      </div>
+      <div class="ds-field">
+        <label class="ds-label" for="pCidade">Sua cidade <span class="req">*</span></label>
+        <input class="ds-input" id="pCidade" type="text" placeholder="Caraguatatuba – SP"/>
+        <div class="ds-hint">Quase toda busca é "eletricista em &lt;cidade&gt;".</div>
+      </div>
+      <!-- v10.30 · Parte 4 da auditoria de perfil público: "onde atende"
+           e "residencial ou comercial" eram duas das perguntas que o
+           cliente não conseguia responder olhando a página — só existia
+           a cidade principal. Os dois campos são opcionais e ficam perto
+           da cidade, não da bio: são localização, não descrição. -->
+      <!-- v12.28 · auditoria SEO/GEO, Fase 3: as cidades viraram escolha.
+           Cada uma marcada põe a pessoa na página "eletricista em <cidade>"
+           (o texto livre abaixo nunca entrou nessas páginas). -->
+      <div class="ds-field" id="pCidadesCampo" hidden>
+        <span class="ds-label" id="pCidadesRotulo">Também atende</span>
+        <div id="pCidades" role="group" aria-labelledby="pCidadesRotulo"></div>
+        <div class="ds-hint">Marque as cidades onde você também trabalha. Você aparece na busca de cada uma, como “eletricista em Ubatuba”.</div>
+      </div>
+      <div class="ds-field">
+        <label class="ds-label" for="pAreaAtendimento" id="pAreaRotulo">Também atende</label>
+        <input class="ds-input" id="pAreaAtendimento" type="text" placeholder="Ex: Ubatuba e São Sebastião"/>
+        <div class="ds-hint" id="pAreaDica">Bairros ou cidades vizinhas, se atender além de <span id="pAreaCidadeRef">sua cidade</span>. Deixe em branco se atender só ali.</div>
+      </div>
+      <div class="ds-field">
+        <label class="ds-label" for="pTipoAtendimento">Atende</label>
+        <select class="ds-select" id="pTipoAtendimento">
+          <option value="ambos">Residencial e comercial</option>
+          <option value="residencial">Só residencial</option>
+          <option value="comercial">Só comercial</option>
+        </select>
+      </div>
+      <div class="ds-field">
+        <label class="ds-label" for="pBio">Uma descrição</label>
+        <textarea class="ds-textarea" id="pBio" placeholder="Duas linhas sobre o que você faz."></textarea>
+      </div>
+
+      <!-- v12.13 · credibilidade: CNPJ conferido na Receita + campos declarados -->
+      <div class="ed-grupo">Credibilidade</div>
+      <div class="ds-hint" style="margin:-.2rem 0 .8rem">O que faz o cliente confiar antes de chamar. Tudo aparece no seu perfil público.</div>
+      <div id="credEditor"></div>
+
+      <div class="ed-grupo">Contato</div>
+      <div class="ed-2">
+        <div class="ds-field">
+          <label class="ds-label" for="pWpp">WhatsApp</label>
+          <input class="ds-input" id="pWpp" type="tel" inputmode="tel" placeholder="(12) 99999-9999"/>
+        </div>
+        <div class="ds-field">
+          <label class="ds-label" for="pInsta">Instagram</label>
+          <input class="ds-input" id="pInsta" type="text" placeholder="@seuusuario"/>
+        </div>
+      </div>
+      <!-- v12.30 · botão "Ligar" no perfil público, só para quem marcar.
+           Escondido até o banco ter a coluna (SQL da fase 5). -->
+      <label id="pLigacaoCampo" hidden style="display:flex;gap:12px;align-items:flex-start;cursor:pointer;margin-top:4px">
+        <input type="checkbox" id="pLigacao" style="margin-top:3px;width:20px;height:20px;flex-shrink:0"/>
+        <span>
+          <span style="display:block;font-size:.9375rem;color:var(--text)">Aceito ligações neste número</span>
+          <span class="ds-hint" style="margin-top:4px">Seu perfil ganha o botão “Ligar” ao lado do WhatsApp. Deixe desmarcado se não consegue atender ligação durante o serviço.</span>
+        </span>
+      </label>
+
+      <div class="ed-grupo">Chave Pix</div>
+      <div class="ed-2">
+        <div class="ds-field">
+          <label class="ds-label" for="pPixTipo">Tipo</label>
+          <select class="ds-select" id="pPixTipo">
+            <option value="CPF">CPF</option><option value="CNPJ">CNPJ</option>
+            <option value="Telefone">Telefone</option><option value="E-mail">E-mail</option>
+            <option value="Aleatória">Aleatória</option>
+          </select>
+        </div>
+        <div class="ds-field">
+          <label class="ds-label" for="pPixChave">Chave</label>
+          <input class="ds-input" id="pPixChave" type="text" placeholder="Sua chave"/>
+        </div>
+      </div>
+      <div class="ds-hint">Aparece no documento do serviço — o cliente paga na hora.</div>
+
+      <div class="ed-grupo">Fotos dos serviços</div>
+      <label style="display:flex;gap:12px;align-items:flex-start;cursor:pointer">
+        <input type="checkbox" id="pPortfolio" style="margin-top:3px;width:20px;height:20px;flex-shrink:0"/>
+        <span>
+          <span style="display:block;font-size:.9375rem;color:var(--text)">Mostrar no meu perfil público</span>
+          <span class="ds-hint" style="margin-top:4px">
+            As fotos podem mostrar a casa, o rosto ou o endereço do seu cliente.
+            Avise cada um antes de ligar. Você pode esconder um serviço específico sem desligar tudo.
+          </span>
+        </span>
+      </label>
+    </div>
+
+    <div class="ed-rodape">
+      <button type="button" class="ds-btn ds-btn--ghost" onclick="fecharEditor()">Cancelar</button>
+      <button type="button" class="ds-btn ds-btn--primary" id="edSalvar" onclick="salvarPerfil()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div id="fieldo-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script src="db.js" onerror="document.documentElement.innerHTML='&lt;div style=\'font-family:system-ui;padding:2rem;text-align:center\'&gt;&lt;h2&gt;Falha ao carregar&lt;/h2&gt;&lt;p&gt;Verifique a conexão. Seus dados continuam salvos.&lt;/p&gt;&lt;button onclick=\'location.reload(true)\'&gt;Recarregar&lt;/button&gt;&lt;/div&gt;'"></script>
+<script>
+'use strict';
+if (!FIELDO.Auth.isLoggedIn()) { window.location.href = 'entrar.html'; }
+
+var I    = FIELDO.Icones;
+var esc  = FIELDO.UI.esc;
+var _prof = null, _stats = null, _fotoNova = null;
+/* círculo vazio = "falta". O "+" que eu tinha posto lê como "adicionar
+   mais um", que é outra coisa. */
+var PENDENTE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" ' +
+  'stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>';
+
+FIELDO.NavInf.montar('perfil');
+document.getElementById('edFechar').innerHTML = I.get('x', 18);
+
+/* ══ CARGA ══ */
+function carregar() {
+  return Promise.all([
+    FIELDO.Professionals.me(),
+    FIELDO.Reports.stats(),
+    FIELDO.Reports.list().catch(function () { return []; }),
+  ]).then(function (r) {
+    _prof = r[0] || {};
+    _stats = r[1] || {};
+    render(_prof, _stats, r[2] || []);
+  }).catch(function (e) {
+    FIELDO.UI.erro(e, 'carregar seu perfil');
+    document.getElementById('mpNome').textContent = 'Não conseguimos carregar';
+    document.getElementById('mpSemNota').innerHTML =
+      '<button type="button" class="ds-btn ds-btn--ghost" onclick="location.reload()" ' +
+      'style="color:#fff;border-color:rgba(255,255,255,.25)">Tentar de novo</button>';
+  });
+}
+
+/* ══ RENDER ══ */
+function render(prof, stats, reports) {
+  var nome = prof.name || 'Seu perfil';
+  document.getElementById('mpNome').textContent = nome;
+  document.getElementById('mpSpec').textContent = FIELDO.UI.subtitulo(prof) || 'Complete seu perfil';
+
+  var foto = document.getElementById('mpFoto');
+  foto.innerHTML = prof.logo_url
+    ? '<img src="' + esc(prof.logo_url) + '" alt=""/>'
+    : esc(nome.charAt(0).toUpperCase());
+
+  var plano = document.getElementById('mpPlano');
+  var pro = (prof.plan || 'free') !== 'free';
+  plano.className = 'ds-badge ' + (pro ? 'ds-badge--pro' : 'ds-badge--free');
+  plano.innerHTML = '<span class="ds-dot"></span>' + (pro ? 'Pro' : 'Free');
+
+  renderReputacao(stats);
+  renderProximoPasso(prof, stats);
+  renderPublico(prof, stats);
+  renderProgresso(prof);
+  renderFinanceiro(reports);
+  renderAcoes(pro);
+  renderConta();
+  preencherEditor(prof);
+}
+
+/* Número NUNCA sozinho: a nota vem com quantas avaliações a
+   sustentam. "4,9" sem base é um número que não se pode discutir. */
+function renderReputacao(stats) {
+  var el = document.getElementById('mpRep');
+  var n = parseFloat(stats.avgScore);
+  var avaliados = Number(stats.avaliados || 0);
+  var publicos  = Number(stats.publicos || 0);
+
+  if (!n) {
+    el.innerHTML = '<div class="mp-sem-nota">' +
+      (publicos
+        ? 'Ainda sem avaliações. Elas chegam quando o cliente abre o link ' +
+          'do serviço que você mandou.'
+        : 'Sua reputação começa no primeiro serviço registrado.') +
+      '</div>';
+    return;
+  }
+  var base = avaliados || publicos;
+  el.innerHTML =
+    '<div class="mp-nota">' + String(n).replace('.', ',') + '</div>' +
+    '<div class="mp-rep-txt">' +
+      '<div class="mp-estrelas" aria-hidden="true">' + FIELDO.UI.stars(n) + '</div>' +
+      '<div class="mp-rep-sub">' + n.toFixed(1).replace('.', ',') + ' de 5 — baseado em ' +
+        base + (base === 1 ? ' avaliação' : ' avaliações') + '</div>' +
+    '</div>';
+}
+
+function renderProximoPasso(prof, stats) {
+  var p = FIELDO.Perfil.proximoPasso(prof, stats);
+  document.getElementById('mpPassoTit').textContent = p.titulo;
+  document.getElementById('mpPassoTxt').textContent = p.texto;
+  var cta = document.getElementById('mpPassoCta');
+  cta.textContent = p.cta.rotulo;
+  if (p.cta.acao === 'compartilhar') {
+    cta.setAttribute('href', '#');
+    cta.onclick = function (e) { e.preventDefault(); compartilhar(); };
+  } else {
+    cta.setAttribute('href', p.cta.href);
+    cta.onclick = null;
+  }
+  document.getElementById('mpPasso').style.display = '';
+}
+
+function renderPublico(prof, stats) {
+  var sec = document.getElementById('mpPublico');
+  var publicos = Number(stats.publicos || 0);
+  if (!publicos) { sec.style.display = 'none'; return; }
+
+  var url = FIELDO.perfilUrl(prof);
+  var naBusca = prof.is_public === true;
+
+  /* v10.23 · profile_publish é estado derivado (3+ serviços públicos),
+     não uma ação com botão — não existe clique pra prender o evento.
+     Registra na primeira vez que esta tela vê is_public virar true,
+     uma vez por aparelho (guardado em localStorage). Só observa; não
+     participa da decisão de publicar, que continua sendo do banco. */
+  if (naBusca) {
+    try {
+      var K_PUB = 'analytics_profile_publish_visto';
+      if (!localStorage.getItem(K_PUB)) {
+        localStorage.setItem(K_PUB, '1');
+        FIELDO.Analytics.track('profile_publish');
+      }
+    } catch (e) {}
+  }
+
+  document.getElementById('mpPubStatus').innerHTML =
+    '<span class="ds-badge ds-badge--ok"><span class="ds-dot"></span>No ar</span>' +
+    '<span>Seu perfil público</span>';
+  document.getElementById('mpPubSub').textContent = naBusca
+    ? 'É assim que o cliente te encontra — pelo link que você manda e pela busca do Google.'
+    : 'É assim que o cliente te encontra pelo link que você manda. Com 3 serviços ' +
+      'publicados você também passa a aparecer na busca.';
+  document.getElementById('mpPubAcoes').innerHTML =
+    '<a class="ds-btn ds-btn--ghost" href="' + esc(url) + '">' + I.get('olho', 18) + 'Ver</a>' +
+    '<button type="button" class="ds-btn ds-btn--primary" onclick="compartilhar()">' +
+      I.get('compartilhar', 18) + 'Compartilhar</button>';
+  /* v12.28 · dica do Perfil da Empresa no Google: só para quem já está na busca */
+  var dica = document.getElementById('mpPubDica');
+  if (dica) {
+    dica.hidden = !naBusca;
+    var u = document.getElementById('mpPubDicaUrl'); if (u) u.textContent = url;
+  }
+  sec.style.display = '';
+}
+
+function copiarLinkPerfil() {
+  if (!_prof) return;
+  var url = FIELDO.perfilUrl(_prof);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url)
+      .then(function () { FIELDO.UI.toast('Link copiado ✓'); })
+      .catch(function () { window.prompt('Copie seu link:', url); });
+    return;
+  }
+  window.prompt('Copie seu link:', url);
+}
+
+function renderProgresso(prof) {
+  var pr = FIELDO.Perfil.progresso(prof);
+  var sec = document.getElementById('mpProgresso');
+  if (pr.completo) { sec.style.display = 'none'; return; }
+
+  document.getElementById('mpProgPct').textContent = pr.pct + '%';
+  document.getElementById('mpProgFill').style.width = pr.pct + '%';
+  /* O que falta vem com o MOTIVO. "Falta a cidade" não move ninguém. */
+  document.getElementById('mpProgLista').innerHTML =
+    pr.feitos.map(function (c) {
+      return '<li class="mp-check mp-check--ok">' + I.get('check', 16) +
+             '<span>' + esc(c.rotulo) + '</span></li>';
+    }).join('') +
+    pr.faltam.map(function (c) {
+      return '<li class="mp-check mp-check--falta">' + PENDENTE +
+             '<span>' + esc(c.rotulo) +
+             '<span class="mp-check-porque">' + esc(c.porque) + '</span></span></li>';
+    }).join('');
+  sec.style.display = '';
+}
+
+/* Resumo, não planilha. E só aparece quando existe dinheiro
+   registrado — três "R$ 0,00" pra quem nunca preencheu valor é o
+   mesmo defeito que a tela de Contratos tinha. */
+function renderFinanceiro(reports) {
+  var comValor = reports.filter(function (r) { return Number(r.valor) > 0; });
+  var sec = document.getElementById('mpFinanceiro');
+  if (!comValor.length) { sec.style.display = 'none'; return; }
+
+  var soma = function (lista) {
+    return lista.reduce(function (s, r) { return s + (Number(r.valor) || 0); }, 0);
+  };
+  var agora = new Date();
+  document.getElementById('finRecebido').textContent =
+    FIELDO.UI.brl(soma(comValor.filter(function (r) { return r.payment_status === 'pago'; })));
+  document.getElementById('finPendente').textContent =
+    FIELDO.UI.brl(soma(comValor.filter(function (r) { return r.payment_status === 'pendente'; })));
+  document.getElementById('finMes').textContent =
+    FIELDO.UI.brl(soma(comValor.filter(function (r) {
+      var d = new Date(r.created_at);
+      return d.getMonth() === agora.getMonth() && d.getFullYear() === agora.getFullYear();
+    })));
+  sec.style.display = '';
+}
+
+/* Nenhum recurso é só um ícone: cada um diz o que faz. */
+function renderAcoes(pro) {
+  /* v10.25 · MVP: Contratos e "Seus números" (funil) saíram desta lista —
+     as páginas continuam no ar (link direto funciona normal), só não são
+     mais o que aparece pra todo profissional recém-cadastrado. O foco
+     agora é o loop cadastro → serviço → perfil publicado → contato.
+     Ver MVP-fieldo.md. */
+  var itens = [
+    { href: 'servico.html',   ic: 'raio',      nome: 'Novo serviço',
+      sub: 'Registre um trabalho e ele entra no seu perfil' },
+    { href: 'orcamento.html', ic: 'documento', nome: 'Orçamentos',
+      sub: 'Monte propostas pra mandar pro cliente' },
+  ];
+  document.getElementById('mpAcoes').innerHTML = itens.map(function (a) {
+    return '<a class="ds-action" href="' + a.href + '" style="margin-bottom:8px">' +
+      '<span class="ds-action-ico">' + I.get(a.ic, 20) + '</span>' +
+      '<span class="ds-action-txt"><span class="ds-action-nome">' + a.nome + '</span>' +
+      '<span class="ds-action-sub">' + esc(a.sub) + '</span></span>' +
+      '<span class="ds-action-seta">' + I.get('seta', 18) + '</span></a>';
+  }).join('');
+}
+
+function renderConta() {
+  document.getElementById('mpConta').innerHTML =
+    '<a class="ds-action" href="configuracoes.html" style="margin-bottom:8px">' +
+      '<span class="ds-action-ico">' + I.get('outro', 20) + '</span>' +
+      '<span class="ds-action-txt"><span class="ds-action-nome">Configurações</span>' +
+      '<span class="ds-action-sub">Visibilidade, código de recuperação, tema e plano</span></span>' +
+      '<span class="ds-action-seta">' + I.get('seta', 18) + '</span></a>' +
+    '<a class="ds-action" href="suporte.html">' +
+      '<span class="ds-action-ico">' + I.get('alerta', 20) + '</span>' +
+      '<span class="ds-action-txt"><span class="ds-action-nome">Suporte</span>' +
+      '<span class="ds-action-sub">Fale com a gente se algo não funcionar</span></span>' +
+      '<span class="ds-action-seta">' + I.get('seta', 18) + '</span></a>';
+}
+
+/* ══ COMPARTILHAR ══ */
+function compartilhar() {
+  if (!_prof) return;
+  var url = FIELDO.perfilUrl(_prof);
+  var texto = (_prof.name || 'Meu perfil') + ' — ' +
+    (FIELDO.UI.subtitulo(_prof) || 'no Fieldo') + '\n' + url;
+  if (navigator.share) {
+    navigator.share({ title: _prof.name || 'Fieldo', text: texto, url: url })
+      .catch(function () { /* cancelou: não é erro */ });
+    return;
+  }
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url)
+      .then(function () { FIELDO.UI.toast('Link copiado ✓'); })
+      .catch(function () { window.prompt('Copie seu link:', url); });
+    return;
+  }
+  window.prompt('Copie seu link:', url);
+}
+
+/* ══ EDITOR ══ */
+function abrirEditor() {
+  document.getElementById('editor').classList.add('aberto');
+  document.body.style.overflow = 'hidden';
+  var p = document.getElementById('pNome');
+  if (p) setTimeout(function () { p.focus(); }, 60);
+}
+function fecharEditor(ev) {
+  if (ev && ev.target !== document.getElementById('editor')) return;
+  document.getElementById('editor').classList.remove('aberto');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') fecharEditor();
+});
+
+function setVal(id, v) { var el = document.getElementById(id); if (el) el.value = v == null ? '' : v; }
+function getVal(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+
+function preencherEditor(prof) {
+  setVal('pNome', prof.name || '');
+  setVal('pSpec', prof.profissao || prof.specialty || '');
+  setVal('pBio', prof.bio || '');
+  setVal('pWpp', prof.whatsapp || '');
+  setVal('pCidade', prof.city || '');
+  setVal('pAreaAtendimento', prof.area_atendimento || '');
+  setVal('pTipoAtendimento', prof.tipo_atendimento || 'ambos');
+  var refCidade = document.getElementById('pAreaCidadeRef');
+  if (refCidade) refCidade.textContent = prof.city ? ('"' + prof.city + '"') : 'sua cidade';
+  setVal('pInsta', prof.instagram || '');
+  setVal('pPixTipo', prof.pix_tipo || 'CPF');
+  setVal('pPixChave', prof.pix_key || '');
+  var chk = document.getElementById('pPortfolio');
+  if (chk) chk.checked = prof.portfolio_publico === true;
+
+  ligarCampoNicho(prof.niche || '', prof.profissao || '');
+  ligarOutrasProf(prof); /* v12.25 */
+  ligarCidades(prof);    /* v12.28 */
+  ligarLigacao(prof);    /* v12.30 */
+  FIELDO.Credenciais.editor(document.getElementById('credEditor'), prof); /* v12.13 */
+
+  var alvo = document.getElementById('edFotoAlvo');
+  alvo.innerHTML = prof.logo_url
+    ? '<img src="' + esc(prof.logo_url) + '" alt=""/>'
+    : I.get('pessoa', 26);
+}
+
+function preverFoto(input) {
+  var f = input.files && input.files[0];
+  if (!f) return;
+  _fotoNova = f;
+  var r = new FileReader();
+  r.onload = function (e) {
+    document.getElementById('edFotoAlvo').innerHTML = '<img src="' + e.target.result + '" alt=""/>';
+  };
+  r.readAsDataURL(f);
+}
+
+function salvarPerfil() {
+  var nome = (getVal('pNome') || '').trim();
+  if (!nome) { FIELDO.UI.toast('Informe seu nome'); document.getElementById('pNome').focus(); return; }
+
+  var btn = document.getElementById('edSalvar');
+  btn.disabled = true; btn.textContent = 'Salvando…';
+
+  /* A foto não bloqueia o resto: se o upload falhar, o perfil salva
+     mesmo assim e a pessoa é avisada. Perder o texto digitado por
+     causa de uma imagem seria o pior desfecho possível. */
+  var upload = Promise.resolve(null);
+  if (_fotoNova) {
+    upload = FIELDO.Professionals.uploadAvatar(_fotoNova).catch(function (e) {
+      FIELDO.UI.erro(e, 'enviar a foto');
+      return null;
+    });
+  }
+
+  upload.then(function (logoUrl) {
+    var dados = {
+      name: nome,
+      profissao: getVal('pSpec'),
+      niche: getVal('pNicho') || null,
+      bio: getVal('pBio'),
+      whatsapp: getVal('pWpp'),
+      city: getVal('pCidade'),
+      area_atendimento: getVal('pAreaAtendimento'),
+      tipo_atendimento: getVal('pTipoAtendimento') || 'ambos',
+      instagram: getVal('pInsta'),
+      pix_tipo: getVal('pPixTipo'),
+      pix_key: getVal('pPixChave'),
+      portfolio_publico: !!(document.getElementById('pPortfolio') || {}).checked,
+    };
+    Object.assign(dados, FIELDO.Credenciais.ler(document.getElementById('credEditor'))); /* v12.13 */
+    if (_temOutras && _outrasCtl) dados.outras_profissoes = _outrasCtl.valor(); /* v12.25 */
+    if (_temCidades && _cidadesCtl) dados.cidades_atendidas = _cidadesCtl.valor(); /* v12.28 */
+    if (_temLigacao) dados.aceita_ligacao = !!(document.getElementById('pLigacao') || {}).checked; /* v12.30 */
+    if (logoUrl) dados.logo_url = logoUrl;
+    return FIELDO.Professionals.update(dados);
+  }).then(function (prof) {
+    _fotoNova = null;
+    btn.disabled = false; btn.textContent = 'Salvar';
+    fecharEditor();
+    FIELDO.UI.toast('Perfil salvo ✓');
+    return carregar();
+  }).catch(function (e) {
+    btn.disabled = false; btn.textContent = 'Salvar';
+    FIELDO.UI.erro(e, 'salvar seu perfil');
+  });
+}
+
+/* Abre o editor direto quando vem de "Completar perfil". */
+if (window.location.hash === '#editar') {
+  carregar().then(function () { abrirEditor(); });
+} else {
+  carregar();
+}
+
+/* v12.25 · outras profissões. O campo só aparece quando o banco já tem a
+   coluna (o perfil carregado traz outras_profissoes): antes da migration,
+   mandar o campo derrubaria o salvar do perfil inteiro. */
+var _outrasCtl = null, _temOutras = false, _outrasRecarregou = false;
+function ligarOutrasProf(prof) {
+  var el = document.getElementById('pOutras'), campo = document.getElementById('pOutrasCampo');
+  _temOutras = !!(prof && Object.prototype.hasOwnProperty.call(prof, 'outras_profissoes') && FIELDO.OutrasProfissoes);
+  /* v12.26 · o perfil chega primeiro do que ficou guardado no aparelho
+     (session_data). Guardado antes da v12.25, ele não tem o campo, e a
+     tela escondia "Outras profissões" (foi o que o dono viu). Agora busca
+     o perfil no servidor uma vez e liga o campo com o dado novo. Até
+     lá o campo fica escondido: mostrar vazio e salvar apagaria as
+     profissões que a pessoa já tem. */
+  if (!_temOutras && prof && FIELDO.OutrasProfissoes && !_outrasRecarregou) {
+    _outrasRecarregou = true;
+    FIELDO.Professionals.me(true).then(function (novo) {
+      if (novo && Object.prototype.hasOwnProperty.call(novo, 'outras_profissoes')) ligarOutrasProf(novo);
+    }).catch(function () {});
+  }
+  if (campo) campo.hidden = !_temOutras;
+  if (!_temOutras || !el) return;
+  var v = prof.outras_profissoes || [];
+  if (!_outrasCtl) {
+    _outrasCtl = FIELDO.OutrasProfissoes.montar(el, { id: 'pOutras', classe: 'ds-input', valor: v,
+      principal: function () { return getVal('pNicho'); } });
+  } else _outrasCtl.definir(v);
+}
+
+/* v12.28 · cidades atendidas. Mesma cautela de "Outras profissões": só
+   aparece quando o perfil carregado já tem a coluna (o SQL da v12.28
+   rodou); perfil guardado no aparelho sem ela → busca no servidor uma vez.
+   Mandar o campo antes do SQL derrubaria o salvar do perfil inteiro. */
+var _cidadesCtl = null, _temCidades = false, _cidadesRecarregou = false;
+/* v12.30 · "Aceito ligações neste número". Mesmo esquema de ligarCidades:
+   sem a coluna no perfil carregado (SQL da fase 5 ainda não rodou, ou o
+   perfil veio do cache de antes) a caixa fica escondida e o salvar não
+   manda o campo; uma releitura do banco, uma vez, tira a dúvida. */
+var _temLigacao = false, _ligacaoRecarregou = false;
+function ligarLigacao(prof) {
+  var campo = document.getElementById('pLigacaoCampo'), chk = document.getElementById('pLigacao');
+  _temLigacao = !!(prof && Object.prototype.hasOwnProperty.call(prof, 'aceita_ligacao'));
+  if (!_temLigacao && prof && !_ligacaoRecarregou) {
+    _ligacaoRecarregou = true;
+    FIELDO.Professionals.me(true).then(function (novo) {
+      if (novo && Object.prototype.hasOwnProperty.call(novo, 'aceita_ligacao')) ligarLigacao(novo);
+    }).catch(function () {});
+  }
+  if (campo) campo.hidden = !_temLigacao;
+  if (chk) chk.checked = _temLigacao && prof.aceita_ligacao === true;
+}
+
+function ligarCidades(prof) {
+  var el = document.getElementById('pCidades'), campo = document.getElementById('pCidadesCampo');
+  _temCidades = !!(prof && Object.prototype.hasOwnProperty.call(prof, 'cidades_atendidas') && FIELDO.Regiao);
+  if (!_temCidades && prof && FIELDO.Regiao && !_cidadesRecarregou) {
+    _cidadesRecarregou = true;
+    FIELDO.Professionals.me(true).then(function (novo) {
+      if (novo && Object.prototype.hasOwnProperty.call(novo, 'cidades_atendidas')) ligarCidades(novo);
+    }).catch(function () {});
+  }
+  if (campo) campo.hidden = !_temCidades;
+  if (!_temCidades || !el) return;
+  _cidadesCtl = FIELDO.Regiao.montar(el, { id: 'pCidades', valor: prof.cidades_atendidas || [],
+    cidade: function () { return getVal('pCidade'); } });
+  /* o texto livre fica para bairros e cidades fora da lista */
+  var rot = document.getElementById('pAreaRotulo'), dica = document.getElementById('pAreaDica'), inp = document.getElementById('pAreaAtendimento');
+  if (rot) rot.textContent = 'Bairros ou outras cidades';
+  if (dica) dica.textContent = 'Opcional. Aparece no perfil, depois das cidades marcadas.';
+  if (inp) inp.placeholder = 'Ex: Massaguaçu, Porto Novo';
+  var cid = document.getElementById('pCidade');
+  if (cid && !cid._ligadoCidades) { cid._ligadoCidades = true; cid.addEventListener('change', function () { if (_cidadesCtl) _cidadesCtl.redesenhar(); }); }
+}
+
+/* v12.9 · categoria do perfil = campo de profissão (digita ou escolhe).
+   O <select> com 9 opções e emoji saiu; quem não achava a sua ficava
+   em "Outro". O valor salvo continua em #pNicho (agora oculto). */
+function ligarCampoNicho(valorAtual, profissao) {
+  var txt = document.getElementById('pNichoTxt'), oculto = document.getElementById('pNicho');
+  if (!txt || !oculto) return;
+  var inicial = (valorAtual && valorAtual !== 'outro') ? { key: valorAtual, label: FIELDO.Profissoes.rotulo(valorAtual) }
+              : FIELDO.Profissoes.resolver(profissao || '');
+  txt.value = inicial ? inicial.label : '';
+  oculto.value = inicial ? inicial.key : '';
+  if (!txt._ligado) {
+    txt._ligado = true;
+    FIELDO.Profissoes.ligar(txt, document.getElementById('pNichoSug'), function (r) { oculto.value = r ? r.key : ''; });
+  }
+}
+</script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+/* Fieldo · app Android (Trusted Web Activity).
+ * O app é o próprio site fieldo-zelo.com.br aberto em tela cheia pelo Chrome,
+ * sem barra de endereço. Nenhuma tela é reimplementada aqui: publicar o site
+ * atualiza o app. Este projeto só muda quando muda o pacote, o ícone, o
+ * endereço inicial ou a exigência de versão do Android da Play Store. */
+plugins { id 'com.android.application' }
+
+def assinatura = new Properties()
+def arqAssinatura = rootProject.file('keystore.properties')   // fora do git
+if (arqAssinatura.exists()) arqAssinatura.withInputStream { assinatura.load(it) }
+
+android {
+    namespace 'br.com.fieldozelo.app'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'br.com.fieldozelo.app'
+        minSdk 24          // exigido pela androidbrowserhelper 2.7 (Android 7.0+)
+        targetSdk 36          // Play: apps novos precisam de API 36 desde 31/08/2026
+        versionCode 1         // suba a cada envio à Play
+        versionName '12.45'
+
+        resValue 'string', 'appName', 'Fieldo'
+        resValue 'string', 'launcherName', 'Fieldo'
+        resValue 'string', 'launchUrl', 'https://fieldo-zelo.com.br/painel.html?app=play'
+        resValue 'string', 'assetStatements',
+            '[{ \\"relation\\": [\\"delegate_permission/common.handle_all_urls\\"], ' +
+            '\\"target\\": {\\"namespace\\": \\"web\\", \\"site\\": \\"https://fieldo-zelo.com.br\\"}}]'
+    }
+
+    signingConfigs {
+        release {
+            if (arqAssinatura.exists()) {
+                storeFile rootProject.file(assinatura['storeFile'])
+                storePassword assinatura['storePassword']
+                keyAlias assinatura['keyAlias']
+                keyPassword assinatura['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            if (arqAssinatura.exists()) signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.4'
+}

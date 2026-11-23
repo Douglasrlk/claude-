@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+<script src="/app-play.js"></script>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#f5f2ec"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+  <!-- v12.26 · tela de trabalho (precisa de login): fora da busca, como painel.html. Auditoria SEO/GEO, P18. -->
+  <meta name="robots" content="noindex,nofollow"/>
+  <title>Obras · Fieldo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fieldo.css"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+  <style>
+    /* v12.16 · Obras em andamento.
+       Uma tela, três modos: criar (?nova=1), lista (sem parâmetro) e
+       a obra (?id=). O número que importa — quanto resta — é o maior
+       da tela; o resto é a prova de onde ele veio. */
+    .ob-voltar{display:inline-flex;align-items:center;gap:.35rem;color:var(--text2);font-size:.86rem;text-decoration:none;min-height:44px}
+    .ob-voltar:hover{color:var(--ink)}
+    .ob-tit{font-family:var(--serif);font-weight:600;font-size:1.65rem;line-height:1.15;color:var(--ink);margin:.25rem 0 .3rem;letter-spacing:-.01em;overflow-wrap:anywhere}
+    .ob-sub{font-size:.92rem;color:var(--text2);margin:0 0 1.25rem;line-height:1.45}
+    .ob-tag{display:inline-block;font-size:.76rem;padding:.2rem .6rem;border-radius:999px;margin-left:.3rem;vertical-align:middle}
+    .ob-tag--and{background:var(--gold-bg);color:var(--gold-text);border:1px solid var(--gold-bd)}
+    .ob-tag--ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+
+    .ob-saldo{background:var(--paper);border:1px solid var(--border2);border-radius:var(--r-xl);padding:1.2rem 1.2rem 1.1rem;margin-bottom:1rem}
+    .ob-resta-lbl{font-size:.88rem;color:var(--text2)}
+    .ob-resta{font-family:var(--serif);font-weight:600;font-size:2.4rem;line-height:1.05;color:var(--ink);margin:.15rem 0 .2rem;letter-spacing:-.02em}
+    .ob-de{font-size:.9rem;color:var(--text2)}
+    .ob-barra{height:10px;background:var(--paper3);border-radius:999px;overflow:hidden;margin:1rem 0 .45rem}
+    .ob-barra span{display:block;height:100%;background:var(--gold);border-radius:999px}
+    .ob-barra--acima span{background:var(--amber)}
+    .ob-pct{font-size:.8rem;color:var(--muted)}
+    .ob-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)}
+    .ob-num b{display:block;font-size:1rem;font-weight:600;color:var(--ink);white-space:nowrap}
+    .ob-num span{font-size:.76rem;color:var(--muted)}
+    .ob-acima{margin-top:.8rem;font-size:.86rem;color:var(--amber);background:var(--amber-bg);border:1px solid var(--amber-bd);border-radius:10px;padding:.6rem .75rem;line-height:1.45}
+
+    .ob-cta{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;min-height:52px;border-radius:12px;background:var(--gold);color:var(--on-gold);font-size:1rem;font-weight:600;text-decoration:none;border:0;cursor:pointer;margin-bottom:1.6rem}
+    .ob-cta:hover{background:var(--gold-d)}
+    .ob-cta--sec{background:var(--paper);color:var(--ink);border:1px solid var(--border3)}
+    /* v12.40 · contrato da obra */
+    .ob-ct{display:flex;align-items:center;gap:.75rem;background:var(--paper);border:1px solid var(--border2);border-radius:var(--r-l,12px);padding:.85rem 1rem;margin:0 0 1rem;text-decoration:none;color:inherit}
+    .ob-ct:hover{border-color:var(--gold-bd)}
+    .ob-ct-ico{width:36px;height:36px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;background:var(--gold-bg);border:1px solid var(--gold-bd);color:var(--gold-d)}
+    .ob-ct-ok .ob-ct-ico{background:var(--green-bg);border-color:var(--green-bd);color:var(--green)}
+    .ob-ct-txt{flex:1;min-width:0}.ob-ct-tit{font-weight:600;font-size:.92rem;color:var(--ink)}.ob-ct-sub{font-size:.78rem;color:var(--text2);margin-top:.1rem}
+    .ob-ct-seta{color:var(--muted);font-size:1.1rem}
+    .ob-cta--sec:hover{background:var(--paper2)}
+
+    .ob-h2{font-family:var(--serif);font-weight:600;font-size:1.15rem;color:var(--ink);margin:0 0 .7rem}
+    .ob-etapas{list-style:none;margin:0 0 1.6rem;padding:0;border:1px solid var(--border2);border-radius:var(--r-l);background:var(--paper);overflow:hidden}
+    .ob-etapa + .ob-etapa{border-top:1px solid var(--border)}
+    .ob-etapa a{display:grid;grid-template-columns:1fr auto;gap:.15rem .8rem;padding:.8rem .95rem;text-decoration:none;color:inherit}
+    .ob-etapa a:hover{background:var(--paper2)}
+    .ob-e-tit{font-size:.92rem;font-weight:500;color:var(--text);overflow-wrap:anywhere}
+    .ob-e-val{font-size:.95rem;font-weight:600;color:var(--ink);text-align:right;white-space:nowrap}
+    .ob-e-meta{font-size:.78rem;color:var(--muted)}
+    .ob-e-st{font-size:.78rem;text-align:right;white-space:nowrap}
+    .ob-e-st--pago{color:var(--green)}
+    .ob-e-st--pend{color:var(--amber)}
+    .ob-e-st--pend-sync{color:var(--muted)}
+    .ob-vazio{padding:1.1rem 1rem;font-size:.9rem;color:var(--text2);line-height:1.5;background:var(--paper2);border:1px dashed var(--border3);border-radius:var(--r-l);margin-bottom:1.6rem}
+
+    .ob-acoes{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:2rem}
+    .ob-bt{min-height:44px;padding:0 1rem;border-radius:10px;border:1px solid var(--border2);background:var(--paper);color:var(--text);font-size:.88rem;cursor:pointer;font-family:inherit}
+    .ob-bt:hover{background:var(--paper2)}
+    .ob-bt--perigo{color:var(--red);border-color:var(--red-bd)}
+    .ob-bt--perigo.armado{background:var(--red);color:#fff;border-color:var(--red)}
+
+    .ob-form{display:flex;flex-direction:column;gap:1rem}
+    .ob-form .field-hint{font-size:.78rem;color:var(--muted);margin-top:.3rem;line-height:1.45}
+    .ob-erro{color:var(--red);font-size:.86rem;min-height:1.2em}
+    .ob-valor-wrap{position:relative}
+    .ob-valor-wrap span{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.95rem;pointer-events:none}
+    .ob-valor-wrap input{padding-left:2.4rem}
+
+    .ob-lista{list-style:none;margin:0 0 1.5rem;padding:0;display:grid;gap:.6rem}
+    .ob-item a{display:block;padding:.95rem 1rem;border:1px solid var(--border2);border-radius:var(--r-l);background:var(--paper);text-decoration:none;color:inherit}
+    .ob-item a:hover{background:var(--paper2)}
+    .ob-item-top{display:flex;justify-content:space-between;gap:.75rem;align-items:baseline}
+    .ob-item-nome{font-weight:600;color:var(--ink);font-size:.95rem;overflow-wrap:anywhere}
+    .ob-item-resta{font-size:.9rem;color:var(--ink);white-space:nowrap}
+    .ob-item-resta small{color:var(--muted);font-size:.76rem;margin-right:.2rem}
+    .ob-item-sub{font-size:.8rem;color:var(--muted);margin-top:.15rem}
+    .ob-item .ob-barra{height:6px;margin:.65rem 0 0}
+    .ob-cab-lista{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1rem}
+    .ob-novo{display:inline-flex;align-items:center;min-height:44px;padding:0 1rem;border-radius:10px;background:var(--gold);color:var(--on-gold);text-decoration:none;font-weight:600;font-size:.9rem;white-space:nowrap}
+    .ob-skel{height:150px;border-radius:var(--r-xl)}
+    @media (max-width:359px){.ob-resta{font-size:2rem}.ob-nums{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="painel.html" class="topbar-logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>
+      <span class="topbar-brand">Field<em>o</em></span>
+    </a>
+    <button class="hbg-btn" id="menuBtn" onclick="HBG.toggle()" aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="menuDrawer">
+      <span class="hbg-line"></span><span class="hbg-line"></span><span class="hbg-line"></span>
+    </button>
+  </div>
+</header>
+
+<div class="menu-overlay" aria-hidden="true" id="menuOverlay" onclick="HBG.close()"></div>
+<div class="menu-drawer" id="menuDrawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Menu de navegação">
+  <div class="menu-drawer-head">
+    <div class="menu-drawer-brand"><div class="logo-icon" style="width:22px;height:22px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 4 H15 A5 5 0 0 1 20 9 V15 A5 5 0 0 1 15 20 H9 A5 5 0 0 1 4 15 V9 A5 5 0 0 1 9 4"/><circle class="logo-ponto" cx="11.8" cy="4" r="1.2" fill="#c49a30" stroke="none"/></svg></div>Field<em>o</em></div>
+    <button class="menu-drawer-close" onclick="HBG.close()" aria-label="Fechar menu">✕</button>
+  </div>
+  <div class="menu-section-lbl">Navegação</div>
+  <nav class="menu-nav" aria-label="Navegação principal">
+    <!-- v12.8 · MESMO menu em todas as páginas logadas. Antes só o
+         painel tinha Configurações, Suporte e Sair: de dentro do
+         orçamento ou do Novo Serviço não havia como sair da conta. -->
+    <a href="/painel.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>Painel</span></a>
+    <a href="/servico.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span>Novo serviço</span></a>
+    <a href="/obra.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></span><span>Obras</span></a>
+    <a href="/orcamento.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span><span>Novo orçamento</span></a>
+    <a href="/assistente.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span><span>Assistente Fiel</span></a>
+    <div class="menu-divider"></div>
+    <a href="/meu-perfil.html#editar" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span>Editar perfil</span></a>
+    <a href="/perfil.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span><span>Ver meu perfil público</span></a>
+    <a href="/configuracoes.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span><span>Configurações</span></a>
+    <a href="/suporte.html" class="menu-nav-item"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><span>Suporte</span></a>
+    <button type="button" class="menu-nav-item" onclick="FIELDO.Nav.confirmLogout()"><span class="menu-nav-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span>Sair</span></button>
+  </nav>
+  <div class="menu-drawer-foot">Fieldo · <span id="fieldoVerFoot">v10.0</span></div>
+</div>
+
+<main class="page page--narrow" id="obMain" style="padding-top:1rem">
+  <div class="skel ob-skel"></div>
+</main>
+
+<script src="db.js" onerror="document.documentElement.innerHTML='&lt;div style=\'font-family:system-ui;padding:2rem;text-align:center\'&gt;&lt;h2 style=\'font-weight:500\'&gt;Falha ao carregar&lt;/h2&gt;&lt;p style=\'color:#666;line-height:1.6\'&gt;Verifique a conexão. Seus dados continuam salvos.&lt;/p&gt;&lt;button onclick=\'location.reload(true)\' style=\'padding:.8rem 1.5rem;border:0;border-radius:8px;background:#9a7218;color:#fff;font-size:.9rem\'&gt;Recarregar&lt;/button&gt;&lt;/div&gt;'"></script>
+<script>
+/* v12.16 · Obras em andamento — ver o comentário de FIELDO.Obras em db.js. */
+var params = new URLSearchParams(location.search);
+var _obraId = params.get('id');
+var _main = document.getElementById('obMain');
+function esc(s) { return FIELDO.UI.esc(s); }
+function brl(v) { return FIELDO.UI.brl(v); }
+/* Data sem hora ("2026-10-29") vira meia-noite UTC no new Date() e
+   aparece como o dia anterior no Brasil. Aqui a data é lida como está. */
+function dataBr(s) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s || ''));
+  return m ? m[3] + '/' + m[2] + '/' + m[1] : '—';
+}
+function tituloEtapa(r) {
+  var t = FIELDO.Profissoes && FIELDO.Profissoes.tituloServico
+    ? FIELDO.Profissoes.tituloServico(r.service_description, r.category_label) : '';
+  return t || r.category_label || 'Relatório de serviço';
+}
+function lerValor(txt) {
+  /* aceita "12.500,00", "12500", "12500.5", "R$ 1.200" */
+  var s = String(txt || '').replace(/[^\d,.-]/g, '');
+  if (s.indexOf(',') !== -1) s = s.replace(/\./g, '').replace(',', '.');
+  else if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, '');
+  var n = parseFloat(s);
+  return isFinite(n) ? Math.round(n * 100) / 100 : 0;
+}
+function barra(s) {
+  var acima = s.restante < 0;
+  return '<div class="ob-barra' + (acima ? ' ob-barra--acima' : '') + '" role="img" aria-label="' +
+    esc(s.pct + '% do valor da obra já lançado') + '"><span style="width:' + Math.max(acima ? 100 : s.pct, s.lancado > 0 ? 2 : 0) + '%"></span></div>';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (!FIELDO.Auth.isLoggedIn()) { location.href = 'entrar.html'; return; }
+  if (params.get('nova')) return telaNova();
+  if (_obraId) return telaObra(_obraId);
+  telaLista();
+});
+
+/* ── Criar ─────────────────────────────────────────────────── */
+function telaNova(obra) {
+  var editar = !!obra;
+  document.title = (editar ? 'Editar obra' : 'Nova obra') + ' · Fieldo';
+  var o = obra || {};
+  _main.innerHTML =
+    '<a class="ob-voltar" href="' + (editar ? 'obra.html?id=' + esc(o.id) : 'painel.html') + '">‹ ' + (editar ? 'Voltar à obra' : 'Painel') + '</a>' +
+    '<h1 class="ob-tit">' + (editar ? 'Editar obra' : 'Nova obra') + '</h1>' +
+    '<p class="ob-sub">' + (editar
+      ? 'Mudou o combinado? Ajuste aqui. O que já foi lançado continua igual.'
+      : 'Para serviço que leva vários dias. Cada relatório que você fizer nesta obra desconta do valor total, e o cliente vê quanto resta.') + '</p>' +
+    '<form class="card ob-form" id="obForm" novalidate>' +
+      '<div class="field-group"><label class="field-label" for="oCliente">Cliente <span class="required">*</span></label>' +
+        '<input class="field-input" id="oCliente" autocomplete="off" maxlength="120" placeholder="Ex.: Maria Aparecida" value="' + esc(o.cliente || '') + '"/></div>' +
+      '<div class="field-group"><label class="field-label" for="oTitulo">O que é a obra</label>' +
+        '<input class="field-input" id="oTitulo" maxlength="120" placeholder="Ex.: Reforma do banheiro" value="' + esc(o.titulo || '') + '"/></div>' +
+      '<div class="field-group"><label class="field-label" for="oValor">Valor total combinado <span class="required">*</span></label>' +
+        '<div class="ob-valor-wrap"><span>R$</span><input class="field-input" id="oValor" inputmode="decimal" placeholder="0,00" value="' +
+          (o.valor_total ? esc(Number(o.valor_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })) : '') + '"/></div>' +
+        '<div class="field-hint">É o valor da obra inteira. Cada relatório lançado aqui desconta dele.</div></div>' +
+      '<div class="field-group"><label class="field-label" for="oCidade">Cidade</label>' +
+        '<input class="field-input" id="oCidade" maxlength="80" placeholder="Ex.: Caraguatatuba" value="' + esc(o.cidade || '') + '"/>' +
+        '<div class="field-hint">Só a cidade. Vai preenchida nos relatórios desta obra.</div></div>' +
+      '<div class="ob-erro" id="oErro" role="alert"></div>' +
+      '<button class="ob-cta" type="submit" id="oSalvar" style="margin:0">' + (editar ? 'Salvar alterações' : 'Criar obra') + '</button>' +
+    '</form>';
+  if (!editar) {
+    FIELDO.Professionals.me().then(function (p) {
+      var c = document.getElementById('oCidade');
+      if (p && p.city && c && !c.value) c.value = String(p.city).split(/\s*[,–-]\s*/)[0];
+    }).catch(function () {});
+    setTimeout(function () { var c = document.getElementById('oCliente'); if (c) c.focus(); }, 50);
+  }
+  document.getElementById('obForm').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var erro = document.getElementById('oErro'); erro.textContent = '';
+    var dados = {
+      cliente: document.getElementById('oCliente').value,
+      titulo: document.getElementById('oTitulo').value,
+      cidade: document.getElementById('oCidade').value,
+      valor_total: lerValor(document.getElementById('oValor').value),
+    };
+    if (!String(dados.cliente).trim()) { erro.textContent = 'Informe o nome do cliente.'; document.getElementById('oCliente').focus(); return; }
+    if (!(dados.valor_total > 0)) { erro.textContent = 'Informe o valor total combinado.'; document.getElementById('oValor').focus(); return; }
+    var bt = document.getElementById('oSalvar'); bt.disabled = true; bt.textContent = 'Salvando…';
+    var p = editar ? FIELDO.Obras.update(o.id, dados) : FIELDO.Obras.create(dados);
+    p.then(function (salva) {
+      location.href = 'obra.html?id=' + encodeURIComponent((salva && salva.id) || o.id);
+    }).catch(function (e) {
+      bt.disabled = false; bt.textContent = editar ? 'Salvar alterações' : 'Criar obra';
+      erro.textContent = navigator.onLine === false
+        ? 'Sem internet. Criar ou editar obra precisa de conexão; os relatórios da obra funcionam sem.'
+        : (e && e.message && !/^\d|fetch|network/i.test(e.message) ? e.message : 'Não foi possível salvar agora. Tente de novo.');
+    });
+  });
+}
+
+/* ── Lista ─────────────────────────────────────────────────── */
+function telaLista() {
+  document.title = 'Obras · Fieldo';
+  FIELDO.Obras.comSaldo().then(function (obras) {
+    var and = obras.filter(function (o) { return o.status !== 'concluida'; });
+    var ok = obras.filter(function (o) { return o.status === 'concluida'; });
+    function item(o) {
+      var s = o.saldo;
+      return '<li class="ob-item"><a href="obra.html?id=' + esc(o.id) + '">' +
+        '<div class="ob-item-top"><span class="ob-item-nome">' + esc(o.titulo || o.cliente) + '</span>' +
+        '<span class="ob-item-resta"><small>' + (s.restante < 0 ? 'acima' : 'resta') + '</small>' + esc(brl(Math.abs(s.restante))) + '</span></div>' +
+        '<div class="ob-item-sub">' + esc(o.titulo ? o.cliente : (s.etapas.length + (s.etapas.length === 1 ? ' relatório' : ' relatórios'))) + ' · de ' + esc(brl(s.total)) + '</div>' +
+        barra(s) + '</a></li>';
+    }
+    _main.innerHTML =
+      '<a class="ob-voltar" href="painel.html">‹ Painel</a>' +
+      '<div class="ob-cab-lista"><h1 class="ob-tit">Obras</h1><a class="ob-novo" href="obra.html?nova=1">Nova obra</a></div>' +
+      (obras.length ? '' : '<div class="ob-vazio">Nenhuma obra ainda. Crie uma para serviço que leva vários dias: cada relatório desconta do valor total e o cliente acompanha quanto resta.</div>') +
+      (and.length ? '<h2 class="ob-h2">Em andamento</h2><ul class="ob-lista">' + and.map(item).join('') + '</ul>' : '') +
+      (ok.length ? '<h2 class="ob-h2">Concluídas</h2><ul class="ob-lista">' + ok.map(item).join('') + '</ul>' : '');
+  }).catch(function () {
+    _main.innerHTML = '<a class="ob-voltar" href="painel.html">‹ Painel</a><div class="ob-vazio">Não foi possível carregar as obras agora. Tente de novo em instantes.</div>';
+  });
+}
+
+/* ── A obra ────────────────────────────────────────────────── */
+/* v12.40 · situação do contrato no cartão da obra */
+function contratoObra(obraId) {
+  if (!FIELDO.ObraContratos) return;
+  FIELDO.ObraContratos.daObra(obraId).then(function (vs) {
+    var sub = document.getElementById('obContratoSub'), card = document.getElementById('obContrato');
+    if (!sub || !vs || !vs.length) return;
+    var v = vs.filter(function (x) { return x.status === 'assinado'; })[0] ||
+            vs.filter(function (x) { return x.status === 'aguardando_cliente' || x.status === 'rascunho'; })[0] || vs[0];
+    var txt = {
+      assinado: 'Assinado em ' + dataBr(v.concluido_em) + ' · ' + v.numero + (v.versao > 1 ? ' v' + v.versao : ''),
+      aguardando_cliente: 'Aguardando a assinatura do cliente',
+      rascunho: 'Rascunho · toque para terminar e enviar',
+      recusado: 'O cliente recusou · crie uma nova versão',
+      cancelado: 'Cancelado'
+    }[v.status] || v.status;
+    sub.textContent = txt;
+    if (v.status === 'assinado') card.classList.add('ob-ct-ok');
+  }).catch(function () {});
+}
+
+function telaObra(id) {
+  Promise.all([FIELDO.Obras.get(id), FIELDO.Reports.list().catch(function () { return []; })])
+  .then(function (res) {
+    var o = res[0];
+    if (!o) {
+      _main.innerHTML = '<a class="ob-voltar" href="obra.html">‹ Obras</a><div class="ob-vazio">Esta obra não foi encontrada. Ela pode ter sido excluída.</div>';
+      return;
+    }
+    var s = FIELDO.Obras.saldo(o, res[1]);
+    var concluida = o.status === 'concluida';
+    document.title = (o.titulo || o.cliente) + ' · Obra · Fieldo';
+
+    /* O saldo depois de cada etapa: o cliente e o profissional leem a
+       mesma conta, linha a linha. */
+    var corrente = s.total;
+    var linhas = s.etapas.map(function (r) {
+      var v = Math.round((parseFloat(r.valor) || 0) * 100) / 100;
+      corrente = Math.round((corrente - v) * 100) / 100;
+      var st = r._pendingSync ? ['ob-e-st--pend-sync', 'não enviado'] :
+               r.payment_status === 'pago' ? ['ob-e-st--pago', 'pago'] :
+               v > 0 ? ['ob-e-st--pend', 'a receber'] : ['', 'sem valor'];
+      var href = r._pendingSync ? 'painel.html' : 'relatorio.html?id=' + encodeURIComponent(r.id);
+      return '<li class="ob-etapa"><a href="' + href + '">' +
+        '<span class="ob-e-tit">' + esc(tituloEtapa(r)) + '</span>' +
+        '<span class="ob-e-val">' + esc(brl(v)) + '</span>' +
+        '<span class="ob-e-meta">' + dataBr(r.service_date || r.created_at) + ' · restava ' + esc(brl(corrente)) + '</span>' +
+        '<span class="ob-e-st ' + st[0] + '">' + st[1] + '</span>' +
+      '</a></li>';
+    }).reverse();   /* mais recente em cima */
+
+    _main.innerHTML =
+      '<a class="ob-voltar" href="obra.html">‹ Obras</a>' +
+      '<h1 class="ob-tit">' + esc(o.titulo || 'Obra de ' + o.cliente) +
+        '<span class="ob-tag ' + (concluida ? 'ob-tag--ok">Concluída' : 'ob-tag--and">Em andamento') + '</span></h1>' +
+      '<p class="ob-sub">' + esc(o.cliente) + (o.cidade ? ' · ' + esc(o.cidade) : '') + '</p>' +
+
+      '<section class="ob-saldo" aria-label="Saldo da obra">' +
+        '<div class="ob-resta-lbl">' + (s.restante < 0 ? 'Acima do combinado' : 'Resta') + '</div>' +
+        '<div class="ob-resta" id="obResta">' + esc(brl(Math.abs(s.restante))) + '</div>' +
+        '<div class="ob-de">de ' + esc(brl(s.total)) + ' combinados</div>' +
+        barra(s) +
+        '<div class="ob-pct">' + s.pct + '% lançado em ' + s.etapas.length + (s.etapas.length === 1 ? ' relatório' : ' relatórios') + '</div>' +
+        '<div class="ob-nums">' +
+          '<div class="ob-num"><b>' + esc(brl(s.lancado)) + '</b><span>Lançado</span></div>' +
+          '<div class="ob-num"><b>' + esc(brl(s.pago)) + '</b><span>Recebido</span></div>' +
+          '<div class="ob-num"><b>' + esc(brl(s.aReceber)) + '</b><span>A receber</span></div>' +
+        '</div>' +
+        (s.restante < 0 ? '<div class="ob-acima">Os relatórios passaram ' + esc(brl(-s.restante)) + ' do valor combinado. Se houve acréscimo no serviço, ajuste o valor total em Editar obra.</div>' : '') +
+      '</section>' +
+
+      /* v12.40 · contrato da obra: o estado chega depois (contratoObra) */
+      '<a class="ob-ct" id="obContrato" href="contrato-obra.html?obra=' + encodeURIComponent(o.id) + '">' +
+        '<span class="ob-ct-ico" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15l2 2 4-4"/></svg></span>' +
+        '<span class="ob-ct-txt"><span class="ob-ct-tit">Contrato da obra</span><span class="ob-ct-sub" id="obContratoSub">Feche a obra com contrato assinado pelo cliente</span></span>' +
+        '<span class="ob-ct-seta" aria-hidden="true">›</span></a>' +
+
+      (concluida
+        ? '<a class="ob-cta ob-cta--sec" href="servico.html?obra=' + esc(o.id) + '">Lançar mais um relatório</a>'
+        : '<a class="ob-cta" href="servico.html?obra=' + esc(o.id) + '">Novo relatório desta obra</a>') +
+
+      '<h2 class="ob-h2">Relatórios da obra</h2>' +
+      (linhas.length ? '<ul class="ob-etapas">' + linhas.join('') + '</ul>'
+        : '<div class="ob-vazio">Nenhum relatório ainda. Ao terminar uma etapa, toque em <strong>Novo relatório desta obra</strong>: o cliente recebe o relatório com o valor da etapa e quanto resta da obra.</div>') +
+
+      '<div class="ob-acoes">' +
+        '<button type="button" class="ob-bt" id="obEditar">Editar obra</button>' +
+        '<button type="button" class="ob-bt" id="obStatus">' + (concluida ? 'Reabrir obra' : 'Marcar como concluída') + '</button>' +
+        '<button type="button" class="ob-bt ob-bt--perigo" id="obExcluir">Excluir obra</button>' +
+      '</div>';
+
+    contratoObra(o.id);
+    document.getElementById('obEditar').onclick = function () { telaNova(o); };
+    document.getElementById('obStatus').onclick = function () {
+      this.disabled = true;
+      FIELDO.Obras.update(o.id, { status: concluida ? 'andamento' : 'concluida' })
+        .then(function () { FIELDO.UI.toast(concluida ? 'Obra reaberta' : 'Obra concluída'); telaObra(id); })
+        .catch(function () { FIELDO.UI.toast('Não foi possível salvar agora'); telaObra(id); });
+    };
+    /* Excluir pede dois toques no mesmo botão: sem diálogo do navegador,
+       e o segundo toque diz exatamente o que acontece. */
+    var ex = document.getElementById('obExcluir');
+    ex.onclick = function () {
+      if (!ex.classList.contains('armado')) {
+        ex.classList.add('armado');
+        ex.textContent = s.etapas.length ? 'Tocar de novo: excluir a obra (os relatórios ficam)' : 'Tocar de novo para excluir';
+        setTimeout(function () { if (ex.isConnected) { ex.classList.remove('armado'); ex.textContent = 'Excluir obra'; } }, 5000);
+        return;
+      }
+      ex.disabled = true;
+      FIELDO.Obras.remover(o.id)
+        .then(function () { FIELDO.UI.toast('Obra excluída'); location.href = 'obra.html'; })
+        .catch(function () { ex.disabled = false; FIELDO.UI.toast('Não foi possível excluir agora'); });
+    };
+  }).catch(function () {
+    _main.innerHTML = '<a class="ob-voltar" href="obra.html">‹ Obras</a><div class="ob-vazio">Não foi possível carregar esta obra agora. Tente de novo em instantes.</div>';
+  });
+}
+</script>
+<script src="db.obra.contratos.js"></script>
+<script src="/dados-legais.js" defer></script>
+<script src="/consentimento.js" defer></script>
+<script src="/a11y.js" defer></script>
+</body>
+</html>
